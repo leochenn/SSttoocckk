@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="刷新频率(秒)" />
+
+        <EditText
+            android:id="@+id/edit_frequency"
+            android:layout_width="100dp"
+            android:text="60"
+            android:textSize="20sp"
+            android:hint="默认60秒"
+            android:background="@null"
+            android:layout_marginLeft="20dp"
+            android:layout_height="40dp" />
+
+        <Button
+            android:id="@+id/btn_monitor"
+            android:layout_marginLeft="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="startMonitor"
+            android:text="启动监听"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="addStock"
+            android:text="新增股票"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="refresh"
+            android:text="手动刷新"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:orientation="vertical">
+            <TextClock
+                android:id="@+id/tv_currentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15dp"
+                android:textColor="@color/colorPrimary"
+                android:format12Hour="yyyy/MM/dd HH:mm:ss"
+                android:format24Hour="yyyy/MM/dd HH:mm:ss"
+                tools:ignore="NewApi" />
+
+            <TextView
+                android:id="@+id/tv_lastTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15dp"
+                android:textColor="@color/colorPrimary"
+                android:text=""/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <include
+        android:id="@+id/head_layout"
+        layout="@layout/list_item" />
+
+    <ListView
+        android:id="@+id/list_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:cacheColorHint="@android:color/transparent"
+        android:divider="#123456"
+        android:dividerHeight="1dp"/>
+</LinearLayout>

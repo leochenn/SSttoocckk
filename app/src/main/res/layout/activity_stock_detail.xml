@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="代码"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/edit_code"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:singleLine="true"
+            android:textSize="20sp" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="check"
+            android:text="检查" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="choose"
+            android:text="选择" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_currentPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="当前股价状态:"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="低于"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/edit_low"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:text="高于"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/edit_high"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/edit_email1"
+            android:layout_width="80dp"
+            android:singleLine="true"
+            android:layout_height="wrap_content"
+            android:hint="预警邮箱1"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/btn_choose_email1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="choose_email1"
+            android:text="选邮箱" />
+
+        <EditText
+            android:id="@+id/edit_email2"
+            android:layout_width="80dp"
+            android:singleLine="true"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:hint="预警邮箱2"
+            android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/btn_choose_email2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="choose_email2"
+            android:text="选邮箱" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="预警状态开启"
+            android:textSize="20sp" />
+
+        <CheckBox
+            android:id="@+id/checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="delete"
+            android:text="删除" />
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="save"
+            android:text="保存" />
+    </LinearLayout>
+</LinearLayout>
