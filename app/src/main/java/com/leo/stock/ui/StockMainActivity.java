@@ -20,6 +20,7 @@ import com.leo.stock.R;
 import com.leo.stock.biz.StockMainBiz;
 import com.leo.stock.library.util.LogUtil;
 import com.leo.stock.module.monitor.Monitor;
+import com.leo.stock.module.music.Player;
 import com.leo.stock.module.notify.NotifycationHelper;
 import com.leo.stock.ui.adpter.ListViewAdapter;
 import com.leo.stock.ui.widget.CustomHScrollView;
@@ -42,6 +43,8 @@ public class StockMainActivity extends Activity {
 
     private StockMainBiz stockMainBiz;
     private Monitor monitor;
+
+    private Player player;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +85,7 @@ public class StockMainActivity extends Activity {
     public void onItemClick(int position) {
         stockMainBiz.updateStock(position);
     }
+
 
     public void refresh(View view) {
         stockMainBiz.loadSinalStockBeans();
@@ -198,6 +202,24 @@ public class StockMainActivity extends Activity {
                 editFrequecy.setEnabled(true);
             }
         });
+    }
+
+    public void playRing(View view) {
+        if (player == null) {
+            player = new Player(this);
+        }
+        if (player.isPlaying()) {
+            player.stop();
+        } else {
+            player.play();
+        }
+    }
+
+    public void startByMonitor() {
+        if (player == null) {
+            player = new Player(this);
+        }
+        player.play();
     }
 
     class MyTouchLinstener implements View.OnTouchListener {

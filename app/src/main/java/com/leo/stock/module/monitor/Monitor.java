@@ -126,6 +126,13 @@ public class Monitor {
     }
 
     private void sendEmail() {
+        UIHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                stockMainActivity.startByMonitor();
+            }
+        });
+
         ExeOperator.runOnThread(new Runnable() {
             @Override
             public void run() {
