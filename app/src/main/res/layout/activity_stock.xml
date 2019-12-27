@@ -55,12 +55,6 @@
             android:onClick="refresh"
             android:text="手动刷新"/>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="playRing"
-            android:text="停止播放音乐"/>
-
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -84,6 +78,40 @@
                 android:textColor="@color/colorPrimary"
                 android:text=""/>
         </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="播放铃声"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_ring"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="playRing"
+            android:text="停止播放铃声"/>
+
+        <TextView
+            android:layout_marginLeft="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="发邮件"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_email"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"/>
     </LinearLayout>
 
     <include

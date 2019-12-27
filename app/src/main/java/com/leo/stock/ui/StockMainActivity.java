@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -36,6 +37,7 @@ public class StockMainActivity extends Activity {
     private CustomHScrollView mScrollView;
 
     private TextView tvCurrentTime, tvLastTime;
+    private CheckBox checkBoxRing, checkBoxEmail;
 
     private EditText editFrequecy;
     private Button btnStartMonitor;
@@ -220,6 +222,14 @@ public class StockMainActivity extends Activity {
             player = new Player(this);
         }
         player.play();
+    }
+
+    public boolean canRing() {
+        return checkBoxRing.isChecked();
+    }
+
+    public boolean canEmail() {
+        return checkBoxEmail.isChecked();
     }
 
     class MyTouchLinstener implements View.OnTouchListener {

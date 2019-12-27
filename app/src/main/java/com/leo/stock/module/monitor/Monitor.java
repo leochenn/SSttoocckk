@@ -126,20 +126,23 @@ public class Monitor {
     }
 
     private void sendEmail() {
-        UIHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                stockMainActivity.startByMonitor();
-            }
-        });
-
-        ExeOperator.runOnThread(new Runnable() {
-            @Override
-            public void run() {
-                final boolean state = MailHelper.getInstance().sendEmail(emailBeans.email, emailBeans.personal, emailBeans.subject, emailBeans.content);
-                NotifycationHelper.send2(stockMainActivity, (state ? "邮件发送成功" : "邮件发送失败"), emailBeans.subject);
-            }
-        });
+        if (stockMainActivity.canRing()) {
+            UIHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    stockMainActivity.startByMonitor();
+                }
+            });
+        }
+        if (stockMainActivity.canEmail()) {
+            ExeOperator.runOnThread(new Runnable() {
+                @Override
+                public void run() {
+                    final boolean state = MailHelper.getInstance().sendEmail(emailBeans.email, emailBeans.personal, emailBeans.subject, emailBeans.content);
+                    NotifycationHelper.send2(stockMainActivity, (state ? "邮件发送成功" : "邮件发送失败"), emailBeans.subject);
+                }
+            });
+        }
     }
 
     private void addEmailBean(int state, LocalBean localBean, SinaStockBean sinaStockBean) {
