@@ -1,7 +1,6 @@
 package com.leo.stock.module.monitor;
 
 import android.text.TextUtils;
-import android.widget.Toast;
 
 import com.leo.stock.Bean.EmailBeans;
 import com.leo.stock.Bean.LocalBean;
@@ -16,6 +15,7 @@ import com.leo.stock.module.email.MailHelper;
 import com.leo.stock.module.notify.NotifycationHelper;
 import com.leo.stock.ui.StockMainActivity;
 
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -61,18 +61,37 @@ public class Monitor {
         stockMainBiz.loadSinalStockBeans();
     }
 
-    public void timerPaused() {
-        LogUtil.d(TAG, "timerPaused");
+    public boolean isCurrentTimeValid() {
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        int minuteOfDay = hour * 60 + minute;
+
+        final int start = 9 * 60;
+        final int end = 11 * 60 + 31;
+
+        final int start2 = 12 * 60 + 59;
+        final int end2 = 15 * 60 + 1;
+
+        if (minuteOfDay >= start && minuteOfDay <= end) {
+            return true;
+        }
+
+        if (minuteOfDay >= start2 && minuteOfDay <= end2) {
+            return true;
+        }
+
         stop();
 
-        long reStart = 90 * 60 * 1000;
-        start(reStart, frequesy);
-    }
-
-    public void invalidTime() {
-        LogUtil.d(TAG, "invalidTime");
-        stop();
-        stockMainActivity.invalidTime();
+        if (minuteOfDay > end && minuteOfDay < start2) {
+            LogUtil.d(TAG, "中午时间推迟执行");
+            long reStart = (start2 - minuteOfDay) * 60 * 1000;
+            start(reStart, frequesy);
+        } else {
+            LogUtil.d(TAG, "非法时间段");
+            stockMainActivity.invalidTime();
+        }
+        return false;
     }
 
     public void checkNotify() {
@@ -81,7 +100,7 @@ public class Monitor {
         final List<SinaStockBean> sinaStockBeans = stockMainBiz.getSinaStockBeans();
         final List<LocalBean> localBeans = stockMainBiz.getLocalBeans();
         if (localBeans == null || sinaStockBeans == null) {
-            LogUtil.e(TAG, "checkNotify", "data null");
+            LogUtil.e(TAG, "当前无数据,不需要检查预警", "data null");
             return;
         }
 
@@ -122,6 +141,8 @@ public class Monitor {
     }
 
     private void sendEmail() {
+        LogUtil.d("铃声开启状态:" + stockMainActivity.canRing() + ", 邮件开启状态:" + stockMainActivity.canEmail() + ",设置的邮箱为:" + emailBeans.email);
+
         if (stockMainActivity.canRing()) {
             UIHandler.post(new Runnable() {
                 @Override
@@ -130,12 +151,15 @@ public class Monitor {
                 }
             });
         }
+
         if (stockMainActivity.canEmail() && !TextUtils.isEmpty(emailBeans.email)) {
             ExeOperator.runOnThread(new Runnable() {
                 @Override
                 public void run() {
-                    final boolean state = MailHelper.getInstance().sendEmail(emailBeans.email, emailBeans.personal, emailBeans.subject, emailBeans.content);
-                    NotifycationHelper.send2(stockMainActivity, (state ? "邮件发送成功" : "邮件发送失败"), emailBeans.subject);
+                    final boolean state = MailHelper.getInstance().sendEmail(emailBeans.email,
+                            emailBeans.personal, emailBeans.subject, emailBeans.content);
+                    NotifycationHelper.send2(stockMainActivity, (state ? "邮件发送成功" : "邮件发送失败"),
+                            emailBeans.subject);
                 }
             });
         }

@@ -34,7 +34,9 @@ public class EmailBeans {
             LocalBean localBean = bean.localBean;
             SinaStockBean sinaStockBean = bean.sinaStockBean;
 
-            email = localBean.email1;
+            if (localBean.hasEmail()) {
+                email = localBean.getEmail();
+            }
 
             if (!TextUtils.isEmpty(personal)) {
                 personal += ">";

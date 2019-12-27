@@ -19,4 +19,11 @@ public class LocalBean implements Serializable {
     public boolean hasEmail() {
         return !TextUtils.isEmpty(email1) || !TextUtils.isEmpty(email2);
     }
+
+    public String getEmail() {
+        if (!TextUtils.isEmpty(email1)) {
+            return email1;
+        }
+        return email2;
+    }
 }

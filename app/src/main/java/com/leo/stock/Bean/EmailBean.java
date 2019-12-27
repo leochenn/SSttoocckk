@@ -8,10 +8,6 @@ public class EmailBean {
     LocalBean localBean;
     SinaStockBean sinaStockBean;
 
-    public boolean hasEmail() {
-        return localBean.hasEmail();
-    }
-
     public String getState1() {
         return state == EmailBeans.HIGH ? "高价预警" : "低价预警";
     }

@@ -3,7 +3,6 @@ package com.leo.stock.library.base;
 import com.leo.stock.library.util.LogUtil;
 import com.leo.stock.module.monitor.Monitor;
 
-import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -47,8 +46,8 @@ public class LocalTimer extends TimerTask {
             return;
         }
 
-        if (!isTimeValid()) {
-            LogUtil.e(TAG, "非合法时间段");
+        if (!monitor.isCurrentTimeValid()) {
+            LogUtil.e(TAG, "时间不合法");
             return;
         }
 
@@ -60,31 +59,5 @@ public class LocalTimer extends TimerTask {
                 monitor.doScheduleWork();
             }
         });
-    }
-
-    private boolean isTimeValid() {
-        Calendar cal = Calendar.getInstance();
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-        int minuteOfDay = hour * 60 + minute;
-        final int start = 9 * 60 + 24;
-        final int end = 11 * 60 + 31;
-
-        final int start2 = 12 * 60 + 59;
-        final int end2 = 15 * 60 + 1;
-
-        if (minuteOfDay >= start && minuteOfDay <= end) {
-            return true;
-        }
-        if (minuteOfDay >= start2 && minuteOfDay <= end2) {
-            return true;
-        }
-
-        if (minuteOfDay > end && minuteOfDay < start2) {
-            monitor.timerPaused();
-            return false;
-        }
-        monitor.invalidTime();
-        return false;
     }
 }
