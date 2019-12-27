@@ -66,6 +66,8 @@ public class StockMainActivity extends Activity {
     }
 
     private void initView() {
+        checkBoxRing = findViewById(R.id.checkbox_ring);
+        checkBoxEmail = findViewById(R.id.checkbox_email);
         mListView = findViewById(R.id.list_view);
         mScrollView = findViewById(R.id.h_scrollView);
         mHead = findViewById(R.id.head_layout);

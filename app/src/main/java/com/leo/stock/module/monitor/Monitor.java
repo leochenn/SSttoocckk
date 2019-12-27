@@ -1,5 +1,6 @@
 package com.leo.stock.module.monitor;
 
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.leo.stock.Bean.EmailBeans;
@@ -90,11 +91,6 @@ public class Monitor {
                 continue;
             }
 
-            if (!bean.hasEmail()) {
-                LogUtil.e(TAG, "未设置预警邮箱", bean.id);
-                continue;
-            }
-
             for (SinaStockBean sinaStockBean : sinaStockBeans) {
                 if (!bean.id.equals(sinaStockBean.stockId)) {
                     continue;
@@ -134,7 +130,7 @@ public class Monitor {
                 }
             });
         }
-        if (stockMainActivity.canEmail()) {
+        if (stockMainActivity.canEmail() && !TextUtils.isEmpty(emailBeans.email)) {
             ExeOperator.runOnThread(new Runnable() {
                 @Override
                 public void run() {

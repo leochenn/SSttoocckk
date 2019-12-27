@@ -32,7 +32,7 @@ public class Player {
     private void setRingtoneRepeat(Ringtone ringtone) {
         Class<Ringtone> clazz = Ringtone.class;
         try {
-            Field audio = clazz.getDeclaredField("mAudio");
+            Field audio = clazz.getDeclaredField("mLocalPlayer");
             audio.setAccessible(true);
             MediaPlayer target = (MediaPlayer) audio.get(ringtone);
             target.setLooping(true);
