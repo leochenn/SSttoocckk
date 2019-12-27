@@ -1,6 +1,6 @@
 package com.leo.stock.library.retrofit;
 
-import com.leo.stock.library.http.OkHttpManager;
+import okhttp3.internal.platform.OkHttpManager;
 
 import retrofit2.Retrofit;
 
@@ -16,7 +16,7 @@ public class RetrofitHelper {
     private static Retrofit getRetrofit() {
         if (instance == null) {
             Retrofit.Builder builder = new Retrofit.Builder();
-            builder.client(OkHttpManager.getOkHttpClient());
+            builder.client(OkHttpManager.getIntance());
             builder.addConverterFactory(new StringConverterFactory2());
             builder.baseUrl(BASE_URL);
 
