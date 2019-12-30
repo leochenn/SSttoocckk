@@ -115,11 +115,11 @@ public class Monitor {
                     continue;
                 }
 
-                if (bean.low >= sinaStockBean.todayCurrentPrice) {
+                if (bean.low != 0 && bean.low >= sinaStockBean.todayCurrentPrice) {
                     LogUtil.e(TAG, "低价预警", sinaStockBean.stockName);
                     changeBeanMonitor(bean);
                     addEmailBean(EmailBeans.LOW, bean, sinaStockBean);
-                } else if (bean.high <= sinaStockBean.todayCurrentPrice) {
+                } else if (bean.high != 0 && bean.high <= sinaStockBean.todayCurrentPrice) {
                     LogUtil.e(TAG, "高价预警", sinaStockBean.stockName);
                     changeBeanMonitor(bean);
                     addEmailBean(EmailBeans.HIGH, bean, sinaStockBean);
