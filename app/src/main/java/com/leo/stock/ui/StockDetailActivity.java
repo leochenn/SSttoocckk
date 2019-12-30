@@ -30,7 +30,7 @@ public class StockDetailActivity extends Activity {
     private static final String KEY_CODE = "code";
 
     private Button btnDelete;
-    private EditText editCode, editLow, editHigh, editEmail1, editEmail2;
+    private EditText editCode, editLow, editHigh, editEmail1, editEmail2, editBackup;
     private TextView tvCurrentPrice;
     private CheckBox checkBox;
 
@@ -44,6 +44,7 @@ public class StockDetailActivity extends Activity {
         btnDelete = findViewById(R.id.btn_delete);
         tvCurrentPrice = findViewById(R.id.tv_currentPrice);
 
+        editBackup = findViewById(R.id.edit_backup);
         editCode = findViewById(R.id.edit_code);
         editLow = findViewById(R.id.edit_low);
         editHigh = findViewById(R.id.edit_high);
@@ -80,6 +81,10 @@ public class StockDetailActivity extends Activity {
             editEmail2.setText(localBean.email2);
         }
         checkBox.setChecked(localBean.monitorEnable);
+
+        if (!TextUtils.isEmpty(localBean.backup)) {
+            editBackup.setText(localBean.backup);
+        }
     }
 
     public void delete(View view) {
@@ -122,6 +127,7 @@ public class StockDetailActivity extends Activity {
         localBean.monitorEnable = checkBox.isChecked();
         localBean.email1 = editEmail1.getText().toString().trim();
         localBean.email2 = editEmail2.getText().toString().trim();
+        localBean.backup = editBackup.getText().toString().trim();
 
         stockDetailBiz.saveOrUpdate(localBean);
     }

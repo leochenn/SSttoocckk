@@ -15,6 +15,7 @@ public class LocalBean implements Serializable {
 
     public boolean monitorEnable;
     public String email1, email2;
+    public String backup;
 
     public boolean hasEmail() {
         return !TextUtils.isEmpty(email1) || !TextUtils.isEmpty(email2);

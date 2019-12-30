@@ -161,4 +161,10 @@
             android:onClick="save"
             android:text="保存" />
     </LinearLayout>
+
+    <EditText
+        android:id="@+id/edit_backup"
+        android:hint="备注说明"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 </LinearLayout>
