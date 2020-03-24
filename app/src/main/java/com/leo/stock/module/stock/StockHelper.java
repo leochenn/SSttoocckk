@@ -1,5 +1,7 @@
 package com.leo.stock.module.stock;
 
+import android.text.TextUtils;
+
 import com.leo.stock.Bean.SinaStockBean;
 import com.leo.stock.api.SinaService;
 import com.leo.stock.library.base.IRequestListener;
@@ -46,6 +48,34 @@ public class StockHelper {
 //                LogUtil.d("getStock onResponse", sinaStockBean);
                 List<SinaStockBean>  list = StockBeanParser.parse(sinaStockBean);
                 listener.success(list);
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                LogUtil.e("getStock onFailure", call);
+                listener.failed(0, t.getMessage());
+            }
+        });
+    }
+
+    public static void getSimple2(String code, final IRequestListener<SinaStockBean> listener) {
+        String param = "list=sh" + code + ",sz" + code;
+
+        SinaService sinaService = RetrofitHelper.create(SinaService.class);
+        Call<String> call = sinaService.getStockList(param);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                String sinaStockBean = response.body();
+                SinaStockBean sinaStockBean1 = null;
+                List<SinaStockBean> list = StockBeanParser.parse(sinaStockBean);
+                for (SinaStockBean bean : list) {
+                    if (!TextUtils.isEmpty(bean.stockName)) {
+                        sinaStockBean1 = bean;
+                        break;
+                    }
+                }
+                listener.success(sinaStockBean1);
             }
 
             @Override

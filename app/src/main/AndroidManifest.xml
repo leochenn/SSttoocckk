@@ -17,7 +17,7 @@
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
 
         <activity
-            android:name=".ui.StockMainActivity"
+            android:name=".ui.MainActivity"
             android:configChanges='keyboard|keyboardHidden|orientation|screenSize'
             android:windowSoftInputMode="adjustUnspecified|stateHidden"
             android:launchMode="singleTask"
@@ -30,6 +30,16 @@
         </activity>
 
         <activity
+            android:name=".ui.StockMainActivity"
+            android:configChanges='keyboard|keyboardHidden|orientation|screenSize'
+            android:windowSoftInputMode="adjustUnspecified|stateHidden"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Light.NoTitleBar">
+        </activity>
+
+        <activity android:name=".ui.CalculateActivity"/>
+
+        <activity
             android:name=".ui.StockDetailActivity"
             android:configChanges='keyboard|keyboardHidden|orientation|screenSize'
             android:launchMode="singleTask"
@@ -40,6 +50,8 @@
                 <action android:name="com.leo.stock.cancel"/>
             </intent-filter>
         </receiver>
+
+        <service android:name=".module.service.BgService"/>
     </application>
 
 </manifest>

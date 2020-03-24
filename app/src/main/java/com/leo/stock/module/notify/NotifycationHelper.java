@@ -12,6 +12,7 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
 import com.leo.stock.R;
+import com.leo.stock.ui.MainActivity;
 import com.leo.stock.ui.StockMainActivity;
 
 /**
@@ -31,7 +32,7 @@ public class NotifycationHelper {
             manager.createNotificationChannel(notificationChannel);
         }
 
-        Intent intent = new Intent(context, StockMainActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -49,7 +50,7 @@ public class NotifycationHelper {
                         R.mipmap.ic_launcher))
                 .setAutoCancel(false)
                 .setOngoing(false)
-                .setDeleteIntent(pendingIntent)
+                .setContentIntent(pendingIntent)
                 .setDeleteIntent(deletePendingIntent)
                 .build();
         manager.notify(CODE1, notification);

@@ -7,12 +7,7 @@ import java.text.DecimalFormat;
  */
 public class FloatUtil {
 
-    public static float handleFloat2(String value) {
-        float a = Float.parseFloat(value);
-        return handleFloat2(a);
-    }
-
-    public static float handleFloat2(float value) {
+    private static float handleFloatInternal(float value) {
         float b = (float) (Math.round(value * 1000)) / (1000);
         return b;
     }
@@ -21,7 +16,18 @@ public class FloatUtil {
         DecimalFormat decimalFormat = new DecimalFormat("0.000");
         String b = decimalFormat.format(value);
         float c = Float.parseFloat(b);
-        float d = handleFloat2(value);
+        float d = handleFloatInternal(value);
+        if (c != d) {
+            LogUtil.e("handleFloat", value, c, d);
+        }
+        return c;
+    }
+
+    public static float handleFloat2(float value) {
+        DecimalFormat decimalFormat = new DecimalFormat("0.00");
+        String b = decimalFormat.format(value);
+        float c = Float.parseFloat(b);
+        float d = handleFloatInternal(value);
         if (c != d) {
             LogUtil.e("handleFloat", value, c, d);
         }
