@@ -86,7 +86,7 @@ public class CalculateActivity extends Activity {
             public void onClick(View v) {
                 String edit1 = editText1.getText().toString().trim();
                 if (!TextUtils.isEmpty(edit1)) {
-                    float value = FloatUtil.handleFloat(edit1);
+                    float value = FloatUtil.handleFloatString(edit1);
                     showPop(value);
                 }
             }
@@ -190,18 +190,18 @@ public class CalculateActivity extends Activity {
             edit1 = "0";
         }
 
-        float value = FloatUtil.handleFloat(edit1);
+        float value = FloatUtil.handleFloatString(edit1);
 
-        tv1L1.setText("" + FloatUtil.handleFloat(value * 0.99f));
-        tv1L3.setText("" + FloatUtil.handleFloat(value * 0.97f));
-        tv1L5.setText("" + FloatUtil.handleFloat(value * 0.95f));
-        tv1L7.setText("" + FloatUtil.handleFloat(value * 0.93f));
-        tv1L10.setText("" + FloatUtil.handleFloat(value * 0.9f));
-        tv1H1.setText("" + FloatUtil.handleFloat(value * 1.01f));
-        tv1H3.setText("" + FloatUtil.handleFloat(value * 1.03f));
-        tv1H5.setText("" + FloatUtil.handleFloat(value * 1.05f));
-        tv1H7.setText("" + FloatUtil.handleFloat(value * 1.07f));
-        tv1H10.setText("" + FloatUtil.handleFloat(value * 1.1f));
+        tv1L1.setText("" + FloatUtil.handleFloatString(value * 0.99f));
+        tv1L3.setText("" + FloatUtil.handleFloatString(value * 0.97f));
+        tv1L5.setText("" + FloatUtil.handleFloatString(value * 0.95f));
+        tv1L7.setText("" + FloatUtil.handleFloatString(value * 0.93f));
+        tv1L10.setText("" + FloatUtil.handleFloatString(value * 0.9f));
+        tv1H1.setText("" + FloatUtil.handleFloatString(value * 1.01f));
+        tv1H3.setText("" + FloatUtil.handleFloatString(value * 1.03f));
+        tv1H5.setText("" + FloatUtil.handleFloatString(value * 1.05f));
+        tv1H7.setText("" + FloatUtil.handleFloatString(value * 1.07f));
+        tv1H10.setText("" + FloatUtil.handleFloatString(value * 1.1f));
     }
 
     private void edit2() {
@@ -210,18 +210,18 @@ public class CalculateActivity extends Activity {
             edit1 = "0";
         }
 
-        float value = FloatUtil.handleFloat(edit1);
+        float value = FloatUtil.handleFloatString(edit1);
 
-        tv2L1.setText("" + FloatUtil.handleFloat(value * 0.99f));
-        tv2L3.setText("" + FloatUtil.handleFloat(value * 0.97f));
-        tv2L5.setText("" + FloatUtil.handleFloat(value * 0.95f));
-        tv2L7.setText("" + FloatUtil.handleFloat(value * 0.93f));
-        tv2L10.setText("" + FloatUtil.handleFloat(value * 0.9f));
-        tv2H1.setText("" + FloatUtil.handleFloat(value * 1.01f));
-        tv2H3.setText("" + FloatUtil.handleFloat(value * 1.03f));
-        tv2H5.setText("" + FloatUtil.handleFloat(value * 1.05f));
-        tv2H7.setText("" + FloatUtil.handleFloat(value * 1.07f));
-        tv2H10.setText("" + FloatUtil.handleFloat(value * 1.1f));
+        tv2L1.setText("" + FloatUtil.handleFloatString(value * 0.99f));
+        tv2L3.setText("" + FloatUtil.handleFloatString(value * 0.97f));
+        tv2L5.setText("" + FloatUtil.handleFloatString(value * 0.95f));
+        tv2L7.setText("" + FloatUtil.handleFloatString(value * 0.93f));
+        tv2L10.setText("" + FloatUtil.handleFloatString(value * 0.9f));
+        tv2H1.setText("" + FloatUtil.handleFloatString(value * 1.01f));
+        tv2H3.setText("" + FloatUtil.handleFloatString(value * 1.03f));
+        tv2H5.setText("" + FloatUtil.handleFloatString(value * 1.05f));
+        tv2H7.setText("" + FloatUtil.handleFloatString(value * 1.07f));
+        tv2H10.setText("" + FloatUtil.handleFloatString(value * 1.1f));
     }
 
     private void edit12() {
@@ -235,11 +235,11 @@ public class CalculateActivity extends Activity {
             return;
         }
 
-        float value1 = FloatUtil.handleFloat(edit1);
-        float value2 = FloatUtil.handleFloat(edit2);
+        float value1 = FloatUtil.handleFloatString(edit1);
+        float value2 = FloatUtil.handleFloatString(edit2);
 
-        tv12.setText("(价格2-价格1)/价格1:   " + FloatUtil.handleFloat(100f * (value2 - value1) / value1) + "%");
-        tv21.setText("(价格1-价格2)/价格2:   " + FloatUtil.handleFloat(100f * (value1 - value2) / value2) + "%");
+        tv12.setText("(价格2-价格1)/价格1:   " + FloatUtil.handleFloatString(100f * (value2 - value1) / value1) + "%");
+        tv21.setText("(价格1-价格2)/价格2:   " + FloatUtil.handleFloatString(100f * (value1 - value2) / value2) + "%");
     }
 
     public static void lauchByCode(Context context, String code) {

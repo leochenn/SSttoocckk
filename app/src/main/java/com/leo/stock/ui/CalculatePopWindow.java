@@ -56,7 +56,7 @@ public class CalculatePopWindow extends Dialog implements View.OnTouchListener {
             public void afterTextChanged(Editable s) {
                 float fSpace = getEditFloat();
                 try {
-                    String f = FloatUtil.handleFloat(oldPrice + oldPrice * fSpace / 100) + "";
+                    String f = FloatUtil.handleFloatString(oldPrice + oldPrice * fSpace / 100) + "";
                     tvNew.setText(f);
                 } catch (Exception e) {
                     tvNew.setText("" + oldPrice);
@@ -90,7 +90,7 @@ public class CalculatePopWindow extends Dialog implements View.OnTouchListener {
             value = "0";
         }
 
-        return FloatUtil.handleFloat2(FloatUtil.handleFloat(value));
+        return FloatUtil.handleFloatString(FloatUtil.handleFloatString(value), "0.00");
     }
 
     class Action implements Runnable {
@@ -110,7 +110,7 @@ public class CalculatePopWindow extends Dialog implements View.OnTouchListener {
                     fSpace = fSpace - 0.01f;
                 }
 
-                String s = FloatUtil.handleFloat2(fSpace) + "";
+                String s = FloatUtil.handleFloatString(fSpace, "0.00") + "";
                 LogUtil.e(s);
                 editText.setText(s);
                 btnAdd.postDelayed(this, 20);

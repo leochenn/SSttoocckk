@@ -103,7 +103,7 @@ public class StockDetailActivity extends Activity {
         float lowF = 0;
         if (!TextUtils.isEmpty(low)) {
             try {
-                lowF = FloatUtil.handleFloat(low);
+                lowF = FloatUtil.handleFloatString(low);
             } catch (Exception e) {
                 Toast.makeText(this, "请填写正确的数值", Toast.LENGTH_SHORT).show();
                 return;
@@ -113,7 +113,7 @@ public class StockDetailActivity extends Activity {
         float highF = 0;
         if (!TextUtils.isEmpty(high)) {
             try {
-                highF = FloatUtil.handleFloat(high);
+                highF = FloatUtil.handleFloatString(high);
             } catch (Exception e) {
                 Toast.makeText(this, "请填写正确的数值", Toast.LENGTH_SHORT).show();
                 return;
