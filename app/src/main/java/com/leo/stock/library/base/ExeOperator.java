@@ -26,4 +26,8 @@ public final class ExeOperator {
     public static void runOnThread(Runnable action) {
         getExecutor().execute(action);
     }
+
+    public static void runOnThreadDelay(Runnable action, long delay) {
+        UIHandler.postDelay(action, delay);
+    }
 }

@@ -12,18 +12,19 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
 import com.leo.stock.R;
+import com.leo.stock.module.service.BgService;
 import com.leo.stock.ui.MainActivity;
-import com.leo.stock.ui.StockMainActivity;
 
 /**
  * Created by Leo on 2019/12/25.
  */
 public class NotifycationHelper {
 
-    static final int CODE1 = 123;
-    static final int CODE2 = 124;
+    static final int CODE_LAUCH = 123;
+    static final int CODE_EMAIL = 124;
+    static final int CODE_TIP = 125;
 
-    public static void send(Context context) {
+    public static void lauch(Context context) {
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -43,7 +44,7 @@ public class NotifycationHelper {
 
         Notification notification = new NotificationCompat.Builder(context, "2")
                 .setContentTitle("StockApp")
-                .setContentText("正在运行中")
+                .setContentText("服务运行状态:" + BgService.isRunning())
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
@@ -53,10 +54,18 @@ public class NotifycationHelper {
                 .setContentIntent(pendingIntent)
                 .setDeleteIntent(deletePendingIntent)
                 .build();
-        manager.notify(CODE1, notification);
+        manager.notify(CODE_LAUCH, notification);
     }
 
-    public static void send2(Context context, String title, String content) {
+    public static void sendEmail(Context context, String title, String content) {
+        sendMsg(context, title, content, CODE_EMAIL);
+    }
+
+    public static void sendTip(Context context, String title, String content) {
+        sendMsg(context, title, content, CODE_TIP);
+    }
+
+    public static void sendMsg(Context context, String title, String content, int code) {
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -79,12 +88,13 @@ public class NotifycationHelper {
                         R.mipmap.ic_launcher))
                 .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_ALL | Notification.DEFAULT_SOUND)
                 .build();
-        manager.notify(CODE2, notification);
+        manager.notify(code, notification);
     }
 
     public static void cancel(Context context) {
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancelAll();
+//        notificationManager.cancelAll();
+        notificationManager.cancel(CODE_LAUCH);
     }
 }

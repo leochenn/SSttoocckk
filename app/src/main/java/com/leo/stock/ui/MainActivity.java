@@ -43,14 +43,27 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
 
         if (v == btnService) {
-            Intent intent = new Intent(this, BgService.class);
             if (BgService.isRunning()) {
-                stopService(intent);
+                BgService.stopService(this);
                 btnService.setText("启动服务");
             } else {
-                startService(intent);
+                BgService.startService(this);
                 btnService.setText("停止服务");
             }
         }
+    }
+
+    public void goToNew(View view) {
+    }
+
+    public void goToOld(View view) {
+        startActivity(new Intent(this, StockMainActivity.class));
+    }
+
+    public void goToSet(View view) {
+//        邮箱，key；
+//        刷新时间间隔；
+//        铃声，邮箱；
+//        铃声响几声
     }
 }

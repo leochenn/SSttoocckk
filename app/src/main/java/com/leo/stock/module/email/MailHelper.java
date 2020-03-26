@@ -30,6 +30,7 @@ import javax.mail.internet.MimeMultipart;
  */
 public class MailHelper {
 
+    // https://service.mail.qq.com/cgi-bin/help?subtype=1&&no=1001256&&id=28
     private static MailHelper instance;
     private static final String TAG = "MailHelper";
 
@@ -82,9 +83,9 @@ public class MailHelper {
             msg.setSubject(subject);
             msg.setText(text);
             transportSend(msg);
-            LogUtil.d(TAG, "sendEmail success", email, personal, subject, text);
+            LogUtil.d(TAG, "sendEmail success");
         } catch (Exception e) {
-            LogUtil.e(e, TAG, "sendEmail", subject, text, email);
+            LogUtil.e(e, TAG, "sendEmail");
             state = false;
         }
         return state;

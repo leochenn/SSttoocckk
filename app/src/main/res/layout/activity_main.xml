@@ -7,6 +7,13 @@
     android:orientation="vertical">
 
     <Button
+        android:id="@+id/btn_stockMain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="goToOld"
+        android:text="老版本"/>
+
+    <Button
         android:id="@+id/btn_calculate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,4 +24,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="启动服务"/>
+
+    <Button
+        android:id="@+id/btn_new_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="goToNew"
+        android:text="新版本"/>
+
+    <Button
+        android:id="@+id/btn_set"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="goToSet"
+        android:text="设置"/>
 </LinearLayout>

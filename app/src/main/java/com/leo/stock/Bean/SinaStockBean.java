@@ -40,7 +40,7 @@ public class SinaStockBean {
     public long amount;
 
     // 10 成交额,单位为“元”，为了一目了然，通常以“万元”为成交金额的单位，所以通常把该值除以一万
-    public long turnover;
+    public double turnover;
 
     // 11 买一数量,申请4695股，即47手
     public long buyCount1;

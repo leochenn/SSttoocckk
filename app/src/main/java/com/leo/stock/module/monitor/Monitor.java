@@ -158,7 +158,7 @@ public class Monitor {
                 public void run() {
                     final boolean state = MailHelper.getInstance().sendEmail(emailBeans.email,
                             emailBeans.personal, emailBeans.subject, emailBeans.content);
-                    NotifycationHelper.send2(stockMainActivity, (state ? "邮件发送成功" : "邮件发送失败"),
+                    NotifycationHelper.sendEmail(stockMainActivity, (state ? "邮件发送成功" : "邮件发送失败"),
                             emailBeans.subject);
                 }
             });

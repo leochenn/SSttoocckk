@@ -10,7 +10,6 @@ import com.leo.stock.library.base.IRequestListener;
 import com.leo.stock.library.base.UIHandler;
 import com.leo.stock.library.io.FileIO;
 import com.leo.stock.library.util.LogUtil;
-import com.leo.stock.module.monitor.Monitor;
 import com.leo.stock.module.stock.SinaRequestParam;
 import com.leo.stock.module.stock.StockHelper;
 import com.leo.stock.ui.StockDetailActivity;

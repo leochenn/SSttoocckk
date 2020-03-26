@@ -12,7 +12,7 @@ import java.util.List;
  */
 public class StockBeanParser {
 
-    public static SinaStockBean parseSimple(String data) {
+    public static SinaStockBean parse2(String data) {
         SinaStockBean stockBean = parseOne(data);
         return stockBean;
     }
@@ -82,7 +82,7 @@ public class StockBeanParser {
 
             String strTurnOver = values[9].replace(".000", "");
             try {
-                stockBean.turnover = Long.parseLong(strTurnOver);
+                stockBean.turnover = Double.parseDouble(strTurnOver);
             } catch (Exception e) {
                 LogUtil.e(e, "turnover", strTurnOver);
             }

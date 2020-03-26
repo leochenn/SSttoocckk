@@ -1,6 +1,7 @@
 package com.leo.stock.module.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -22,13 +23,25 @@ public class BgService extends Service {
         super.onCreate();
         LogUtil.d(TAG, "onCreate");
         isRunning = true;
-        NotifycationHelper.send(this);
+        NotifycationHelper.lauch(this);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        LogUtil.d(TAG, "onStartCommand");
+        StockMonitorMgr.getInstance().start();
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    public static boolean isRunning() {
+        return isRunning;
     }
 
     @Override
     public void onDestroy() {
         LogUtil.d(TAG, "onDestroy");
         isRunning = false;
+        StockMonitorMgr.destroy();
         NotifycationHelper.cancel(this);
         super.onDestroy();
     }
@@ -40,13 +53,11 @@ public class BgService extends Service {
         return null;
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        LogUtil.d(TAG, "onStartCommand");
-        return super.onStartCommand(intent, flags, startId);
+    public static void stopService(Context context) {
+        context.stopService(new Intent(context, BgService.class));
     }
 
-    public static boolean isRunning() {
-        return isRunning;
+    public static void startService(Context context) {
+        context.startService(new Intent(context, BgService.class));
     }
 }
