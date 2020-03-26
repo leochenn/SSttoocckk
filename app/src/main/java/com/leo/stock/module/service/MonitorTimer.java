@@ -22,8 +22,8 @@ public class MonitorTimer {
     Context context;
     Timer timer;
     List<MonitorBean> monitorBeanList;
-    // -1 获取失败 0 初始 1正在获取
-    int state;
+    // 获取失败次数
+    int failedCount;
 
     public MonitorTimer(Context context, List<MonitorBean> monitorBeanList) {
         this.context = context;
@@ -110,23 +110,22 @@ public class MonitorTimer {
     }
 
     private void loadPrice() {
-        if (state == -1) {
-            LogUtil.e(TAG, "上次获取失败");
+        if (failedCount > 3) {
+            handleFail("获取实时价格失败三次");
             return;
         }
 
-        state = 1;
         StockHelper.getSimpleStockList(monitorBeanList, new IRequestListener<List<MonitorBean>>() {
             @Override
             public void success(List<MonitorBean> data) {
-                state = 0;
+                failedCount = 0;
                 StockMonitorMgr.getInstance().checkMonitorBean(monitorBeanList);
             }
 
             @Override
             public void failed(int code, String error) {
-                state = -1;
-                handleFail("获取实时价格失败" + error);
+                failedCount++;
+                startTimer();
             }
         });
     }

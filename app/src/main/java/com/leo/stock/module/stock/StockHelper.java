@@ -50,6 +50,7 @@ public class StockHelper {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 String sinaStockBean = response.body();
+//                LogUtil.d("onResponse\n" + sinaStockBean + "\n");
                 List<SinaStockBean> list = StockBeanParser.parse(sinaStockBean);
 
                 for (int index = 0; index < monitorBeanList.size(); index++) {
