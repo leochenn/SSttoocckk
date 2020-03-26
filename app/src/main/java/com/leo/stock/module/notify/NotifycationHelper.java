@@ -15,6 +15,8 @@ import com.leo.stock.R;
 import com.leo.stock.module.service.BgService;
 import com.leo.stock.ui.MainActivity;
 
+import java.util.Calendar;
+
 /**
  * Created by Leo on 2019/12/25.
  */
@@ -42,9 +44,14 @@ public class NotifycationHelper {
         PendingIntent deletePendingIntent = PendingIntent.getBroadcast(context, 1, deleteIntent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
 
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        String title = hour + ":" + minute + "_服务状态:" + BgService.isRunning();
+
         Notification notification = new NotificationCompat.Builder(context, "2")
                 .setContentTitle("StockApp")
-                .setContentText("服务运行状态:" + BgService.isRunning())
+                .setContentText(title)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
@@ -78,6 +85,12 @@ public class NotifycationHelper {
         }
 
         //这里的第二个参数要和上面的第一个参数一样
+
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        title = hour + ":" + minute + "_" + title;
+
         Notification notification = new NotificationCompat.Builder(context, "1")
                 .setContentTitle(title)
                 .setContentText(content)

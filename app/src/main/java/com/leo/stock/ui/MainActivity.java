@@ -43,13 +43,23 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
 
         if (v == btnService) {
+            btnService.setEnabled(false);
             if (BgService.isRunning()) {
                 BgService.stopService(this);
-                btnService.setText("启动服务");
             } else {
                 BgService.startService(this);
-                btnService.setText("停止服务");
             }
+            btnService.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    btnService.setEnabled(true);
+                    if (BgService.isRunning()) {
+                        btnService.setText("停止服务");
+                    } else {
+                        btnService.setText("启动服务");
+                    }
+                }
+            }, 3000);
         }
     }
 

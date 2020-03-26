@@ -14,9 +14,6 @@ public class MonitorBean {
 
     public String name;
 
-    // 涨跌几个点警报
-    public float alarmSpace;
-
     // 上一次警报状态 1 上涨 2下跌
     public int lastAlarmState;
 

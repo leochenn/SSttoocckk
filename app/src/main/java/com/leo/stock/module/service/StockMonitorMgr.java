@@ -44,7 +44,7 @@ public class StockMonitorMgr {
     }
 
     public void start() {
-        HttpUrl url = HttpUrl.get("https://files.cnblogs.com/files/Leochen3155/1.zip");
+        HttpUrl url = HttpUrl.get("https://leochenandroid.gitee.io/stock/stockids.txt");
         Request request = new Request.Builder().get().url(url).build();
         OkHttpManager.getIntance().newCall(request).enqueue(new Callback() {
             @Override
@@ -98,10 +98,16 @@ public class StockMonitorMgr {
 
             if (Float.compare(bean.currentPrice, high) > 0) {
                 alarmBean.set(true, bean);
+                bean.lastAlarmPrice = bean.currentPrice;
+                bean.lastAlarmState = 1;
+                bean.lastAlarmTime = System.currentTimeMillis();
             }
 
             if (Float.compare(bean.currentPrice, low) < 0) {
                 alarmBean.set(false, bean);
+                bean.lastAlarmPrice = bean.currentPrice;
+                bean.lastAlarmState = 2;
+                bean.lastAlarmTime = System.currentTimeMillis();
             }
         }
 
@@ -132,7 +138,8 @@ public class StockMonitorMgr {
             ExeOperator.runOnThread(new Runnable() {
                 @Override
                 public void run() {
-                    final boolean state = MailHelper.getInstance().sendEmail(Config.RECIEVE_ADDRESS,
+                    boolean state = true;
+                    state = MailHelper.getInstance().sendEmail(Config.RECIEVE_ADDRESS,
                             alarmBean.getEmailPersonal(), alarmBean.emailSubject, alarmBean.emailContent);
                     NotifycationHelper.sendEmail(context, (state ? "邮件发送成功" : "邮件发送失败"),
                             alarmBean.emailSubject);
