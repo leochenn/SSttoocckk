@@ -1,36 +1,38 @@
 package com.leo.stock.module.service;
 
+import android.content.Context;
+
 /**
  * Created by Leo on 2020/3/25.
  */
 public class Settings {
 
     // 刷新间隔
-    public static int getRefreshInterval() {
-        return 3 * 1000;
+    public static int getRefreshInterval(Context context) {
+        return SpUtil.getInt(context, "edit_refresh", 10);
     }
 
-    public static boolean isEmailAlarmEnable() {
-        return true;
+    public static boolean isEmailAlarmEnable(Context context) {
+        return SpUtil.getBoolean(context, "cb_email", true);
     }
 
-    public static boolean isNotifyAlarmEnable() {
-        return true;
+    public static boolean isNotifyAlarmEnable(Context context) {
+        return SpUtil.getBoolean(context, "cb_notify", true);
     }
 
-    public static boolean isSoundAlarmEnable() {
-        return true;
+    public static boolean isSoundAlarmEnable(Context context) {
+        return SpUtil.getBoolean(context, "cb_sound", true);
     }
 
-    public static int soundAlarmCount() {
-        return 3;
+    public static int soundAlarmCount(Context context) {
+        return SpUtil.getInt(context, "edit_soundcount", 3);
     }
 
-    public static float getPriceHighAlarmInterval() {
-        return 3;
+    public static float getPriceHighAlarmInterval(Context context) {
+        return SpUtil.getFloat(context, "edit_high", 3);
     }
 
-    public static float getPriceLowAlarmInterval() {
-        return 3;
+    public static float getPriceLowAlarmInterval(Context context) {
+        return SpUtil.getFloat(context, "edit_low", 3);
     }
 }

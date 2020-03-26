@@ -71,9 +71,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     public void goToSet(View view) {
-//        邮箱，key；
-//        刷新时间间隔；
-//        铃声，邮箱；
-//        铃声响几声
+        startActivity(new Intent(this, SettingActivity.class));
     }
 }

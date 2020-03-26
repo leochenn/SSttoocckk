@@ -93,8 +93,8 @@ public class StockMonitorMgr {
                 bean.lastAlarmPrice = bean.yestodayPrice;
             }
 
-            float high = bean.lastAlarmPrice * (1 + Settings.getPriceHighAlarmInterval() / 100);
-            float low = bean.lastAlarmPrice * (1 - Settings.getPriceLowAlarmInterval() / 100);
+            float high = bean.lastAlarmPrice * (1 + Settings.getPriceHighAlarmInterval(context) / 100);
+            float low = bean.lastAlarmPrice * (1 - Settings.getPriceLowAlarmInterval(context) / 100);
 
             if (Float.compare(bean.currentPrice, high) > 0) {
                 alarmBean.set(true, bean);
@@ -134,7 +134,7 @@ public class StockMonitorMgr {
         LogUtil.e(TAG, "alarm!!!");
         LogUtil.d(TAG, alarmBean);
 
-        if (Settings.isEmailAlarmEnable()) {
+        if (Settings.isEmailAlarmEnable(context)) {
             ExeOperator.runOnThread(new Runnable() {
                 @Override
                 public void run() {
@@ -147,11 +147,11 @@ public class StockMonitorMgr {
             });
         }
 
-        if (Settings.isSoundAlarmEnable()) {
+        if (Settings.isSoundAlarmEnable(context)) {
 
         }
 
-        if (Settings.isNotifyAlarmEnable()) {
+        if (Settings.isNotifyAlarmEnable(context)) {
 
         }
     }

@@ -39,6 +39,8 @@
 
         <activity android:name=".ui.CalculateActivity"/>
 
+        <activity android:name=".ui.SettingActivity"/>
+
         <activity
             android:name=".ui.StockDetailActivity"
             android:configChanges='keyboard|keyboardHidden|orientation|screenSize'

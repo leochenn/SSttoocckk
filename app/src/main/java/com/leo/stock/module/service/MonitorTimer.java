@@ -106,7 +106,7 @@ public class MonitorTimer {
             public void run() {
                 checkTimeValid();
             }
-        }, Settings.getRefreshInterval());
+        }, Settings.getRefreshInterval(context));
     }
 
     private void loadPrice() {
