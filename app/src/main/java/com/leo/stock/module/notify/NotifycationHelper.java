@@ -26,15 +26,28 @@ public class NotifycationHelper {
     static final int CODE_EMAIL = 124;
     static final int CODE_TIP = 125;
 
-    public static void lauch(Context context) {
+    private static NotificationManager getNM(Context context, String channelId) {
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel notificationChannel = new NotificationChannel("2", "name",
+            //只在Android O之上需要渠道，这里的第一个参数要和下面的channelId一样
+            NotificationChannel notificationChannel = new NotificationChannel(channelId, "name",
                     NotificationManager.IMPORTANCE_HIGH);
+            //如果这里用IMPORTANCE_NOENE就需要在系统的设置里面开启渠道，通知才能正常弹出
             manager.createNotificationChannel(notificationChannel);
         }
+        return manager;
+    }
 
+    private static String getTime() {
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        return hour + ":" + minute;
+    }
+
+    private static Notification createLauchNotification(Context context, String channelId,
+                                                        String title, String content) {
         Intent intent = new Intent(context, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
@@ -44,14 +57,9 @@ public class NotifycationHelper {
         PendingIntent deletePendingIntent = PendingIntent.getBroadcast(context, 1, deleteIntent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
 
-        Calendar cal = Calendar.getInstance();
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-        String title = hour + ":" + minute + "_服务状态:" + BgService.isRunning();
-
-        Notification notification = new NotificationCompat.Builder(context, "2")
-                .setContentTitle("StockApp")
-                .setContentText(title)
+        Notification notification = new NotificationCompat.Builder(context, channelId)
+                .setContentTitle(title)
+                .setContentText(content)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
@@ -61,6 +69,14 @@ public class NotifycationHelper {
                 .setContentIntent(pendingIntent)
                 .setDeleteIntent(deletePendingIntent)
                 .build();
+        return notification;
+    }
+
+    public static void lauch(Context context, String content) {
+        String channelId = "101";
+        String title = "服务" + (BgService.isRunning() ? "开启" : "关闭") + getTime();
+        Notification notification = createLauchNotification(context, channelId, title, content);
+        NotificationManager manager = getNM(context, channelId);
         manager.notify(CODE_LAUCH, notification);
     }
 
@@ -72,26 +88,9 @@ public class NotifycationHelper {
         sendMsg(context, title, content, CODE_TIP);
     }
 
-    public static void sendMsg(Context context, String title, String content, int code) {
-        NotificationManager manager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            //只在Android O之上需要渠道，这里的第一个参数要和下面的channelId一样
-            NotificationChannel notificationChannel = new NotificationChannel("1", "name",
-                    NotificationManager.IMPORTANCE_HIGH);
-            //如果这里用IMPORTANCE_NOENE就需要在系统的设置里面开启渠道，通知才能正常弹出
-            manager.createNotificationChannel(notificationChannel);
-        }
-
-        //这里的第二个参数要和上面的第一个参数一样
-
-        Calendar cal = Calendar.getInstance();
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-        title = hour + ":" + minute + "_" + title;
-
-        Notification notification = new NotificationCompat.Builder(context, "1")
+    private static Notification createNormalNotification(Context context, String channelId,
+                                                         String title, String content) {
+        return new NotificationCompat.Builder(context, channelId)
                 .setContentTitle(title)
                 .setContentText(content)
                 .setWhen(System.currentTimeMillis())
@@ -101,6 +100,15 @@ public class NotifycationHelper {
                         R.drawable.ic_launcher))
                 .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_ALL | Notification.DEFAULT_SOUND)
                 .build();
+    }
+
+    public static void sendMsg(Context context, String title, String content, int code) {
+        String channelId = "102";
+        NotificationManager manager = getNM(context, channelId);
+
+        title = getTime() + "_" + title;
+
+        Notification notification = createNormalNotification(context, channelId, title, content);
         manager.notify(code, notification);
     }
 

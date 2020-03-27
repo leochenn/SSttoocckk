@@ -23,7 +23,7 @@ public class BgService extends Service {
         super.onCreate();
         LogUtil.d(TAG, "onCreate");
         isRunning = true;
-        NotifycationHelper.lauch(this);
+        NotifycationHelper.lauch(this, "常规启动");
     }
 
     @Override

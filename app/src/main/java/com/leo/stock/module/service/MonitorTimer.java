@@ -85,6 +85,7 @@ public class MonitorTimer {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                LogUtil.d(TAG, "延期执行恢复");
                 checkTimeValid();
             }
         }, delay);

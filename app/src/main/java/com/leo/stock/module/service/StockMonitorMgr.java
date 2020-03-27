@@ -106,6 +106,11 @@ public class StockMonitorMgr {
 
             if (Float.compare(bean.currentPrice, 0) > 0) {
                 //  更新上证指数
+                if (bean.code.contains("000001")) {
+                    // 成交量
+                    String content = bean.currentPrice + ",   " + bean.getHLSpace() + ",  " + bean.getHL();
+                    NotifycationHelper.lauch(context, content);
+                }
 
                 if (Float.compare(bean.currentPrice, high) > 0) {
                     alarmBean.set(true, bean);
@@ -150,7 +155,7 @@ public class StockMonitorMgr {
         }
         lastAlarmTime = currentTime;
 
-        LogUtil.e(TAG, "alarm!!!");
+        LogUtil.e(TAG, "警报");
         LogUtil.d(TAG, alarmBean);
 
         if (Settings.isEmailAlarmEnable(context)) {

@@ -54,7 +54,7 @@ public class StockMainActivity extends Activity {
         setContentView(R.layout.activity_stock);
         initView();
         startLoad();
-        NotifycationHelper.lauch(this.getApplicationContext());
+        NotifycationHelper.lauch(this.getApplicationContext(), "");
     }
 
     @Override

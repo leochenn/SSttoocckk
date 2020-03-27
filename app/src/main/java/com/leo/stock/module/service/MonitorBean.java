@@ -4,6 +4,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.leo.stock.Bean.SinaStockBean;
+import com.leo.stock.library.util.FloatUtil;
 import com.leo.stock.library.util.LogUtil;
 
 /**
@@ -63,10 +64,13 @@ public class MonitorBean {
         return "sh" + code;
     }
 
-    public boolean equals(@Nullable MonitorBean obj) {
-        if (code.equals(obj.code)) {
-            return true;
-        }
-        return super.equals(obj);
+    // 计算涨跌幅度
+    public String getHLSpace() {
+        float valuef = FloatUtil.handleFloatString((currentPrice - yestodayPrice) / yestodayPrice, "0.00") * 100;
+        return valuef + "%";
+    }
+
+    public Float getHL() {
+        return FloatUtil.handleFloatString(currentPrice - yestodayPrice, "0.00");
     }
 }

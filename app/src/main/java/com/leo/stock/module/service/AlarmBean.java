@@ -29,15 +29,12 @@ public class AlarmBean {
             lowCount++;
         }
 
-        float valuef = FloatUtil.handleFloatString((bean.currentPrice - bean.yestodayPrice) / bean.yestodayPrice, "0.00") * 100;
-        String value = valuef + "%";
-
         if (!TextUtils.isEmpty(emailSubject)) {
             emailSubject += ",";
         } else {
             emailSubject = "";
         }
-        emailSubject += bean.name + value;
+        emailSubject += bean.name + bean.getHLSpace();
         emailSubject = emailSubject.replaceAll("转债", "");
 
         if (TextUtils.isEmpty(emailContent)) {
@@ -46,7 +43,7 @@ public class AlarmBean {
             emailContent += "\n";
         }
 
-        emailContent += bean.name + value + "_" + bean.currentPrice + ",昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice;
+        emailContent += bean.name + bean.getHLSpace() + "_" + bean.currentPrice + ",昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice;
         emailContent = emailContent.replaceAll("转债", "");
     }
 
@@ -70,7 +67,7 @@ public class AlarmBean {
 
     @Override
     public String toString() {
-        return "emailPersonal:\n" + getEmailPersonal() + ",\nemailSubject:\n" + emailSubject +
+        return "emailPersonal:\n" + emailPersonal + ",\nemailSubject:\n" + emailSubject +
                 ",\nemailContent:\n" + emailContent;
     }
 }
