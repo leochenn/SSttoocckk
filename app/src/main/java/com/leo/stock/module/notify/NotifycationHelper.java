@@ -53,9 +53,9 @@ public class NotifycationHelper {
                 .setContentTitle("StockApp")
                 .setContentText(title)
                 .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_launcher)
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
-                        R.mipmap.ic_launcher))
+                        R.drawable.ic_launcher))
                 .setAutoCancel(false)
                 .setOngoing(false)
                 .setContentIntent(pendingIntent)
@@ -95,10 +95,10 @@ public class NotifycationHelper {
                 .setContentTitle(title)
                 .setContentText(content)
                 .setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_launcher)
                 .setLights(Color.GREEN, 1000, 1000)
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
-                        R.mipmap.ic_launcher))
+                        R.drawable.ic_launcher))
                 .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_ALL | Notification.DEFAULT_SOUND)
                 .build();
         manager.notify(code, notification);

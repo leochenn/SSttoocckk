@@ -105,6 +105,8 @@ public class StockMonitorMgr {
             float low = bean.lastAlarmPrice * (1 - Settings.getPriceLowAlarmInterval(context) / 100);
 
             if (Float.compare(bean.currentPrice, 0) > 0) {
+                //  更新上证指数
+
                 if (Float.compare(bean.currentPrice, high) > 0) {
                     alarmBean.set(true, bean);
                     bean.lastAlarmPrice = bean.currentPrice;
