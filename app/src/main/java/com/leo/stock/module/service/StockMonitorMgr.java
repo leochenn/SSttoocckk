@@ -1,6 +1,7 @@
 package com.leo.stock.module.service;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.leo.stock.App;
 import com.leo.stock.library.base.ExeOperator;
@@ -44,7 +45,10 @@ public class StockMonitorMgr {
     }
 
     public void start() {
-        HttpUrl url = HttpUrl.get("https://leochenandroid.gitee.io/stock/stockids.txt");
+        String url = "https://leochenandroid.gitee.io/stock/stockids.txt";
+        url = "http://172.16.162.17/stockid.txt";
+
+//        HttpUrl httpUrl = HttpUrl.get("https://leochenandroid.gitee.io/stock/stockids.txt");
         Request request = new Request.Builder().get().url(url).build();
         OkHttpManager.getIntance().newCall(request).enqueue(new Callback() {
             @Override
@@ -54,17 +58,24 @@ public class StockMonitorMgr {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                LogUtil.d(TAG, "获取代码列表成功");
-
                 List<MonitorBean> beanList = new ArrayList<>();
 
                 try {
                     BufferedReader reader =
                             new BufferedReader(new InputStreamReader(response.body().byteStream()));
                     String line = null;
-                    while ((line = reader.readLine()) != null) {
+                    boolean hasSh = false;
+                    while (!TextUtils.isEmpty(line = reader.readLine())) {
                         MonitorBean bean = new MonitorBean();
                         bean.code = line;
+                        if (line.contains("000001")) {
+                            hasSh = true;
+                        }
+                        beanList.add(bean);
+                    }
+                    if (!hasSh) {
+                        MonitorBean bean = new MonitorBean();
+                        bean.code = "000001";
                         beanList.add(bean);
                     }
                 } catch (Exception e) {
@@ -74,6 +85,7 @@ public class StockMonitorMgr {
                 if (beanList.isEmpty()) {
                     handleFail("获取代码列表为空");
                 } else {
+                    LogUtil.d(TAG, "代码数量:" + beanList.size());
                     monitorTimer = new MonitorTimer(context, beanList);
                     monitorTimer.start();
                 }
@@ -106,6 +118,8 @@ public class StockMonitorMgr {
                     bean.lastAlarmState = 2;
                     bean.lastAlarmTime = System.currentTimeMillis();
                 }
+            } else {
+                LogUtil.e(TAG, "checkMonitorBean 股价异常:" + bean.code + bean.name + bean.currentPrice);
             }
         }
 

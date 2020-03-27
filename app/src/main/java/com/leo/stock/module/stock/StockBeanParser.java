@@ -1,5 +1,7 @@
 package com.leo.stock.module.stock;
 
+import android.text.TextUtils;
+
 import com.leo.stock.Bean.SinaStockBean;
 import com.leo.stock.library.util.FloatUtil;
 import com.leo.stock.library.util.LogUtil;
@@ -26,7 +28,9 @@ public class StockBeanParser {
 
         for (String stock : stocks) {
             SinaStockBean stockBean = parseOne(stock);
-            list.add(stockBean);
+            if (!TextUtils.isEmpty(stockBean.stockId)) {
+                list.add(stockBean);
+            }
         }
         return list;
     }

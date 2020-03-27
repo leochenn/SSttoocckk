@@ -50,8 +50,21 @@ public class StockHelper {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 String sinaStockBean = response.body();
-//                LogUtil.d("onResponse\n" + sinaStockBean + "\n");
                 List<SinaStockBean> list = StockBeanParser.parse(sinaStockBean);
+
+                if (list == null || list.isEmpty()) {
+                    LogUtil.e("获取实时价格解析失败");
+                    LogUtil.d("onResponse\n" + sinaStockBean + "\n");
+                    listener.failed(0, "获取实时价格解析失败");
+                    return;
+                }
+
+                if (list.size() != monitorBeanList.size()) {
+                    LogUtil.e("获取实时价格个数不等于代码个数");
+                    LogUtil.d("onResponse\n" + sinaStockBean + "\n");
+                    listener.failed(0, "获取实时价格个数异常");
+                    return;
+                }
 
                 for (int index = 0; index < monitorBeanList.size(); index++) {
                     MonitorBean monitorBean = monitorBeanList.get(index);

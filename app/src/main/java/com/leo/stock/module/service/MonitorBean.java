@@ -1,5 +1,6 @@
 package com.leo.stock.module.service;
 
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.leo.stock.Bean.SinaStockBean;
@@ -29,21 +30,6 @@ public class MonitorBean {
 
     public float todayOpenPrice;
 
-    public String getCode() {
-        if (TextUtils.isEmpty(code)) {
-            return null;
-        }
-        if (code.startsWith("110") || code.startsWith("113") || code.startsWith("6") || code.startsWith("5")) {
-            return "sh" + code;
-        }
-
-        if (code.startsWith("123") || code.startsWith("127") || code.startsWith("128") || code.startsWith("0")) {
-            return "sz" + code;
-        }
-
-        return code;
-    }
-
     public void setStockBean(SinaStockBean sinaStockBean) {
         name = sinaStockBean.stockName;
 
@@ -56,8 +42,31 @@ public class MonitorBean {
 
         if (Float.compare(0, sinaStockBean.todayCurrentPrice) != 0) {
             currentPrice = sinaStockBean.todayCurrentPrice;
-        } else {
-            LogUtil.e("Error sinaStockBean currentPrice null!!!");
         }
+    }
+
+    public String getCode() {
+        if (TextUtils.isEmpty(code)) {
+            return null;
+        }
+        // 上海发债7，可转债 110,113， 基金51
+        if (code.startsWith("000001") || code.startsWith("110") || code.startsWith("113") || code.startsWith("6") || code.startsWith("5") || code.startsWith("7")) {
+            return "sh" + code;
+        }
+
+        // 深圳发债3，可转债123,127,128
+        if (code.startsWith("123") || code.startsWith("127") || code.startsWith("128") || code.startsWith("3")) {
+            return "sz" + code;
+        }
+
+        LogUtil.e("获取沪深编码异常:" + code);
+        return "sh" + code;
+    }
+
+    public boolean equals(@Nullable MonitorBean obj) {
+        if (code.equals(obj.code)) {
+            return true;
+        }
+        return super.equals(obj);
     }
 }

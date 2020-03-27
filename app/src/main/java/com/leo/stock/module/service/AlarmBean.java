@@ -29,12 +29,15 @@ public class AlarmBean {
             lowCount++;
         }
 
+        float valuef = FloatUtil.handleFloatString((bean.currentPrice - bean.yestodayPrice) / bean.yestodayPrice, "0.00") * 100;
+        String value = valuef + "%";
+
         if (!TextUtils.isEmpty(emailSubject)) {
             emailSubject += ",";
         } else {
-            emailSubject = "LLeo_";
+            emailSubject = "";
         }
-        emailSubject += bean.name + (high ? " H" : " L");
+        emailSubject += bean.name + value;
         emailSubject = emailSubject.replaceAll("转债", "");
 
         if (TextUtils.isEmpty(emailContent)) {
@@ -43,8 +46,7 @@ public class AlarmBean {
             emailContent += "\n";
         }
 
-        float value = FloatUtil.handleFloatString((bean.currentPrice - bean.yestodayPrice) / bean.yestodayPrice, "0.00") * 100;
-        emailContent += bean.code + "," + bean.name + " 昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + ",现:" + bean.currentPrice + " " + value;
+        emailContent += bean.name + value + "_" + bean.currentPrice + ",昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice;
         emailContent = emailContent.replaceAll("转债", "");
     }
 
@@ -53,7 +55,11 @@ public class AlarmBean {
             emailPersonal ="高价:" + highCount;
         }
         if (lowCount > 0 ) {
-            emailPersonal +=",低价:" + lowCount;
+            if (!TextUtils.isEmpty(emailPersonal)) {
+                emailPersonal += ",低价:" + lowCount;
+            } else {
+                emailPersonal = "低价:" + lowCount;
+            }
         }
         return emailPersonal;
     }
@@ -64,6 +70,7 @@ public class AlarmBean {
 
     @Override
     public String toString() {
-        return "emailPersonal:" + getEmailPersonal() + ",\nemailSubject:" + emailSubject + ",\nemailContent:" + emailContent;
+        return "emailPersonal:\n" + getEmailPersonal() + ",\nemailSubject:\n" + emailSubject +
+                ",\nemailContent:\n" + emailContent;
     }
 }
