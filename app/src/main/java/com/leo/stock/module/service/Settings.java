@@ -7,6 +7,9 @@ import android.content.Context;
  */
 public class Settings {
 
+    public static int getAlarmInterval(Context context) {
+        return SpUtil.getInt(context, "edit_alarm_interval", 30);
+    }
     // 刷新间隔
     public static int getRefreshInterval(Context context) {
         return SpUtil.getInt(context, "edit_refresh", 10);

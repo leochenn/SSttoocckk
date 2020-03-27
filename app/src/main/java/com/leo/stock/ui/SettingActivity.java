@@ -9,6 +9,7 @@ import android.widget.EditText;
 import com.leo.stock.R;
 import com.leo.stock.library.util.FloatUtil;
 import com.leo.stock.module.email.Config;
+import com.leo.stock.module.service.Settings;
 import com.leo.stock.module.service.SpUtil;
 
 /**
@@ -16,7 +17,7 @@ import com.leo.stock.module.service.SpUtil;
  */
 public class SettingActivity extends Activity {
 
-    EditText editTextRefresh, editTextEmailAuthCode, editTextSoundCount, editTextHighAlarm, editTextLowAlarm;
+    EditText editTextRefresh, editTextEmailAuthCode, editTextSoundCount, editTextHighAlarm, editTextLowAlarm, editTextAlarmInterval;
     CheckBox checkBoxEmail, checkBoxSound, checkBoxNotify;
 
     @Override
@@ -47,6 +48,9 @@ public class SettingActivity extends Activity {
 
         editTextEmailAuthCode = findViewById(R.id.edit_qqcode);
         editTextEmailAuthCode.setText(SpUtil.getString(this, "edit_qqauth", Config.AUTH_CODE));
+
+        editTextAlarmInterval = findViewById(R.id.edit_alarm_interval);
+        editTextAlarmInterval.setText("" + Settings.getAlarmInterval(this));
     }
 
     @Override
@@ -59,6 +63,7 @@ public class SettingActivity extends Activity {
         SpUtil.putInt(this, "edit_refresh", Integer.parseInt(editTextRefresh.getText().toString().trim()));
         SpUtil.putInt(this, "edit_soundcount", Integer.parseInt(editTextSoundCount.getText().toString().trim()));
         SpUtil.putString(this, "edit_qqauth", editTextEmailAuthCode.getText().toString().trim());
+        SpUtil.putInt(this, "edit_alarm_interval", Integer.parseInt(editTextAlarmInterval.getText().toString().trim()));
         super.onDestroy();
     }
 }

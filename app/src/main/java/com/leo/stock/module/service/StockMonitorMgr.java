@@ -54,7 +54,7 @@ public class StockMonitorMgr {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                LogUtil.d(TAG, "onResponse");
+                LogUtil.d(TAG, "获取代码列表成功");
 
                 List<MonitorBean> beanList = new ArrayList<>();
 
@@ -96,18 +96,20 @@ public class StockMonitorMgr {
             float high = bean.lastAlarmPrice * (1 + Settings.getPriceHighAlarmInterval(context) / 100);
             float low = bean.lastAlarmPrice * (1 - Settings.getPriceLowAlarmInterval(context) / 100);
 
-            if (Float.compare(bean.currentPrice, high) > 0) {
-                alarmBean.set(true, bean);
-                bean.lastAlarmPrice = bean.currentPrice;
-                bean.lastAlarmState = 1;
-                bean.lastAlarmTime = System.currentTimeMillis();
-            }
+            if (Float.compare(bean.currentPrice, 0) > 0) {
+                if (Float.compare(bean.currentPrice, high) > 0) {
+                    alarmBean.set(true, bean);
+                    bean.lastAlarmPrice = bean.currentPrice;
+                    bean.lastAlarmState = 1;
+                    bean.lastAlarmTime = System.currentTimeMillis();
+                }
 
-            if (Float.compare(bean.currentPrice, low) < 0) {
-                alarmBean.set(false, bean);
-                bean.lastAlarmPrice = bean.currentPrice;
-                bean.lastAlarmState = 2;
-                bean.lastAlarmTime = System.currentTimeMillis();
+                if (Float.compare(bean.currentPrice, low) < 0) {
+                    alarmBean.set(false, bean);
+                    bean.lastAlarmPrice = bean.currentPrice;
+                    bean.lastAlarmState = 2;
+                    bean.lastAlarmTime = System.currentTimeMillis();
+                }
             }
         }
 
@@ -125,8 +127,10 @@ public class StockMonitorMgr {
     long lastAlarmTime;
     private void needAlarm(final AlarmBean alarmBean) {
         long currentTime = System.currentTimeMillis();
-        if (lastAlarmTime != 0 && currentTime - lastAlarmTime < 60 * 1000) {
-            LogUtil.e(TAG, "alarm in 10s");
+
+        long interval = Settings.getAlarmInterval(context) * 1000;
+        if (lastAlarmTime != 0 && currentTime - lastAlarmTime < interval) {
+            LogUtil.e(TAG, "alarm in 60s");
             return;
         }
         lastAlarmTime = currentTime;
