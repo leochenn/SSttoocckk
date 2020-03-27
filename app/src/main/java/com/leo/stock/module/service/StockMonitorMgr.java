@@ -37,7 +37,7 @@ public class StockMonitorMgr {
 
     MonitorTimer monitorTimer;
 
-    MonitorStrategy monitorStrategy;
+    long lastCheckTime;
 
     private StockMonitorMgr() {
         context = App.getInstance().getApplicationContext();
@@ -82,10 +82,6 @@ public class StockMonitorMgr {
     }
 
     public void checkMonitorBean(List<MonitorBean> monitorBeanList) {
-        if (monitorStrategy == null) {
-            monitorStrategy = new MonitorStrategy();
-        }
-
         AlarmBean alarmBean = new AlarmBean();
 
         for (MonitorBean bean : monitorBeanList) {
@@ -113,10 +109,13 @@ public class StockMonitorMgr {
             }
         }
 
+        if (lastCheckTime != 0 && System.currentTimeMillis() - lastCheckTime > 3 * Settings.getRefreshInterval(context) * 1000) {
+            LogUtil.e(TAG, "检查数据时间超过俩倍刷新时间");
+        }
+        lastCheckTime = System.currentTimeMillis();
+
         if (alarmBean.available()) {
             needAlarm(alarmBean);
-        } else {
-            LogUtil.d(TAG, "alarm not");
         }
 
         if (monitorTimer != null) {
