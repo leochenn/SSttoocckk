@@ -20,7 +20,6 @@ import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.internal.platform.OkHttpManager;
@@ -38,7 +37,7 @@ public class StockMonitorMgr {
 
     MonitorTimer monitorTimer;
 
-    long lastCheckTime;
+    long lastAlarmTime;
 
     private StockMonitorMgr() {
         context = App.getInstance().getApplicationContext();
@@ -48,7 +47,6 @@ public class StockMonitorMgr {
         String url = "https://leochenandroid.gitee.io/stock/stockids.txt";
         url = "http://172.16.162.17/stockid.txt";
 
-//        HttpUrl httpUrl = HttpUrl.get("https://leochenandroid.gitee.io/stock/stockids.txt");
         Request request = new Request.Builder().get().url(url).build();
         OkHttpManager.getIntance().newCall(request).enqueue(new Callback() {
             @Override
@@ -107,20 +105,36 @@ public class StockMonitorMgr {
             if (Float.compare(bean.currentPrice, 0) > 0) {
                 //  更新上证指数
                 if (bean.code.contains("000001")) {
-                    // 成交量
+                    alarmBean.addSzIndexBean(bean);
                     String content = bean.currentPrice + ",   " + bean.getHLSpace() + ",  " + bean.getHL();
                     NotifycationHelper.lauch(context, content);
+
+                    float high1 = bean.lastAlarmPrice * (1 + 0.005f);
+                    float low1 = bean.lastAlarmPrice * (1 - 0.005f);
+
+                    if (Float.compare(bean.currentPrice, high1) > 0) {
+                        bean.lastAlarmPrice = bean.currentPrice;
+                        bean.lastAlarmState = 1;
+                        bean.lastAlarmTime = System.currentTimeMillis();
+                        NotifycationHelper.sendMsg(context, "上证指数上涨警报", bean.getHLSpace());
+                    }
+                    if (Float.compare(bean.currentPrice, low1) < 0) {
+                        bean.lastAlarmPrice = bean.currentPrice;
+                        bean.lastAlarmState = 2;
+                        bean.lastAlarmTime = System.currentTimeMillis();
+                        NotifycationHelper.sendMsg(context, "上证指数下跌警报", bean.getHLSpace());
+                    }
                 }
 
                 if (Float.compare(bean.currentPrice, high) > 0) {
-                    alarmBean.set(true, bean);
+                    alarmBean.addBean(true, bean);
                     bean.lastAlarmPrice = bean.currentPrice;
                     bean.lastAlarmState = 1;
                     bean.lastAlarmTime = System.currentTimeMillis();
                 }
 
                 if (Float.compare(bean.currentPrice, low) < 0) {
-                    alarmBean.set(false, bean);
+                    alarmBean.addBean(false, bean);
                     bean.lastAlarmPrice = bean.currentPrice;
                     bean.lastAlarmState = 2;
                     bean.lastAlarmTime = System.currentTimeMillis();
@@ -130,13 +144,8 @@ public class StockMonitorMgr {
             }
         }
 
-        if (lastCheckTime != 0 && System.currentTimeMillis() - lastCheckTime > 3 * Settings.getRefreshInterval(context) * 1000) {
-            LogUtil.e(TAG, "检查数据时间超过俩倍刷新时间");
-        }
-        lastCheckTime = System.currentTimeMillis();
-
-        if (alarmBean.available()) {
-            needAlarm(alarmBean);
+        if (alarmBean.handle()) {
+            alarm(alarmBean);
         }
 
         if (monitorTimer != null) {
@@ -144,29 +153,28 @@ public class StockMonitorMgr {
         }
     }
 
-    long lastAlarmTime;
-    private void needAlarm(final AlarmBean alarmBean) {
+    private void alarm(final AlarmBean alarmBean) {
         long currentTime = System.currentTimeMillis();
-
         long interval = Settings.getAlarmInterval(context) * 1000;
         if (lastAlarmTime != 0 && currentTime - lastAlarmTime < interval) {
-            LogUtil.e(TAG, "alarm in 60s");
+            LogUtil.e(TAG, "警报间隔" + Settings.getAlarmInterval(context));
             return;
         }
         lastAlarmTime = currentTime;
-
-        LogUtil.e(TAG, "警报");
-        LogUtil.d(TAG, alarmBean);
+        LogUtil.d(TAG, "警报" + alarmBean);
 
         if (Settings.isEmailAlarmEnable(context)) {
             ExeOperator.runOnThread(new Runnable() {
                 @Override
                 public void run() {
                     boolean state = true;
+                    String subject = alarmBean.emailSubject;
+                    String personal = alarmBean.emailPersonal;
+                    String content = alarmBean.emailContent;
                     state = MailHelper.getInstance().sendEmail(Config.RECIEVE_ADDRESS,
-                            alarmBean.getEmailPersonal(), alarmBean.emailSubject, alarmBean.emailContent);
-                    NotifycationHelper.sendEmail(context, (state ? "邮件发送成功" : "邮件发送失败"),
-                            alarmBean.emailSubject);
+                            personal, subject, content);
+                    String notifyTitle = (state ? "邮件成功" : "邮件失败") + ":";
+                    NotifycationHelper.sendMsg(context, notifyTitle + subject, content);
                 }
             });
         }
@@ -182,7 +190,7 @@ public class StockMonitorMgr {
 
     private void handleFail(String msg) {
         LogUtil.e(TAG, msg);
-        NotifycationHelper.sendTip(context, "Tip", msg);
+        NotifycationHelper.sendMsg(context, "错误", msg);
         BgService.stopService(context);
     }
 

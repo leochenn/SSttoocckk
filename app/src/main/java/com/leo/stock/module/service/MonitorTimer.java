@@ -65,12 +65,12 @@ public class MonitorTimer {
 
         long reStart = 0;
         if (minuteOfDay < start) {
-            NotifycationHelper.sendTip(context, "Tip", "未到开盘时间");
+            NotifycationHelper.sendMsg(context, "提示", "未到开盘时间");
             LogUtil.d(TAG, "未到开盘时间");
             reStart = (start - minuteOfDay) * 1000;
         } else {
             LogUtil.d(TAG, "中午休息时间");
-            NotifycationHelper.sendTip(context, "Tip", "中午休息时间");
+            NotifycationHelper.sendMsg(context, "提示", "中午休息时间");
             reStart = (start2 - minuteOfDay) * 1000;
         }
 
@@ -133,7 +133,7 @@ public class MonitorTimer {
 
     private void handleFail(String msg) {
         LogUtil.e(TAG, msg);
-        NotifycationHelper.sendTip(context, "Tip", msg);
+        NotifycationHelper.sendMsg(context, "提示", msg);
         BgService.stopService(context);
     }
 }

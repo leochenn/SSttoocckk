@@ -22,9 +22,8 @@ import java.util.Calendar;
  */
 public class NotifycationHelper {
 
-    static final int CODE_LAUCH = 123;
-    static final int CODE_EMAIL = 124;
-    static final int CODE_TIP = 125;
+    static final int CODE_LAUCH = 1;
+    static int CODE_MSG = 2;
 
     private static NotificationManager getNM(Context context, String channelId) {
         NotificationManager manager =
@@ -41,9 +40,7 @@ public class NotifycationHelper {
 
     private static String getTime() {
         Calendar cal = Calendar.getInstance();
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-        return hour + ":" + minute;
+        return cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE) + ":" + cal.get(Calendar.SECOND);
     }
 
     private static Notification createLauchNotification(Context context, String channelId,
@@ -74,18 +71,10 @@ public class NotifycationHelper {
 
     public static void lauch(Context context, String content) {
         String channelId = "101";
-        String title = "服务" + (BgService.isRunning() ? "开启" : "关闭") + getTime();
+        String title = "服务" + (BgService.isRunning() ? "开启" : "关闭");
         Notification notification = createLauchNotification(context, channelId, title, content);
         NotificationManager manager = getNM(context, channelId);
         manager.notify(CODE_LAUCH, notification);
-    }
-
-    public static void sendEmail(Context context, String title, String content) {
-        sendMsg(context, title, content, CODE_EMAIL);
-    }
-
-    public static void sendTip(Context context, String title, String content) {
-        sendMsg(context, title, content, CODE_TIP);
     }
 
     private static Notification createNormalNotification(Context context, String channelId,
@@ -102,14 +91,11 @@ public class NotifycationHelper {
                 .build();
     }
 
-    public static void sendMsg(Context context, String title, String content, int code) {
+    public static void sendMsg(Context context, String title, String content) {
         String channelId = "102";
         NotificationManager manager = getNM(context, channelId);
-
-        title = getTime() + "_" + title;
-
         Notification notification = createNormalNotification(context, channelId, title, content);
-        manager.notify(code, notification);
+        manager.notify(CODE_MSG++, notification);
     }
 
     public static void cancel(Context context) {

@@ -10,7 +10,7 @@ import com.leo.stock.library.util.LogUtil;
 /**
  * Created by Leo on 2020/3/25.
  */
-public class MonitorBean {
+public class MonitorBean implements Comparable<MonitorBean> {
 
     public String code;
 
@@ -66,11 +66,25 @@ public class MonitorBean {
 
     // 计算涨跌幅度
     public String getHLSpace() {
-        float valuef = FloatUtil.handleFloatString((currentPrice - yestodayPrice) / yestodayPrice, "0.00") * 100;
+        float valuef = FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
         return valuef + "%";
+    }
+
+    public Float getHLSpaceFloat() {
+        return FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
     }
 
     public Float getHL() {
         return FloatUtil.handleFloatString(currentPrice - yestodayPrice, "0.00");
+    }
+
+    @Override
+    public int compareTo(MonitorBean o) {
+        float value = getHLSpaceFloat();
+        if (Float.compare(value, 0) >= 0) {
+            return Float.compare(getHLSpaceFloat(), o.getHLSpaceFloat());
+        } else {
+            return Float.compare(getHLSpaceFloat(), o.getHLSpaceFloat());
+        }
     }
 }
