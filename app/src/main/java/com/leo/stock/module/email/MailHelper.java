@@ -1,13 +1,8 @@
 package com.leo.stock.module.email;
 
 import android.text.TextUtils;
-import android.widget.Toast;
 
-import com.leo.stock.App;
-import com.leo.stock.Bean.LocalBean;
-import com.leo.stock.Bean.SinaStockBean;
 import com.leo.stock.library.util.LogUtil;
-import com.leo.stock.module.monitor.Monitor;
 import com.sun.mail.util.MailSSLSocketFactory;
 
 import java.io.UnsupportedEncodingException;
@@ -81,7 +76,15 @@ public class MailHelper {
 
             msg.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
             msg.setSubject(subject);
-            msg.setText(text);
+//            msg.setText(text);
+
+            Multipart mainPart = new MimeMultipart();
+            BodyPart html = new MimeBodyPart();
+            html.setContent(text, "text/html; charset=utf-8");
+            mainPart.addBodyPart(html);
+            // 将MiniMultipart对象设置为邮件内容
+            msg.setContent(mainPart, "text/html; charset=utf-8");
+
             transportSend(msg);
             LogUtil.d(TAG, "sendEmail success");
         } catch (Exception e) {
@@ -100,7 +103,9 @@ public class MailHelper {
 
     private Message createHtmlMsg(String imgHtml) throws UnsupportedEncodingException,
             MessagingException {
-        Message msg = getBasicMessage();
+        Message msg = new MimeMessage(session);
+        msg.setFrom(new InternetAddress(Config.SEND_ADDRESS));
+        msg.addRecipient(Message.RecipientType.TO, new InternetAddress(Config.RECIEVE_ADDRESS));
         msg.setSubject("测试Html邮件");
 
         Multipart mainPart = new MimeMultipart();

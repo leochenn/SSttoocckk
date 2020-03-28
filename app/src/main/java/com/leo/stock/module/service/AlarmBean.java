@@ -43,13 +43,23 @@ public class AlarmBean {
         }
     }
 
-    private void setEmailContent(MonitorBean bean) {
-        if (TextUtils.isEmpty(emailContent)) {
-            emailContent = "";
+    private void setEmailContent(boolean high, MonitorBean bean) {
+        String url = "https://wap.eastmoney.com/quota/stock/index/" + bean.code;
+        if(bean.getCode().contains("sh")) {
+            url += "1";
         } else {
-            emailContent += "\n";
+            url += "2";
         }
+
+        if (TextUtils.isEmpty(emailContent)) {
+            emailContent = "</br>";
+        } else {
+            emailContent += "</br>";
+        }
+        emailContent += "<a href=\"" + url + "\" style=\"color:" + (high ? "red" : "green") + "\">";
+
         emailContent += bean.name + ", " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice;
+        emailContent += "</a>"  + "," + bean.code;
         emailContent = emailContent.replaceAll("转债", "");
     }
 
@@ -66,15 +76,12 @@ public class AlarmBean {
                 }
                 highString += bean.name + "(" + bean.getHLSpace() + ")";
                 highString = highString.replaceAll("转债", "");
-                setEmailContent(bean);
+                setEmailContent(true, bean);
             }
         }
         if (lowBean != null) {
             lowCount = lowBean.size();
             Collections.sort(lowBean);
-            if (!TextUtils.isEmpty(emailContent)) {
-                emailContent += "\n";
-            }
             for (MonitorBean bean : lowBean) {
                 if (!TextUtils.isEmpty(lowString)) {
                     lowString += ",";
@@ -83,7 +90,7 @@ public class AlarmBean {
                 }
                 lowString += bean.name + "(" + bean.getHLSpace() + ")";
                 lowString = lowString.replaceAll("转债", "");
-                setEmailContent(bean);
+                setEmailContent(false, bean);
             }
         }
 
