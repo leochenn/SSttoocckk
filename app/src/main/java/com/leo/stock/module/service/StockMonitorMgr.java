@@ -167,14 +167,14 @@ public class StockMonitorMgr {
             ExeOperator.runOnThread(new Runnable() {
                 @Override
                 public void run() {
-                    boolean state = true;
                     String subject = alarmBean.emailSubject;
                     String personal = alarmBean.emailPersonal;
                     String content = alarmBean.emailContent;
-                    state = MailHelper.getInstance().sendEmail(Config.RECIEVE_ADDRESS,
+                    boolean state = MailHelper.getInstance().sendEmail(Config.RECIEVE_ADDRESS,
                             personal, subject, content);
-                    String notifyTitle = (state ? "邮件成功" : "邮件失败") + ":";
-                    NotifycationHelper.sendMsg(context, notifyTitle + subject, content);
+                    if (!state) {
+                        NotifycationHelper.sendEmail(context, "邮件发送失败" + subject, content);
+                    }
                 }
             });
         }
@@ -184,7 +184,7 @@ public class StockMonitorMgr {
         }
 
         if (Settings.isNotifyAlarmEnable(context)) {
-
+            NotifycationHelper.sendMsg(context, alarmBean.emailSubject, alarmBean.emailContent);
         }
     }
 

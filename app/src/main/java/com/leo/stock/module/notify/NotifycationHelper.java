@@ -23,7 +23,8 @@ import java.util.Calendar;
 public class NotifycationHelper {
 
     static final int CODE_LAUCH = 1;
-    static int CODE_MSG = 2;
+    static final int CODE_EMAIL = 2;
+    static int CODE_MSG = 3;
 
     private static NotificationManager getNM(Context context, String channelId) {
         NotificationManager manager =
@@ -92,10 +93,17 @@ public class NotifycationHelper {
     }
 
     public static void sendMsg(Context context, String title, String content) {
-        String channelId = "102";
+        String channelId = "103";
         NotificationManager manager = getNM(context, channelId);
         Notification notification = createNormalNotification(context, channelId, title, content);
         manager.notify(CODE_MSG++, notification);
+    }
+
+    public static void sendEmail(Context context, String title, String content) {
+        String channelId = "102";
+        NotificationManager manager = getNM(context, channelId);
+        Notification notification = createNormalNotification(context, channelId, title, content);
+        manager.notify(CODE_EMAIL, notification);
     }
 
     public static void cancel(Context context) {

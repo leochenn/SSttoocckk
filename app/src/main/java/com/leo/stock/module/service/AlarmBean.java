@@ -116,13 +116,9 @@ public class AlarmBean {
         return alarm;
     }
 
-    public String getEmailPersonal() {
-        return emailPersonal;
-    }
-
     @Override
     public String toString() {
-        return "emailPersonal:\n" + getEmailPersonal() + ",\nemailSubject:\n" + emailSubject +
+        return "emailPersonal:\n" + emailPersonal + ",\nemailSubject:\n" + emailSubject +
                 ",\nemailContent:\n" + emailContent;
     }
 }
