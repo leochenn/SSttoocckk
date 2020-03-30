@@ -7,6 +7,18 @@ import android.content.Context;
  */
 public class Settings {
 
+    public static String getFtpHost(Context context) {
+        return SpUtil.getString(context, "edit_ftp_host", "172.16.162.17");
+    }
+
+    public static String getFtpUser(Context context) {
+        return SpUtil.getString(context, "edit_ftp_user", "LeoFtp");
+    }
+
+    public static String getFtpPwd(Context context) {
+        return SpUtil.getString(context, "edit_ftp_pwd", "654321");
+    }
+
     public static int getAlarmInterval(Context context) {
         return SpUtil.getInt(context, "edit_alarm_interval", 30);
     }

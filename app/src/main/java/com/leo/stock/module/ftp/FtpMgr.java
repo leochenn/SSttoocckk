@@ -1,7 +1,10 @@
 package com.leo.stock.module.ftp;
 
+import com.leo.stock.App;
+import com.leo.stock.biz.IGetData;
 import com.leo.stock.library.base.ExeOperator;
 import com.leo.stock.library.util.LogUtil;
+import com.leo.stock.module.service.Settings;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -23,18 +26,21 @@ public class FtpMgr {
 
     private static final String TAG = "FtpMgr";
 
-    private static final String FTP_SERVER_HOST = "172.16.162.17";
+    private static String FTP_SERVER_HOST;
 
-    private static final int FTP_SERVRE_PORT = 21;
+    private static int FTP_SERVRE_PORT = 21;
 
-    private static final String FTP_SERVER_USER = "LeoFtp";
+    private static String FTP_SERVER_USER;
 
-    private static final String FTP_SERVER_PWD = "654321";
+    private static String FTP_SERVER_PWD;
 
     FTPClient ftpClient;
     boolean result;
 
     private FtpMgr() {
+        FTP_SERVER_HOST = Settings.getFtpHost(App.getInstance().getApplicationContext());
+        FTP_SERVER_USER = Settings.getFtpUser(App.getInstance().getApplicationContext());
+        FTP_SERVER_PWD = Settings.getFtpPwd(App.getInstance().getApplicationContext());
         ftpClient = new FTPClient();
         login();
     }
@@ -108,6 +114,37 @@ public class FtpMgr {
                 LogUtil.e(e, TAG, "download");
             }
         }
+    }
+
+    private ArrayList<String> downloadStringList(String fileName) {
+        ArrayList<String> list = new ArrayList<>();
+        InputStream is = null;
+        try {
+            is = ftpClient.retrieveFileStream(fileName);
+            BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(is));
+
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                LogUtil.d(TAG, line);
+                list.add(line);
+            }
+            reader.close();
+            LogUtil.d(TAG, "download finish");
+        } catch (Exception e) {
+            LogUtil.e(e, TAG, "download");
+        } finally {
+            try {
+                if (is != null) {
+                    is.close();
+                }
+                boolean a = ftpClient.completePendingCommand();
+                LogUtil.d(TAG, "download completePendingCommand", a);
+            } catch (IOException e) {
+                LogUtil.e(e, TAG, "download");
+            }
+        }
+        return list;
     }
 
     private void upload(String fileName) {
@@ -204,6 +241,22 @@ public class FtpMgr {
                         ftpMgr.download(name);
                     }
                     ftpMgr.destroy();
+                }
+            }
+        });
+    }
+
+    public static void downloadFile(final String fileName, final IGetData<ArrayList<String>> listener) {
+        ExeOperator.runOnThread(new Runnable() {
+            @Override
+            public void run() {
+                FtpMgr ftpMgr = new FtpMgr();
+                if (ftpMgr.result) {
+                    ArrayList<String> list = ftpMgr.downloadStringList(fileName);
+                    ftpMgr.destroy();
+                    listener.getData(list);
+                } else {
+                    listener.getData(null);
                 }
             }
         });

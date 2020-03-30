@@ -19,6 +19,7 @@ public class SettingActivity extends Activity {
 
     EditText editTextRefresh, editTextEmailAuthCode, editTextSoundCount, editTextHighAlarm, editTextLowAlarm, editTextAlarmInterval;
     CheckBox checkBoxEmail, checkBoxSound, checkBoxNotify;
+    EditText editTextFtpHost, EditTextFtpUser, EditTextFtpPwd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,15 @@ public class SettingActivity extends Activity {
 
         editTextAlarmInterval = findViewById(R.id.edit_alarm_interval);
         editTextAlarmInterval.setText("" + Settings.getAlarmInterval(this));
+
+        editTextFtpHost = findViewById(R.id.edit_ftp_host);
+        editTextFtpHost.setText(Settings.getFtpHost(this));
+
+        EditTextFtpUser = findViewById(R.id.edit_ftp_user);
+        EditTextFtpUser.setText(Settings.getFtpUser(this));
+
+        EditTextFtpPwd = findViewById(R.id.edit_ftp_pwd);
+        EditTextFtpPwd.setText(Settings.getFtpPwd(this));
     }
 
     @Override
@@ -64,6 +74,10 @@ public class SettingActivity extends Activity {
         SpUtil.putInt(this, "edit_soundcount", Integer.parseInt(editTextSoundCount.getText().toString().trim()));
         SpUtil.putString(this, "edit_qqauth", editTextEmailAuthCode.getText().toString().trim());
         SpUtil.putInt(this, "edit_alarm_interval", Integer.parseInt(editTextAlarmInterval.getText().toString().trim()));
+
+        SpUtil.putString(this, "edit_ftp_host", editTextFtpHost.getText().toString().trim());
+        SpUtil.putString(this, "edit_ftp_user", EditTextFtpUser.getText().toString().trim());
+        SpUtil.putString(this, "edit_ftp_pwd", EditTextFtpPwd.getText().toString().trim());
         super.onDestroy();
     }
 }

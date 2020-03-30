@@ -4,10 +4,12 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.leo.stock.App;
+import com.leo.stock.biz.IGetData;
 import com.leo.stock.library.base.ExeOperator;
 import com.leo.stock.library.util.LogUtil;
 import com.leo.stock.module.email.Config;
 import com.leo.stock.module.email.MailHelper;
+import com.leo.stock.module.ftp.FtpMgr;
 import com.leo.stock.module.notify.NotifycationHelper;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +45,7 @@ public class StockMonitorMgr {
         context = App.getInstance().getApplicationContext();
     }
 
-    public void start() {
+    public void start3() {
         String url = "https://leochenandroid.gitee.io/stock/stockids.txt";
         url = "http://172.16.162.17/stockid.txt";
 
@@ -84,6 +86,37 @@ public class StockMonitorMgr {
                     handleFail("获取代码列表为空");
                 } else {
                     LogUtil.d(TAG, "代码数量:" + beanList.size());
+                    monitorTimer = new MonitorTimer(context, beanList);
+                    monitorTimer.start();
+                }
+            }
+        });
+    }
+
+    public void start() {
+        FtpMgr.downloadFile("/stock/ids.txt", new IGetData<ArrayList<String>>() {
+            @Override
+            public void getData(ArrayList<String> strings) {
+                if (strings == null || strings.size() == 0) {
+                    handleFail("获取代码列表为空");
+                } else {
+                    LogUtil.d(TAG, "代码数量:" + strings.size());
+                    List<MonitorBean> beanList = new ArrayList<>();
+                    boolean hasSh = false;
+                    for (String name : strings) {
+                        MonitorBean bean = new MonitorBean();
+                        bean.code = name;
+                        if (name.contains("000001")) {
+                            hasSh = true;
+                        }
+                        beanList.add(bean);
+                    }
+                    if (!hasSh) {
+                        MonitorBean bean = new MonitorBean();
+                        bean.code = "000001";
+                        beanList.add(bean);
+                    }
+
                     monitorTimer = new MonitorTimer(context, beanList);
                     monitorTimer.start();
                 }

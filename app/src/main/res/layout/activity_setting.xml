@@ -144,4 +144,30 @@
             android:layout_width="120dp"
             android:layout_height="wrap_content"/>
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ftp"/>
+
+        <EditText
+            android:id="@+id/edit_ftp_host"
+            android:layout_width="120dp"
+            android:inputType="number"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/edit_ftp_user"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/edit_ftp_pwd"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
 </LinearLayout>
