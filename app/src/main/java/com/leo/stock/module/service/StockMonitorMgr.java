@@ -53,6 +53,7 @@ public class StockMonitorMgr {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 handleFail("获取代码列表失败" + e.getMessage());
+                BgService.stopService(context);
             }
 
             @Override
@@ -83,6 +84,7 @@ public class StockMonitorMgr {
 
                 if (beanList.isEmpty()) {
                     handleFail("获取代码列表为空");
+                    BgService.stopService(context);
                 } else {
                     LogUtil.d(TAG, "代码数量:" + beanList.size());
                     monitorTimer = new MonitorTimer(context, beanList);
@@ -224,7 +226,6 @@ public class StockMonitorMgr {
     private void handleFail(String msg) {
         LogUtil.e(TAG, msg);
         NotifycationHelper.sendMsg(context, "错误", msg);
-        BgService.stopService(context);
     }
 
     public static StockMonitorMgr getInstance() {

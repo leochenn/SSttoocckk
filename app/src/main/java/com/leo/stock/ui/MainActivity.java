@@ -76,7 +76,5 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     public void test(View view) {
-//        FtpMgr.downloadFile("");
-        FtpMgr.updateLoadFile("/data/data/com.chsdk.demo/files/CaoHuaSDK/Html/error.html");
     }
 }
