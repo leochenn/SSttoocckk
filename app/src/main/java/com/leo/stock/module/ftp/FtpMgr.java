@@ -47,6 +47,7 @@ public class FtpMgr {
 
     private void login() {
         try {
+            ftpClient.setConnectTimeout(6000);
             ftpClient.connect(FTP_SERVER_HOST, FTP_SERVRE_PORT);
             if (ftpClient.isConnected()) {
                 boolean loginState = ftpClient.login(FTP_SERVER_USER, FTP_SERVER_PWD);
