@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.leo.stock.R;
+import com.leo.stock.module.ftp.FtpMgr;
 import com.leo.stock.module.service.BgService;
 
 /**
@@ -72,5 +73,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public void goToSet(View view) {
         startActivity(new Intent(this, SettingActivity.class));
+    }
+
+    public void test(View view) {
+//        FtpMgr.downloadFile("");
+        FtpMgr.updateLoadFile("/data/data/com.chsdk.demo/files/CaoHuaSDK/Html/error.html");
     }
 }
