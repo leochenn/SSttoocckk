@@ -47,7 +47,6 @@ public class StockMonitorMgr {
 
     public void start3() {
         String url = "https://leochenandroid.gitee.io/stock/stockids.txt";
-        url = "http://172.16.162.17/stockid.txt";
 
         Request request = new Request.Builder().get().url(url).build();
         OkHttpManager.getIntance().newCall(request).enqueue(new Callback() {
@@ -98,7 +97,8 @@ public class StockMonitorMgr {
             @Override
             public void getData(ArrayList<String> strings) {
                 if (strings == null || strings.size() == 0) {
-                    handleFail("获取代码列表为空");
+                    handleFail("Ftp获取代码列表为空");
+                    start3();
                 } else {
                     LogUtil.d(TAG, "代码数量:" + strings.size());
                     List<MonitorBean> beanList = new ArrayList<>();
