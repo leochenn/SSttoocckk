@@ -21,13 +21,12 @@ public class MonitorTimer {
 
     Context context;
     Timer timer;
-    List<MonitorBean> monitorBeanList;
+
     // 获取失败次数
     int failedCount;
 
-    public MonitorTimer(Context context, List<MonitorBean> monitorBeanList) {
+    public MonitorTimer(Context context) {
         this.context = context;
-        this.monitorBeanList = monitorBeanList;
     }
 
     public void start() {
@@ -116,11 +115,11 @@ public class MonitorTimer {
             return;
         }
 
-        StockHelper.getSimpleStockList(monitorBeanList, new IRequestListener<List<MonitorBean>>() {
+        StockHelper.getSimpleStockList(new IRequestListener<List<MonitorBean>>() {
             @Override
             public void success(List<MonitorBean> data) {
                 failedCount = 0;
-                StockMonitorMgr.getInstance().checkMonitorBean(monitorBeanList);
+                StockMonitorMgr.getInstance().checkMonitorBean();
             }
 
             @Override

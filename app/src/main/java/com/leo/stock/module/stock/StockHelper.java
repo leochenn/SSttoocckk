@@ -8,6 +8,8 @@ import com.leo.stock.library.base.IRequestListener;
 import com.leo.stock.library.retrofit.RetrofitHelper;
 import com.leo.stock.library.util.LogUtil;
 import com.leo.stock.module.service.MonitorBean;
+import com.leo.stock.module.service.MonitorBeans;
+import com.leo.stock.module.service.StockMonitorMgr;
 
 import java.util.List;
 
@@ -28,10 +30,12 @@ public class StockHelper {
 //    周K线查询： http://image.sinajs.cn/newchart/weekly/n/sh000001.gif
 //    月K线查询： http://image.sinajs.cn/newchart/monthly/n/sh000001.gif
 
-    public static void getSimpleStockList(final List<MonitorBean> monitorBeanList, final IRequestListener<List<MonitorBean>> listener) {
+    public static void getSimpleStockList(final IRequestListener<List<MonitorBean>> listener) {
         StringBuilder stringBuilder = new StringBuilder();
 
-        for (MonitorBean params : monitorBeanList) {
+        final MonitorBeans monitorBeans = StockMonitorMgr.getInstance().getMonitorBeans();
+
+        for (MonitorBean params : monitorBeans.getCollection()) {
             if (stringBuilder.length() == 0) {
                 stringBuilder.append("list=");
             } else {
@@ -59,18 +63,18 @@ public class StockHelper {
                     return;
                 }
 
-                if (list.size() != monitorBeanList.size()) {
+                if (list.size() != monitorBeans.getSize()) {
                     LogUtil.e("获取实时价格个数不等于代码个数");
                     LogUtil.d("onResponse\n" + sinaStockBean + "\n");
                     listener.failed(0, "获取实时价格个数异常");
                     return;
                 }
 
-                for (int index = 0; index < monitorBeanList.size(); index++) {
-                    MonitorBean monitorBean = monitorBeanList.get(index);
-                    monitorBean.setStockBean(list.get(index));
+                for (SinaStockBean bean : list) {
+                    MonitorBean monitorBean = monitorBeans.getMonitorBean(bean.stockId);
+                    monitorBean.setStockBean(bean);
                 }
-                listener.success(monitorBeanList);
+                listener.success(null);
             }
 
             @Override

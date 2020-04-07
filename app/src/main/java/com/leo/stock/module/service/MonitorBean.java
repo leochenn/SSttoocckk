@@ -1,16 +1,17 @@
 package com.leo.stock.module.service;
 
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.leo.stock.Bean.SinaStockBean;
 import com.leo.stock.library.util.FloatUtil;
 import com.leo.stock.library.util.LogUtil;
 
+import java.io.Serializable;
+
 /**
  * Created by Leo on 2020/3/25.
  */
-public class MonitorBean implements Comparable<MonitorBean> {
+public class MonitorBean implements Comparable<MonitorBean>, Serializable {
 
     public String code;
 
@@ -30,6 +31,10 @@ public class MonitorBean implements Comparable<MonitorBean> {
     public float yestodayPrice;
 
     public float todayOpenPrice;
+
+    public MonitorBean(String code) {
+        this.code = code;
+    }
 
     public void setStockBean(SinaStockBean sinaStockBean) {
         name = sinaStockBean.stockName;

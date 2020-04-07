@@ -157,7 +157,6 @@
         <EditText
             android:id="@+id/edit_ftp_host"
             android:layout_width="120dp"
-            android:inputType="number"
             android:layout_height="wrap_content"/>
 
         <EditText

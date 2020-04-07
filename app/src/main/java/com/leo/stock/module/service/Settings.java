@@ -8,7 +8,7 @@ import android.content.Context;
 public class Settings {
 
     public static String getFtpHost(Context context) {
-        return SpUtil.getString(context, "edit_ftp_host", "172.16.162.17");
+        return SpUtil.getString(context, "edit_ftp_host", "172.16.163.5");
     }
 
     public static String getFtpUser(Context context) {
