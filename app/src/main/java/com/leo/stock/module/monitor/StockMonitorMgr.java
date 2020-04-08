@@ -37,6 +37,13 @@ public class StockMonitorMgr {
     }
 
     public void loadStockIdSuccess() {
+        if (monitorBeans.getMonitorBean("000001") == null) {
+            MonitorBean monitorBean = new MonitorBean("000001");
+            monitorBean.highPricePercent = 3;
+            monitorBean.lowPricePercent = 3;
+            monitorBeans.add(monitorBean);
+        }
+
         monitorTimer = new MonitorTimer(context);
         monitorTimer.start();
     }

@@ -13,7 +13,6 @@ public class MonitorBeans {
 
     public MonitorBeans() {
         monitorBeanHashMap = new ConcurrentHashMap<>();
-        add("000001");
     }
 
     public void add(List<String> list) {
