@@ -1,4 +1,4 @@
-package com.leo.stock.module.service;
+package com.leo.stock.ui;
 
 import android.app.Activity;
 import android.content.Intent;

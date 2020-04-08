@@ -12,7 +12,7 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
 import com.leo.stock.R;
-import com.leo.stock.module.service.BgService;
+import com.leo.stock.module.monitor.BgService;
 import com.leo.stock.ui.MainActivity;
 
 import java.util.Calendar;

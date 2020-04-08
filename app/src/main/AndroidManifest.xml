@@ -30,20 +30,13 @@
         </activity>
 
         <activity
-            android:name=".module.service.StockActivity"
+            android:name=".ui.StockActivity"
             android:configChanges='keyboard|keyboardHidden|orientation|screenSize'
             android:windowSoftInputMode="adjustUnspecified|stateHidden"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.Light.NoTitleBar">
         </activity>
 
-        <activity
-            android:name=".ui.StockMainActivity"
-            android:configChanges='keyboard|keyboardHidden|orientation|screenSize'
-            android:windowSoftInputMode="adjustUnspecified|stateHidden"
-            android:launchMode="singleTask"
-            android:theme="@android:style/Theme.Light.NoTitleBar">
-        </activity>
 
         <activity android:name=".ui.CalculateActivity"/>
 
@@ -55,19 +48,13 @@
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.Light.NoTitleBar"/>
 
-        <activity
-            android:name=".module.service.StockDetailActivity"
-            android:configChanges='keyboard|keyboardHidden|orientation|screenSize'
-            android:launchMode="singleTask"
-            android:theme="@android:style/Theme.Light.NoTitleBar"/>
-
         <receiver android:name="com.leo.stock.module.notify.NotificationBroadcastReceiver">
             <intent-filter>
                 <action android:name="com.leo.stock.cancel"/>
             </intent-filter>
         </receiver>
 
-        <service android:name=".module.service.BgService"/>
+        <service android:name=".module.monitor.BgService"/>
     </application>
 
 </manifest>

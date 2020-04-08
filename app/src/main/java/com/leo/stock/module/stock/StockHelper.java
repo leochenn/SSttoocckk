@@ -7,9 +7,9 @@ import com.leo.stock.api.SinaService;
 import com.leo.stock.library.base.IRequestListener;
 import com.leo.stock.library.retrofit.RetrofitHelper;
 import com.leo.stock.library.util.LogUtil;
-import com.leo.stock.module.service.MonitorBean;
-import com.leo.stock.module.service.MonitorBeans;
-import com.leo.stock.module.service.StockMonitorMgr;
+import com.leo.stock.module.monitor.MonitorBean;
+import com.leo.stock.module.monitor.MonitorBeans;
+import com.leo.stock.module.monitor.StockMonitorMgr;
 
 import java.util.List;
 
@@ -85,36 +85,6 @@ public class StockHelper {
         });
     }
 
-    public static void getStock(List<SinaRequestParam> sinaRequestParams, final IRequestListener<List<SinaStockBean>> listener) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        for (SinaRequestParam params : sinaRequestParams) {
-            if (stringBuilder.length() == 0) {
-                stringBuilder.append("list=");
-            } else {
-                stringBuilder.append(",");
-            }
-            stringBuilder.append(params.toString());
-        }
-
-        SinaService sinaService = RetrofitHelper.create(SinaService.class);
-        Call<String> call = sinaService.getStockList(stringBuilder.toString());
-        call.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                String sinaStockBean = response.body();
-                List<SinaStockBean>  list = StockBeanParser.parse(sinaStockBean);
-                listener.success(list);
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                LogUtil.e(t, "getStock onFailure");
-                listener.failed(0, t.getMessage());
-            }
-        });
-    }
-
     public static void getSimple2(String code, final IRequestListener<SinaStockBean> listener) {
         String param = "list=sh" + code + ",sz" + code;
 
@@ -133,28 +103,6 @@ public class StockHelper {
                     }
                 }
                 listener.success(sinaStockBean1);
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                LogUtil.e("getStock onFailure", call);
-                listener.failed(0, t.getMessage());
-            }
-        });
-    }
-
-    public static void getSimple(String code, final IRequestListener<SinaStockBean> listener) {
-        String param = "list=" + code;
-
-        SinaService sinaService = RetrofitHelper.create(SinaService.class);
-        Call<String> call = sinaService.getStockList(param);
-        call.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                String sinaStockBean = response.body();
-//                LogUtil.d("getStock onResponse", sinaStockBean);
-                SinaStockBean list = StockBeanParser.parse2(sinaStockBean);
-                listener.success(list);
             }
 
             @Override

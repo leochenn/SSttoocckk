@@ -4,7 +4,7 @@ import com.leo.stock.App;
 import com.leo.stock.biz.IGetData;
 import com.leo.stock.library.base.ExeOperator;
 import com.leo.stock.library.util.LogUtil;
-import com.leo.stock.module.service.Settings;
+import com.leo.stock.module.monitor.Settings;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;

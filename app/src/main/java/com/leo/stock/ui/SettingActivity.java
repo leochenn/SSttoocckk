@@ -9,8 +9,8 @@ import android.widget.EditText;
 import com.leo.stock.R;
 import com.leo.stock.library.util.FloatUtil;
 import com.leo.stock.module.email.Config;
-import com.leo.stock.module.service.Settings;
-import com.leo.stock.module.service.SpUtil;
+import com.leo.stock.module.monitor.Settings;
+import com.leo.stock.module.monitor.SpUtil;
 
 /**
  * Created by Leo on 2020/3/26.

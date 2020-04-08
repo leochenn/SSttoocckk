@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.leo.stock.library.util.LogUtil;
-import com.leo.stock.module.service.BgService;
+import com.leo.stock.module.monitor.BgService;
 
 /**
  * Created by Leo on 2019/12/25.

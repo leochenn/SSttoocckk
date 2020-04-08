@@ -1,10 +1,12 @@
-package com.leo.stock.ui.adpter;
+package com.leo.stock.ui;
 
 /**
  * Created by Leo on 2019/12/23.
  */
 
 import android.content.Context;
+import android.content.Intent;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,52 +15,51 @@ import android.widget.HorizontalScrollView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.leo.stock.Bean.SinaStockBean;
 import com.leo.stock.R;
-import com.leo.stock.ui.StockMainActivity;
+import com.leo.stock.library.util.LogUtil;
+import com.leo.stock.module.monitor.MonitorBean;
+import com.leo.stock.module.monitor.MonitorBeans;
+import com.leo.stock.module.monitor.StockMonitorMgr;
 import com.leo.stock.ui.widget.CustomHScrollView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListViewAdapter extends BaseAdapter {
+public class StockIdAdapter extends BaseAdapter {
 
-    private List<SinaStockBean> mList = new ArrayList<>();
+    private Context context;
     private LayoutInflater mInflater;
     private RelativeLayout mHead;
-    private StockMainActivity stockMainActivity;
+    List<MonitorBean> mData;
 
-    public ListViewAdapter(StockMainActivity stockMainActivity, List<SinaStockBean> list, RelativeLayout head) {
-        this.stockMainActivity = stockMainActivity;
+    public StockIdAdapter(Context context, RelativeLayout head) {
+        this.context = context;
         this.mHead = head;
-        this.mInflater = LayoutInflater.from(stockMainActivity);
-        addData(list);
+        this.mInflater = LayoutInflater.from(context);
+
+        updateData();
     }
 
-    private void addData(List<SinaStockBean> list) {
-        if (list == null || list.isEmpty()) {
-            return;
+    public void updateData() {
+        if (mData == null) {
+            mData = new ArrayList<>();
+        } else {
+            mData.clear();
         }
-        mList.addAll(list);
-    }
-
-    public void updateData(List<SinaStockBean> list) {
-        mList.clear();
-        addData(list);
-        notifyDataSetChanged();
+        MonitorBeans monitorBeans = StockMonitorMgr.getInstance().getMonitorBeans();
+        if (monitorBeans != null && monitorBeans.getSize() > 0) {
+            mData.addAll(monitorBeans.getCollection());
+        }
     }
 
     @Override
     public int getCount() {
-        if (mList == null || mList.size() == 0) {
-            return 0;
-        }
-        return mList.size();
+        return mData.size();
     }
 
     @Override
     public Object getItem(int i) {
-        return mList.get(i);
+        return mData.get(i);
     }
 
     @Override
@@ -93,22 +94,31 @@ public class ListViewAdapter extends BaseAdapter {
             holder = (MyViewHolder) view.getTag();
         }
 
-        SinaStockBean sinaStockBean = mList.get(position);
+        final MonitorBean sinaStockBean = mData.get(position);
 
-        holder.tvName.setText(sinaStockBean.stockName);
+        if (TextUtils.isEmpty(sinaStockBean.name)) {
+            holder.tvName.setText(sinaStockBean.code);
+        } else {
+            holder.tvName.setText(sinaStockBean.name);
+        }
         holder.tvName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stockMainActivity.onItemClick(position);
+                Intent intent = new Intent(context, StockDetailActivity.class);
+                intent.putExtra("code", sinaStockBean.code);
+                context.startActivity(intent);
             }
         });
-        holder.tvCurrentPrice.setText("" + sinaStockBean.todayCurrentPrice);
-        holder.tvPriceChange.setText("" + sinaStockBean.priceChange);
-        holder.tvPriceChangePercent.setText("" + sinaStockBean.priceChangePercent);
+        holder.tvCurrentPrice.setText("" + sinaStockBean.currentPrice);
+        holder.tvPriceChange.setText("" + sinaStockBean.getHL());
+        holder.tvPriceChangePercent.setText("" + sinaStockBean.getHLSpace());
         holder.tvOpenPrice.setText("" + sinaStockBean.todayOpenPrice);
-        holder.tvLastClosePrice.setText("" + sinaStockBean.lastClosePrice);
-        holder.tvTurnover.setText("" + sinaStockBean.turnover);
-
+        holder.tvLastClosePrice.setText("" + sinaStockBean.yestodayPrice);
+        try {
+            holder.tvTurnover.setText("" + sinaStockBean.getTurnover());
+        } catch (Exception e) {
+            LogUtil.e("异常", sinaStockBean.code, sinaStockBean.turnover);
+        }
         return view;
     }
 
@@ -124,8 +134,6 @@ public class ListViewAdapter extends BaseAdapter {
             mScrollViewArg.smoothScrollTo(l, t);
         }
     }
-
-    ;
 
     class MyViewHolder {
         TextView tvName;
