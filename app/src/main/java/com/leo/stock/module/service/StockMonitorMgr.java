@@ -47,55 +47,10 @@ public class StockMonitorMgr {
 
     public void checkMonitorBean() {
         AlarmBean alarmBean = new AlarmBean();
+        MonitorHandler monitorHandler = new MonitorHandler(context, alarmBean);
 
         for (MonitorBean bean : monitorBeans.getCollection()) {
-            if (Float.compare(bean.lastAlarmPrice, 0) == 0) {
-                bean.lastAlarmPrice = bean.yestodayPrice;
-            }
-
-            float high = bean.lastAlarmPrice * (1 + Settings.getPriceHighAlarmInterval(context) / 100);
-            float low = bean.lastAlarmPrice * (1 - Settings.getPriceLowAlarmInterval(context) / 100);
-
-            if (Float.compare(bean.currentPrice, 0) > 0) {
-                //  更新上证指数
-                if (bean.code.contains("000001")) {
-                    alarmBean.addSzIndexBean(bean);
-                    String content = bean.currentPrice + ",   " + bean.getHLSpace() + ",  " + bean.getHL();
-                    NotifycationHelper.lauch(context, content);
-
-                    float high1 = bean.lastAlarmPrice * (1 + 0.005f);
-                    float low1 = bean.lastAlarmPrice * (1 - 0.005f);
-
-                    if (Float.compare(bean.currentPrice, high1) > 0) {
-                        bean.lastAlarmPrice = bean.currentPrice;
-                        bean.lastAlarmState = 1;
-                        bean.lastAlarmTime = System.currentTimeMillis();
-                        NotifycationHelper.sendMsg(context, "上证指数上涨警报", bean.getHLSpace());
-                    }
-                    if (Float.compare(bean.currentPrice, low1) < 0) {
-                        bean.lastAlarmPrice = bean.currentPrice;
-                        bean.lastAlarmState = 2;
-                        bean.lastAlarmTime = System.currentTimeMillis();
-                        NotifycationHelper.sendMsg(context, "上证指数下跌警报", bean.getHLSpace());
-                    }
-                }
-
-                if (Float.compare(bean.currentPrice, high) > 0) {
-                    alarmBean.addBean(true, bean);
-                    bean.lastAlarmPrice = bean.currentPrice;
-                    bean.lastAlarmState = 1;
-                    bean.lastAlarmTime = System.currentTimeMillis();
-                }
-
-                if (Float.compare(bean.currentPrice, low) < 0) {
-                    alarmBean.addBean(false, bean);
-                    bean.lastAlarmPrice = bean.currentPrice;
-                    bean.lastAlarmState = 2;
-                    bean.lastAlarmTime = System.currentTimeMillis();
-                }
-            } else {
-                LogUtil.e(TAG, "checkMonitorBean 股价异常:" + bean.code + bean.name + bean.currentPrice);
-            }
+            monitorHandler.check(bean);
         }
 
         if (alarmBean.handle()) {

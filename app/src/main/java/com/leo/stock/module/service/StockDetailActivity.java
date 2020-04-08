@@ -5,11 +5,9 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.leo.stock.Bean.LocalBean;
 import com.leo.stock.R;
 import com.leo.stock.library.util.FloatUtil;
 
@@ -49,17 +47,17 @@ public class StockDetailActivity extends Activity {
 
             monitorBean = monitorBeans.getMonitorBean(originCode);
 
-            if (Float.compare(monitorBean.downPrice, 0) != 0) {
-                editLow.setText(FloatUtil.handleFloatString(monitorBean.downPrice) + "");
+            if (Float.compare(monitorBean.lowPrice, 0) != 0) {
+                editLow.setText(FloatUtil.handleFloatString(monitorBean.lowPrice) + "");
             }
-            if (Float.compare(monitorBean.upPrice, 0) != 0) {
-                editHigh.setText(FloatUtil.handleFloatString(monitorBean.upPrice) + "");
+            if (Float.compare(monitorBean.highPrice, 0) != 0) {
+                editHigh.setText(FloatUtil.handleFloatString(monitorBean.highPrice) + "");
             }
-            if (Float.compare(monitorBean.downPricePercent, 0) != 0) {
-                editLowP.setText(FloatUtil.handleFloatString(monitorBean.downPricePercent) + "");
+            if (Float.compare(monitorBean.lowPricePercent, 0) != 0) {
+                editLowP.setText(FloatUtil.handleFloatString(monitorBean.lowPricePercent) + "");
             }
-            if (Float.compare(monitorBean.upPricePercent, 0) != 0) {
-                editHighP.setText(FloatUtil.handleFloatString(monitorBean.upPricePercent) + "");
+            if (Float.compare(monitorBean.highPricePercent, 0) != 0) {
+                editHighP.setText(FloatUtil.handleFloatString(monitorBean.highPricePercent) + "");
             }
         }
     }
@@ -125,17 +123,17 @@ public class StockDetailActivity extends Activity {
 
         if (isAddMode) {
             MonitorBean bean = new MonitorBean(code);
-            bean.upPrice = highF;
-            bean.upPricePercent = highFP;
-            bean.downPrice = lowF;
-            bean.downPricePercent = lowFP;
+            bean.highPrice = highF;
+            bean.highPricePercent = highFP;
+            bean.lowPrice = lowF;
+            bean.lowPricePercent = lowFP;
             monitorBeans.add(bean);
             IO.saveToLocal(IO.getLocalFilePath(this), monitorBeans);
         } else {
-            monitorBean.upPrice = highF;
-            monitorBean.upPricePercent = highFP;
-            monitorBean.downPrice = lowF;
-            monitorBean.downPricePercent = lowFP;
+            monitorBean.highPrice = highF;
+            monitorBean.highPricePercent = highFP;
+            monitorBean.lowPrice = lowF;
+            monitorBean.lowPricePercent = lowFP;
         }
         finish();
     }

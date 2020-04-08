@@ -18,11 +18,15 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
 
     public String name;
 
-    public float upPrice;
-    public float upPricePercent;
+    // 价格高于
+    public float highPrice;
+    // 上涨幅度
+    public float highPricePercent;
 
-    public float downPrice;
-    public float downPricePercent;
+    // 价格低于
+    public float lowPrice;
+    // 下跌幅度
+    public float lowPricePercent;
 
     // 上一次警报状态 1 上涨 2下跌
     public transient int lastAlarmState;

@@ -71,6 +71,7 @@ public class StockActivity extends Activity {
 
         @Override
         public boolean onTouch(View arg0, MotionEvent event) {
+            mScrollView.onTouchEvent(event);
             return false;
         }
     }
