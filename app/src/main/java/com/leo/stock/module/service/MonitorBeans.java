@@ -26,14 +26,12 @@ public class MonitorBeans {
         if (!monitorBeanHashMap.containsKey(monitorBean.code)) {
             monitorBeanHashMap.put(monitorBean.code, monitorBean);
         } else {
-            monitorBeanHashMap.put(monitorBean.code, monitorBean);
+//            monitorBeanHashMap.put(monitorBean.code, monitorBean);
         }
     }
 
     public void add(String stock) {
-        if (!monitorBeanHashMap.containsKey(stock)) {
-            monitorBeanHashMap.put(stock, new MonitorBean(stock));
-        }
+        add(new MonitorBean(stock));
     }
 
     public Collection<MonitorBean> getCollection() {
@@ -42,6 +40,12 @@ public class MonitorBeans {
 
     public MonitorBean getMonitorBean(String code) {
         return monitorBeanHashMap.get(getNumber(code));
+    }
+
+    public void deleteBean(String code) {
+        if (monitorBeanHashMap.containsKey(code)) {
+            monitorBeanHashMap.remove(code);
+        }
     }
 
     public int getSize() {

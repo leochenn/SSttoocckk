@@ -7,6 +7,7 @@ import com.leo.stock.library.util.FloatUtil;
 import com.leo.stock.library.util.LogUtil;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * Created by Leo on 2020/3/25.
@@ -17,20 +18,29 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
 
     public String name;
 
+    public float upPrice;
+    public float upPricePercent;
+
+    public float downPrice;
+    public float downPricePercent;
+
     // 上一次警报状态 1 上涨 2下跌
-    public int lastAlarmState;
+    public transient int lastAlarmState;
 
     // 上一次警报时间
-    public long lastAlarmTime;
+    public transient long lastAlarmTime;
 
     // 上一次警报的股价
-    public float lastAlarmPrice;
+    public transient float lastAlarmPrice;
 
-    public float currentPrice;
+    public transient float currentPrice;
 
-    public float yestodayPrice;
+    public transient float yestodayPrice;
 
-    public float todayOpenPrice;
+    public transient float todayOpenPrice;
+
+    // 10 成交额,单位为“元”，为了一目了然，通常以“万元”为成交金额的单位，所以通常把该值除以一万
+    public transient BigDecimal turnover;
 
     public MonitorBean(String code) {
         this.code = code;
@@ -49,6 +59,8 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
         if (Float.compare(0, sinaStockBean.todayCurrentPrice) != 0) {
             currentPrice = sinaStockBean.todayCurrentPrice;
         }
+
+        turnover = sinaStockBean.turnoverDecimal;
     }
 
     public String getCode() {
@@ -61,7 +73,7 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
         }
 
         // 深圳发债3，可转债123,127,128
-        if (code.startsWith("123") || code.startsWith("127") || code.startsWith("128") || code.startsWith("3")) {
+        if (code.startsWith("123") || code.startsWith("127") || code.startsWith("128") || code.startsWith("3") || code.startsWith("000")) {
             return "sz" + code;
         }
 
@@ -69,7 +81,7 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
         return "sh" + code;
     }
 
-    // 计算涨跌幅度
+    // 计算涨跌幅度 %
     public String getHLSpace() {
         float valuef = FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
         return valuef + "%";
@@ -79,8 +91,32 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
         return FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
     }
 
+    /**
+     * 现价涨跌数
+     * @return
+     */
     public Float getHL() {
         return FloatUtil.handleFloatString(currentPrice - yestodayPrice, "0.00");
+    }
+
+    public String getTurnover() {
+        String result = null;
+
+        long value = 0;
+        if (new BigDecimal(turnover.intValue()).compareTo(turnover) == 0) {
+            value = turnover.longValue() * 10000;
+        } else {
+            value = turnover.longValue();
+        }
+
+        if (value < 10000) {
+            result = value + "";
+        } else if (value < 10000 * 10000) {
+            result = FloatUtil.handleFloatString(value / 10000f, "0.00") + "万";
+        } else {
+            result = FloatUtil.handleFloatString(value / (10000 * 10000f), "0.00") + "亿";
+        }
+        return result;
     }
 
     @Override

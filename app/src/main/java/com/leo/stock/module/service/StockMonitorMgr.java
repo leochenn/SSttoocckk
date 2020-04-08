@@ -94,7 +94,7 @@ public class StockMonitorMgr {
                     bean.lastAlarmTime = System.currentTimeMillis();
                 }
             } else {
-//                LogUtil.e(TAG, "checkMonitorBean 股价异常:" + bean.code + bean.name + bean.currentPrice);
+                LogUtil.e(TAG, "checkMonitorBean 股价异常:" + bean.code + bean.name + bean.currentPrice);
             }
         }
 
@@ -150,6 +150,7 @@ public class StockMonitorMgr {
     }
 
     public static void destroy() {
+        IO.saveToLocal(IO.getLocalFilePath(App.getInstance().getApplicationContext()), StockMonitorMgr.getInstance().getMonitorBeans());
         if (instance != null && instance.monitorTimer != null) {
             instance.monitorTimer.stop();
         }

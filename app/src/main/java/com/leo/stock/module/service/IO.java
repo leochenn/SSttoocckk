@@ -1,5 +1,7 @@
 package com.leo.stock.module.service;
 
+import android.content.Context;
+
 import com.leo.stock.library.util.LogUtil;
 
 import java.io.File;
@@ -13,6 +15,10 @@ import java.io.ObjectOutputStream;
  * Created by Leo on 2020/4/7.
  */
 public class IO {
+
+    public static String getLocalFilePath(Context context) {
+        return context.getFilesDir() + "/stockId.txt";
+    }
 
     public static void loadFromLocal(String path, MonitorBeans monitorBeans) {
         File file = new File(path);
@@ -58,6 +64,7 @@ public class IO {
             objectOutputStream.flush();
             objectOutputStream.close();
             fileOutputStream.close();
+            LogUtil.d("IO", "saveToLocal success", monitorBeans.getSize());
         } catch (Exception e) {
             LogUtil.e(e, "IO", "saveToLocal");
         }

@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="goToOld"
+        android:visibility="gone"
         android:text="老版本"/>
 
     <Button
@@ -30,7 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="goToNew"
-        android:text="新版本"/>
+        android:text="监控详情"/>
 
     <Button
         android:id="@+id/btn_set"
@@ -44,5 +45,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="test"
+        android:visibility="gone"
         android:text="测试"/>
 </LinearLayout>

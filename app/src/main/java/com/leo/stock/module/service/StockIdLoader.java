@@ -44,7 +44,7 @@ public class StockIdLoader {
     }
 
     public void startLoad() {
-        IO.loadFromLocal(getLocalFilePath(), monitorBeans);
+        IO.loadFromLocal(IO.getLocalFilePath(context), monitorBeans);
         LogUtil.d(TAG, "loadFromLocal", monitorBeans.getSize());
 
         loadFromFtp();
@@ -116,11 +116,7 @@ public class StockIdLoader {
 
     private void loadSuccess(List<String> strings) {
         monitorBeans.add(strings);
-        IO.saveToLocal(getLocalFilePath(), monitorBeans);
+        IO.saveToLocal(IO.getLocalFilePath(context), monitorBeans);
         StockMonitorMgr.getInstance().loadStockIdSuccess();
-    }
-
-    private String getLocalFilePath() {
-        return context.getFilesDir() + "/stockId.txt";
     }
 }

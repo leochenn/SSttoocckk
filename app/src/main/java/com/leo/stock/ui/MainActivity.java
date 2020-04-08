@@ -7,8 +7,10 @@ import android.view.View;
 import android.widget.Button;
 
 import com.leo.stock.R;
-import com.leo.stock.module.ftp.FtpMgr;
 import com.leo.stock.module.service.BgService;
+import com.leo.stock.module.service.MonitorBeans;
+import com.leo.stock.module.service.StockActivity;
+import com.leo.stock.module.service.StockMonitorMgr;
 
 /**
  * Created by Leo on 2020/3/24.
@@ -65,6 +67,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     public void goToNew(View view) {
+        MonitorBeans monitorBeans = StockMonitorMgr.getInstance().getMonitorBeans();
+        if (monitorBeans != null && monitorBeans.getSize() > 0) {
+            startActivity(new Intent(this, StockActivity.class));
+        }
     }
 
     public void goToOld(View view) {

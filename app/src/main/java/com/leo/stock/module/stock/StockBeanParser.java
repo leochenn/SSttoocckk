@@ -6,6 +6,7 @@ import com.leo.stock.Bean.SinaStockBean;
 import com.leo.stock.library.util.FloatUtil;
 import com.leo.stock.library.util.LogUtil;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +74,7 @@ public class StockBeanParser {
             stockBean.priceChangePercent = FloatUtil.handleFloatString(values[3]);
             stockBean.amount = Long.valueOf(values[4]) * 100;
             stockBean.turnover = Long.valueOf(values[5]) * 10000;
+            stockBean.turnoverDecimal = new BigDecimal(values[5]);
         } else if (values.length > 6) {
             stockBean.stockName = values[0];
             stockBean.todayOpenPrice = FloatUtil.handleFloatString(values[1]);
@@ -84,6 +86,7 @@ public class StockBeanParser {
             stockBean.competitionSellPrice = FloatUtil.handleFloatString(values[7]);
             stockBean.amount = Long.parseLong(values[8]);
 
+            stockBean.turnoverDecimal = new BigDecimal(values[9]);
             String strTurnOver = values[9].replace(".000", "");
             try {
                 stockBean.turnover = Double.parseDouble(strTurnOver);

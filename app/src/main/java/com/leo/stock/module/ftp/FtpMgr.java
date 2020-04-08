@@ -117,35 +117,36 @@ public class FtpMgr {
         }
     }
 
-    private ArrayList<String> downloadStringList(String fileName) {
-        ArrayList<String> list = new ArrayList<>();
+    private void downloadStringList(String fileName, ArrayList<String> list) {
+        boolean abc = false;
         InputStream is = null;
         try {
             is = ftpClient.retrieveFileStream(fileName);
             BufferedReader reader =
                     new BufferedReader(new InputStreamReader(is));
-
             String line = null;
             while ((line = reader.readLine()) != null) {
                 LogUtil.d(TAG, line);
                 list.add(line);
             }
             reader.close();
-            LogUtil.d(TAG, "download finish");
+            abc = true;
+            LogUtil.d(TAG, "downloadStringList finish");
         } catch (Exception e) {
-            LogUtil.e(e, TAG, "download");
+            LogUtil.e(e, TAG, "downloadStringList");
         } finally {
             try {
                 if (is != null) {
                     is.close();
                 }
-                boolean a = ftpClient.completePendingCommand();
-                LogUtil.d(TAG, "download completePendingCommand", a);
+                if (abc) {
+                    boolean a = ftpClient.completePendingCommand();
+                    LogUtil.d(TAG, "download completePendingCommand", a);
+                }
             } catch (IOException e) {
-                LogUtil.e(e, TAG, "download");
+                LogUtil.e(e, TAG, "completePendingCommand");
             }
         }
-        return list;
     }
 
     private void upload(String fileName) {
@@ -253,7 +254,8 @@ public class FtpMgr {
             public void run() {
                 FtpMgr ftpMgr = new FtpMgr();
                 if (ftpMgr.result) {
-                    ArrayList<String> list = ftpMgr.downloadStringList(fileName);
+                    ArrayList<String> list = new ArrayList<>();
+                    ftpMgr.downloadStringList(fileName, list);
                     ftpMgr.destroy();
                     listener.getData(list);
                 } else {

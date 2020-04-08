@@ -7,16 +7,6 @@ import java.text.DecimalFormat;
  */
 public class FloatUtil {
 
-    public static float handleFloatString(float value) {
-        return handleFloatString(value, "0.000");
-    }
-
-    public static float handleFloatString(float value, String format) {
-        DecimalFormat decimalFormat = new DecimalFormat(format);
-        String b = decimalFormat.format(value);
-        return convertString(b);
-    }
-
     private static float convertString(String value) {
         try {
             return Float.parseFloat(value);
@@ -28,5 +18,15 @@ public class FloatUtil {
 
     public static float handleFloatString(String value) {
         return handleFloatString(convertString(value));
+    }
+
+    public static float handleFloatString(float value) {
+        return handleFloatString(value, "0.000");
+    }
+
+    public static float handleFloatString(float value, String format) {
+        DecimalFormat decimalFormat = new DecimalFormat(format);
+        String b = decimalFormat.format(value);
+        return convertString(b);
     }
 }
