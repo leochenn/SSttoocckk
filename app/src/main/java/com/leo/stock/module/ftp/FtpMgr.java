@@ -126,7 +126,7 @@ public class FtpMgr {
                     new BufferedReader(new InputStreamReader(is));
             String line = null;
             while ((line = reader.readLine()) != null) {
-                LogUtil.d(TAG, line);
+//                LogUtil.d(TAG, line);
                 list.add(line);
             }
             reader.close();

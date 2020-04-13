@@ -112,6 +112,7 @@ public class StockIdLoader {
 
     private void loadSuccess(List<String> strings) {
         monitorBeans.add(strings);
+        StockMonitorMgr.getInstance().addSZIndex();
         IO.saveToLocal(IO.getLocalFilePath(context), monitorBeans);
         StockMonitorMgr.getInstance().loadStockIdSuccess();
     }

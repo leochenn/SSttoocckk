@@ -21,18 +21,13 @@ public class MonitorHandler {
     }
 
     public void check(MonitorBean bean) {
-        if (Float.compare(bean.currentPrice, 0) <= 0) {
+        if (bean.currentPrice <= 0) {
             LogUtil.e(TAG, "checkMonitorBean 股价异常:" + bean.code + bean.name + bean.currentPrice);
             return;
         }
 
         if (Float.compare(bean.lastAlarmPrice, 0) == 0) {
             bean.lastAlarmPrice = bean.yestodayPrice;
-        }
-
-        if (bean.code.contains("000001")) {
-            szIndex(bean);
-            return;
         }
 
         float highPercent = Settings.getPriceHighAlarmInterval(context) / 100;
@@ -45,7 +40,7 @@ public class MonitorHandler {
             alarmBean.addBean(true, bean);
             bean.highPrice = 0;
             bean.lastAlarmPrice = bean.currentPrice;
-            bean.lastAlarmState = 1;
+            bean.lastAlarmState = highPercentPrice > bean.highPrice ? 1 : 2;
             bean.lastAlarmTime = System.currentTimeMillis();
         } else if (bean.currentPrice > highPercentPrice) {
             alarmBean.addBean(true, bean);
@@ -56,7 +51,7 @@ public class MonitorHandler {
             alarmBean.addBean(true, bean);
             bean.highPrice = 0;
             bean.lastAlarmPrice = bean.currentPrice;
-            bean.lastAlarmState = 1;
+            bean.lastAlarmState = 2;
             bean.lastAlarmTime = System.currentTimeMillis();
         }
 
@@ -69,18 +64,18 @@ public class MonitorHandler {
             alarmBean.addBean(false, bean);
             bean.lowPrice = 0;
             bean.lastAlarmPrice = bean.currentPrice;
-            bean.lastAlarmState = 2;
+            bean.lastAlarmState = lowPercentPrice < bean.lowPrice ? -1 : -2;
             bean.lastAlarmTime = System.currentTimeMillis();
         } else if (bean.currentPrice < lowPercentPrice) {
             alarmBean.addBean(false, bean);
             bean.lastAlarmPrice = bean.currentPrice;
-            bean.lastAlarmState = 2;
+            bean.lastAlarmState = -1;
             bean.lastAlarmTime = System.currentTimeMillis();
         } else if (bean.currentPrice < bean.lowPrice) {
             alarmBean.addBean(false, bean);
             bean.lowPrice = 0;
             bean.lastAlarmPrice = bean.currentPrice;
-            bean.lastAlarmState = 2;
+            bean.lastAlarmState = -2;
             bean.lastAlarmTime = System.currentTimeMillis();
         }
     }

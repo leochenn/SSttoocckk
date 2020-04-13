@@ -28,7 +28,7 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     // 下跌幅度
     public float lowPricePercent;
 
-    // 上一次警报状态 1 上涨 2下跌
+    // 上一次警报状态 1 涨幅 2上涨价格 -1跌幅 -2 下跌价格
     public transient int lastAlarmState;
 
     // 上一次警报时间

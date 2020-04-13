@@ -27,25 +27,25 @@ public class SettingActivity extends Activity {
         setContentView(R.layout.activity_setting);
 
         checkBoxEmail = findViewById(R.id.cbx_email);
-        checkBoxEmail.setChecked(SpUtil.getBoolean(this, "cb_email", true));
+        checkBoxEmail.setChecked(Settings.isEmailAlarmEnable(this));
 
         checkBoxSound = findViewById(R.id.cbx_sound);
-        checkBoxSound.setChecked(SpUtil.getBoolean(this, "cb_sound", true));
+        checkBoxSound.setChecked(Settings.isSoundAlarmEnable(this));
 
         checkBoxNotify = findViewById(R.id.cbx_notify);
-        checkBoxNotify.setChecked(SpUtil.getBoolean(this, "cb_notify", true));
+        checkBoxNotify.setChecked(Settings.isNotifyAlarmEnable(this));
 
         editTextHighAlarm = findViewById(R.id.edit_high);
-        editTextHighAlarm.setText("" + SpUtil.getFloat(this, "edit_high", 3));
+        editTextHighAlarm.setText("" + Settings.getPriceHighAlarmInterval(this));
 
         editTextLowAlarm = findViewById(R.id.edit_low);
-        editTextLowAlarm.setText("" + SpUtil.getFloat(this, "edit_low", 3));
+        editTextLowAlarm.setText("" + Settings.getPriceLowAlarmInterval(this));
 
         editTextRefresh = findViewById(R.id.edit_refresh);
-        editTextRefresh.setText("" + SpUtil.getInt(this, "edit_refresh", 10));
+        editTextRefresh.setText("" + Settings.getRefreshInterval(this));
 
         editTextSoundCount = findViewById(R.id.edit_sound);
-        editTextSoundCount.setText("" + SpUtil.getInt(this, "edit_soundcount", 3));
+        editTextSoundCount.setText("" + Settings.soundAlarmCount(this));
 
         editTextEmailAuthCode = findViewById(R.id.edit_qqcode);
         editTextEmailAuthCode.setText(SpUtil.getString(this, "edit_qqauth", Config.AUTH_CODE));

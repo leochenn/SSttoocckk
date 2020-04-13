@@ -36,14 +36,17 @@ public class StockMonitorMgr {
         loader.startLoad();
     }
 
-    public void loadStockIdSuccess() {
+    public void addSZIndex() {
         if (monitorBeans.getMonitorBean("000001") == null) {
             MonitorBean monitorBean = new MonitorBean("000001");
-            monitorBean.highPricePercent = 3;
-            monitorBean.lowPricePercent = 3;
+            monitorBean.highPricePercent = 0.5f;
+            monitorBean.lowPricePercent = 0.5f;
             monitorBeans.add(monitorBean);
+            LogUtil.d(TAG, "添加上证指数");
         }
+    }
 
+    public void loadStockIdSuccess() {
         monitorTimer = new MonitorTimer(context);
         monitorTimer.start();
     }
@@ -57,6 +60,12 @@ public class StockMonitorMgr {
         MonitorHandler monitorHandler = new MonitorHandler(context, alarmBean);
 
         for (MonitorBean bean : monitorBeans.getCollection()) {
+            if (bean.code.contains("000001")) {
+                alarmBean.addSzIndexBean(bean);
+                String content = bean.currentPrice + ",   " + bean.getHLSpace() + ",  " + bean.getHL();
+                NotifycationHelper.lauch(context, content);
+            }
+
             monitorHandler.check(bean);
         }
 
