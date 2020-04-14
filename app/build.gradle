@@ -20,6 +20,7 @@ android {
 
         buildConfigField "String", "SEND_ADDRESS", "\"${emailProperties['SEND_ADDRESS']}\""
         buildConfigField "String", "AUTH_CODE", "\"${emailProperties['AUTH_CODE']}\""
+        buildConfigField "String", "STOCK_ID_URL", "\"${emailProperties['STOCK_ID_URL']}\""
 
         setProperty("archivesBaseName", getString())
     }

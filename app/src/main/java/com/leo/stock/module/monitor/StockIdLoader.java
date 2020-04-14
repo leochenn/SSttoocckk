@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import com.leo.stock.App;
 import com.leo.stock.biz.IGetData;
 import com.leo.stock.library.util.LogUtil;
+import com.leo.stock.module.email.Config;
 import com.leo.stock.module.ftp.FtpMgr;
 import com.leo.stock.module.notify.NotifycationHelper;
 
@@ -43,7 +44,8 @@ public class StockIdLoader {
         IO.loadFromLocal(IO.getLocalFilePath(context), monitorBeans);
         LogUtil.d(TAG, "loadFromLocal", monitorBeans.getSize());
 
-        loadFromFtp();
+        loadFromRemote();
+//        loadFromFtp();
     }
 
     public void loadFromFtp() {
@@ -63,8 +65,7 @@ public class StockIdLoader {
     }
 
     public void loadFromRemote() {
-        String url = "https://leochenandroid.gitee.io/stock/stockids.txt";
-        Request request = new Request.Builder().get().url(url).build();
+        Request request = new Request.Builder().get().url(Config.STOCK_ID_URL).build();
         OkHttpManager.getIntance().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
