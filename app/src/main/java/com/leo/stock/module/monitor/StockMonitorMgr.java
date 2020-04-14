@@ -9,6 +9,9 @@ import com.leo.stock.module.email.Config;
 import com.leo.stock.module.email.MailHelper;
 import com.leo.stock.module.notify.NotifycationHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Leo on 2020/3/25.
  */
@@ -73,8 +76,33 @@ public class StockMonitorMgr {
             alarm(alarmBean);
         }
 
+        checkUpdateListener();
+
         if (monitorTimer != null) {
             monitorTimer.startTimer();
+        }
+    }
+
+    private void checkUpdateListener() {
+        if (updateListener != null) {
+            for (Runnable event : updateListener) {
+                event.run();
+            }
+        }
+    }
+
+    List<Runnable> updateListener;
+
+    public void registerUpdate(Runnable event) {
+        if (updateListener == null) {
+            updateListener = new ArrayList<>();
+        }
+        updateListener.add(event);
+    }
+
+    public void unregisterUpdate(Runnable event) {
+        if (updateListener != null) {
+            updateListener.remove(event);
         }
     }
 

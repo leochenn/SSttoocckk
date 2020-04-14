@@ -9,6 +9,8 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 
 import com.leo.stock.R;
+import com.leo.stock.module.monitor.Settings;
+import com.leo.stock.module.monitor.StockMonitorMgr;
 import com.leo.stock.ui.widget.CustomHScrollView;
 
 public class StockActivity extends Activity {
@@ -52,6 +54,26 @@ public class StockActivity extends Activity {
             mAdapter.updateData();
             mAdapter.notifyDataSetChanged();
         }
+        mListView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                StockMonitorMgr.getInstance().registerUpdate(runnable);
+            }
+        }, 500);
+    }
+
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            mAdapter.updateData();
+            mAdapter.notifyDataSetChanged();
+        }
+    };
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StockMonitorMgr.getInstance().unregisterUpdate(runnable);
     }
 
     public void addStock(View view) {

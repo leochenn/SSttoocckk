@@ -110,7 +110,7 @@ public class MonitorTimer {
     }
 
     private void loadPrice() {
-        if (failedCount > 3) {
+        if (failedCount > 4) {
             handleFail("获取实时价格失败三次");
             return;
         }

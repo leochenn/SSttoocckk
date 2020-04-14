@@ -117,7 +117,7 @@ public class StockIdAdapter extends BaseAdapter {
         try {
             holder.tvTurnover.setText("" + sinaStockBean.getTurnover());
         } catch (Exception e) {
-            LogUtil.e("异常", sinaStockBean.code, sinaStockBean.turnover);
+//            LogUtil.e("异常", sinaStockBean.code, sinaStockBean.turnover);
         }
         return view;
     }

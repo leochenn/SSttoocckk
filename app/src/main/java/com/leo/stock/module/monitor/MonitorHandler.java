@@ -22,7 +22,7 @@ public class MonitorHandler {
 
     public void check(MonitorBean bean) {
         if (bean.currentPrice <= 0) {
-            LogUtil.e(TAG, "checkMonitorBean 股价异常:" + bean.code + bean.name + bean.currentPrice);
+//            LogUtil.e(TAG, "checkMonitorBean 股价异常:" + bean.code + bean.name + bean.currentPrice);
             return;
         }
 
