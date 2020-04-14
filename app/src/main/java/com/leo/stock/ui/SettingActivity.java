@@ -63,7 +63,7 @@ public class SettingActivity extends Activity {
         EditTextFtpPwd.setText(Settings.getFtpPwd(this));
 
         editTextEndTime = findViewById(R.id.edit_end_time);
-        editTextEndTime.setText(Settings.getEndTime(this));
+        editTextEndTime.setText("" + Settings.getEndTime(this));
     }
 
     @Override

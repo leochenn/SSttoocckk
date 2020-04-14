@@ -8,8 +8,6 @@ import android.widget.Button;
 
 import com.leo.stock.R;
 import com.leo.stock.module.monitor.BgService;
-import com.leo.stock.module.monitor.MonitorBeans;
-import com.leo.stock.module.monitor.StockMonitorMgr;
 
 /**
  * Created by Leo on 2020/3/24.
@@ -27,14 +25,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
         btnCalculate.setOnClickListener(this);
 
         btnService = findViewById(R.id.btn_start);
+        btnService.setOnClickListener(this);
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setBtnServiceState();
+    }
+
+    private void setBtnServiceState() {
         if (BgService.isRunning()) {
             btnService.setText("停止服务");
         } else {
             btnService.setText("启动服务");
         }
-
-        btnService.setOnClickListener(this);
     }
 
     @Override
@@ -51,17 +56,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
             } else {
                 BgService.startService(this);
             }
+
             btnService.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     btnService.setEnabled(true);
-                    if (BgService.isRunning()) {
-                        btnService.setText("停止服务");
-                    } else {
-                        btnService.setText("启动服务");
-                    }
+                    setBtnServiceState();
                 }
-            }, 3000);
+            }, 1500);
         }
     }
 

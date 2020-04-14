@@ -30,7 +30,7 @@ public class MonitorTimer {
     }
 
     public void start() {
-        checkTimeValid();
+        loadPrice();
     }
 
     public void checkTimeValid() {
