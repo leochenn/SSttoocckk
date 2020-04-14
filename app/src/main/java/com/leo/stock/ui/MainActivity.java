@@ -66,10 +66,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     public void goToNew(View view) {
-        MonitorBeans monitorBeans = StockMonitorMgr.getInstance().getMonitorBeans();
-        if (monitorBeans != null && monitorBeans.getSize() > 0) {
-            startActivity(new Intent(this, StockActivity.class));
-        }
+        startActivity(new Intent(this, StockActivity.class));
     }
 
     public void goToSet(View view) {

@@ -21,6 +21,7 @@ import com.leo.stock.module.monitor.MonitorBean;
 import com.leo.stock.module.monitor.MonitorBeans;
 import com.leo.stock.module.monitor.StockMonitorMgr;
 import com.leo.stock.ui.widget.CustomHScrollView;
+import com.leo.stock.ui.widget.InterceptScrollLinearLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,20 +37,16 @@ public class StockIdAdapter extends BaseAdapter {
         this.context = context;
         this.mHead = head;
         this.mInflater = LayoutInflater.from(context);
-
-        updateData();
+        mData = new ArrayList<>();
     }
 
-    public void updateData() {
-        if (mData == null) {
-            mData = new ArrayList<>();
-        } else {
-            mData.clear();
-        }
-        MonitorBeans monitorBeans = StockMonitorMgr.getInstance().getMonitorBeans();
-        if (monitorBeans != null && monitorBeans.getSize() > 0) {
-            mData.addAll(monitorBeans.getCollection());
-        }
+    public boolean isDataEmpty() {
+        return mData.isEmpty();
+    }
+
+    public void updateData(List<MonitorBean> list) {
+        mData.clear();
+        mData.addAll(list);
     }
 
     @Override
@@ -74,6 +71,9 @@ public class StockIdAdapter extends BaseAdapter {
             holder = new MyViewHolder();
 
             view = mInflater.inflate(R.layout.list_item, group, false);
+
+            InterceptScrollLinearLayout interceptScrollLinearLayout = view.findViewById(R.id.intercept_sl);
+            interceptScrollLinearLayout.setIntercept(true);
 
             holder.tvName = view.findViewById(R.id.tv_name);
             holder.tvCurrentPrice = view.findViewById(R.id.tv_currentPrice);
@@ -114,11 +114,7 @@ public class StockIdAdapter extends BaseAdapter {
         holder.tvPriceChangePercent.setText("" + sinaStockBean.getHLSpace());
         holder.tvOpenPrice.setText("" + sinaStockBean.todayOpenPrice);
         holder.tvLastClosePrice.setText("" + sinaStockBean.yestodayPrice);
-        try {
-            holder.tvTurnover.setText("" + sinaStockBean.getTurnover());
-        } catch (Exception e) {
-//            LogUtil.e("异常", sinaStockBean.code, sinaStockBean.turnover);
-        }
+        holder.tvTurnover.setText(sinaStockBean.getTurnover());
         return view;
     }
 

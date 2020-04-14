@@ -88,11 +88,18 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     // 计算涨跌幅度 %
     public String getHLSpace() {
         float valuef = FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
+        if (Float.compare(valuef, Float.NaN) == 0) {
+            return "0%";
+        }
         return valuef + "%";
     }
 
     public Float getHLSpaceFloat() {
-        return FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
+        float value = FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
+        if (Float.compare(value, Float.NaN) == 0) {
+            return 0f;
+        }
+        return value;
     }
 
     /**
@@ -104,8 +111,11 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     }
 
     public String getTurnover() {
-        String result = null;
+        if (turnover == null) {
+            return "0.0";
+        }
 
+        String result = null;
         long value = 0;
         if (new BigDecimal(turnover.intValue()).compareTo(turnover) == 0) {
             value = turnover.longValue() * 10000;

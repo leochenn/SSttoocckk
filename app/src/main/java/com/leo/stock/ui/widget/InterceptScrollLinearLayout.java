@@ -28,8 +28,14 @@ public class InterceptScrollLinearLayout extends LinearLayout {
         super(context, attrs);
     }
 
+    boolean intercept;
+
+    public void setIntercept(boolean intercept) {
+        this.intercept = intercept;
+    }
+
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        return true;
+        return intercept;
     }
 }
