@@ -2,7 +2,6 @@ package com.leo.stock.module.monitor;
 
 import android.content.Context;
 
-import com.leo.stock.library.util.LogUtil;
 import com.leo.stock.module.notify.NotifycationHelper;
 
 /**
