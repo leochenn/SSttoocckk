@@ -152,7 +152,7 @@ public class StockMonitorMgr {
         IO.saveToLocal(IO.getLocalFilePath(App.getInstance().getApplicationContext()), StockMonitorMgr.getInstance().getMonitorBeans());
         if (instance != null && instance.monitorTimer != null) {
             instance.monitorTimer.stop();
+            instance.monitorTimer = null;
         }
-        instance = null;
     }
 }

@@ -137,7 +137,7 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     public int compareTo(MonitorBean o) {
         float value = getHLSpaceFloat();
         if (Float.compare(value, 0) >= 0) {
-            return Float.compare(getHLSpaceFloat(), o.getHLSpaceFloat());
+            return Float.compare(o.getHLSpaceFloat(), getHLSpaceFloat());
         } else {
             return Float.compare(getHLSpaceFloat(), o.getHLSpaceFloat());
         }

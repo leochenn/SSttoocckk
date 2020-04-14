@@ -7,6 +7,10 @@ import android.content.Context;
  */
 public class Settings {
 
+    public static int getEndTime(Context context) {
+        return SpUtil.getInt(context, "edit_end_time", 15);
+    }
+
     public static String getFtpHost(Context context) {
         return SpUtil.getString(context, "edit_ftp_host", "172.16.163.5");
     }

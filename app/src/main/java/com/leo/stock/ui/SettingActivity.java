@@ -17,7 +17,7 @@ import com.leo.stock.module.monitor.SpUtil;
  */
 public class SettingActivity extends Activity {
 
-    EditText editTextRefresh, editTextEmailAuthCode, editTextSoundCount, editTextHighAlarm, editTextLowAlarm, editTextAlarmInterval;
+    EditText editTextRefresh, editTextEmailAuthCode, editTextSoundCount, editTextHighAlarm, editTextLowAlarm, editTextAlarmInterval, editTextEndTime;
     CheckBox checkBoxEmail, checkBoxSound, checkBoxNotify;
     EditText editTextFtpHost, EditTextFtpUser, EditTextFtpPwd;
 
@@ -61,6 +61,9 @@ public class SettingActivity extends Activity {
 
         EditTextFtpPwd = findViewById(R.id.edit_ftp_pwd);
         EditTextFtpPwd.setText(Settings.getFtpPwd(this));
+
+        editTextEndTime = findViewById(R.id.edit_end_time);
+        editTextEndTime.setText(Settings.getEndTime(this));
     }
 
     @Override
@@ -78,6 +81,8 @@ public class SettingActivity extends Activity {
         SpUtil.putString(this, "edit_ftp_host", editTextFtpHost.getText().toString().trim());
         SpUtil.putString(this, "edit_ftp_user", EditTextFtpUser.getText().toString().trim());
         SpUtil.putString(this, "edit_ftp_pwd", EditTextFtpPwd.getText().toString().trim());
+
+        SpUtil.putInt(this, "edit_end_time", Integer.parseInt(editTextEndTime.getText().toString().trim()));
         super.onDestroy();
     }
 }
