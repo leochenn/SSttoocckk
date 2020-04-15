@@ -1,5 +1,6 @@
 package com.leo.stock.module.monitor;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.leo.stock.Bean.SinaStockBean;
@@ -32,10 +33,10 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     public transient int lastAlarmState;
 
     // 上一次警报时间
-    public transient long lastAlarmTime;
+    public long lastAlarmTime;
 
     // 上一次警报的股价
-    public transient float lastAlarmPrice;
+    public float lastAlarmPrice;
 
     public transient float currentPrice;
 
@@ -141,5 +142,11 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
         } else {
             return Float.compare(getHLSpaceFloat(), o.getHLSpaceFloat());
         }
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return code + "," + name + "," + lastAlarmTime + "," + lastAlarmPrice;
     }
 }

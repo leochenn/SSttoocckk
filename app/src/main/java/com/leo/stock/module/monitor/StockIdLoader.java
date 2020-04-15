@@ -16,6 +16,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import okhttp3.Call;
@@ -43,6 +44,26 @@ public class StockIdLoader {
     public void startLoad() {
         IO.loadFromLocal(IO.getLocalFilePath(context), monitorBeans);
         LogUtil.d(TAG, "loadFromLocal", monitorBeans.getSize());
+
+        for (MonitorBean bean : monitorBeans.getCollection()) {
+            if (bean.lastAlarmTime != 0 && Float.compare(bean.lastAlarmPrice, 0) != 0) {
+                Calendar nowCalendar = Calendar.getInstance();
+                nowCalendar.setTimeInMillis(bean.lastAlarmTime);
+                int month = nowCalendar.get(Calendar.MONTH);
+                int day = nowCalendar.get(Calendar.DAY_OF_MONTH);
+
+                Calendar nowCalendar2 = Calendar.getInstance();
+                nowCalendar2.setTimeInMillis(System.currentTimeMillis());
+                int month2 = nowCalendar2.get(Calendar.MONTH);
+                int day2 = nowCalendar2.get(Calendar.DAY_OF_MONTH);
+
+                if (month != month2 || day != day2) {
+                    LogUtil.d(TAG, "上次警报时间重置", bean);
+                    bean.lastAlarmTime = 0;
+                    bean.lastAlarmPrice = 0f;
+                }
+            }
+        }
 
         loadFromRemote();
 //        loadFromFtp();
