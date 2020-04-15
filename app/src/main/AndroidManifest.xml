@@ -48,6 +48,12 @@
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.Light.NoTitleBar"/>
 
+        <activity
+            android:name=".ui.WebActivity"
+            android:configChanges='keyboard|keyboardHidden|orientation|screenSize'
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Light.NoTitleBar"/>
+
         <receiver android:name="com.leo.stock.module.notify.NotificationBroadcastReceiver">
             <intent-filter>
                 <action android:name="com.leo.stock.cancel"/>

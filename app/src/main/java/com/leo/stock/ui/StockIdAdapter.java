@@ -101,14 +101,31 @@ public class StockIdAdapter extends BaseAdapter {
         } else {
             holder.tvName.setText(sinaStockBean.name);
         }
-        holder.tvName.setOnClickListener(new View.OnClickListener() {
+        holder.tvName.setOnLongClickListener(new View.OnLongClickListener() {
+
             @Override
-            public void onClick(View v) {
+            public boolean onLongClick(View v) {
                 Intent intent = new Intent(context, StockDetailActivity.class);
                 intent.putExtra("code", sinaStockBean.code);
                 context.startActivity(intent);
+                return true;
             }
         });
+        holder.tvName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = "https://wap.eastmoney.com/quota/stock/index/" + sinaStockBean.code;
+                if(sinaStockBean.getCode().contains("sh")) {
+                    url += "1";
+                } else {
+                    url += "2";
+                }
+                Intent intent = new Intent(context, WebActivity.class);
+                intent.putExtra("url", url);
+                context.startActivity(intent);
+            }
+        });
+
         holder.tvCurrentPrice.setText("" + sinaStockBean.currentPrice);
         holder.tvPriceChange.setText("" + sinaStockBean.getHL());
         holder.tvPriceChangePercent.setText("" + sinaStockBean.getHLSpace());
