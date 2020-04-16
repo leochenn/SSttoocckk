@@ -137,4 +137,21 @@ public class MonitorTimer {
         NotifycationHelper.sendMsg(context, "提示", msg);
         BgService.stopService(context);
     }
+
+    public static boolean isSameDay(long lastTime) {
+        Calendar nowCalendar = Calendar.getInstance();
+        nowCalendar.setTimeInMillis(lastTime);
+        int month = nowCalendar.get(Calendar.MONTH);
+        int day = nowCalendar.get(Calendar.DAY_OF_MONTH);
+
+        Calendar nowCalendar2 = Calendar.getInstance();
+        nowCalendar2.setTimeInMillis(System.currentTimeMillis());
+        int month2 = nowCalendar2.get(Calendar.MONTH);
+        int day2 = nowCalendar2.get(Calendar.DAY_OF_MONTH);
+
+        if (month != month2 || day != day2) {
+            return false;
+        }
+        return true;
+    }
 }

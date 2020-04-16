@@ -8,6 +8,7 @@ import android.widget.Button;
 
 import com.leo.stock.R;
 import com.leo.stock.module.monitor.BgService;
+import com.leo.stock.module.monitor.StockMonitorMgr;
 
 /**
  * Created by Leo on 2020/3/24.
@@ -75,6 +76,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         startActivity(new Intent(this, SettingActivity.class));
     }
 
-    public void test(View view) {
+    public void gather(View view) {
+        StockMonitorMgr.getInstance().gather();
     }
 }

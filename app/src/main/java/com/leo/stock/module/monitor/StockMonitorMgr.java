@@ -23,9 +23,11 @@ public class StockMonitorMgr {
 
     private Context context;
 
-    MonitorTimer monitorTimer;
+    private MonitorTimer monitorTimer;
 
-    long lastAlarmTime;
+    private long lastAlarmTime;
+
+    private List<Runnable> updateListener;
 
     private MonitorBeans monitorBeans;
 
@@ -46,6 +48,18 @@ public class StockMonitorMgr {
             monitorBean.lowPricePercent = 0.5f;
             monitorBeans.add(monitorBean);
             LogUtil.d(TAG, "添加上证指数");
+        }
+    }
+
+    public void resetLastAlarm(int type) {
+        for (MonitorBean bean : monitorBeans.getCollection()) {
+            if (bean.lastAlarmTime != 0 && Float.compare(bean.lastAlarmPrice, 0) != 0) {
+                if (type == 1 || !MonitorTimer.isSameDay(bean.lastAlarmTime)) {
+                    LogUtil.d(TAG, "上次警报时间重置", bean);
+                    bean.lastAlarmTime = 0;
+                    bean.lastAlarmPrice = 0f;
+                }
+            }
         }
     }
 
@@ -80,29 +94,6 @@ public class StockMonitorMgr {
 
         if (monitorTimer != null) {
             monitorTimer.startTimer();
-        }
-    }
-
-    private void checkUpdateListener() {
-        if (updateListener != null) {
-            for (Runnable event : updateListener) {
-                event.run();
-            }
-        }
-    }
-
-    List<Runnable> updateListener;
-
-    public void registerUpdate(Runnable event) {
-        if (updateListener == null) {
-            updateListener = new ArrayList<>();
-        }
-        updateListener.add(event);
-    }
-
-    public void unregisterUpdate(Runnable event) {
-        if (updateListener != null) {
-            updateListener.remove(event);
         }
     }
 
@@ -141,6 +132,35 @@ public class StockMonitorMgr {
         }
     }
 
+    public void gather() {
+        if (monitorBeans != null && monitorBeans.getCollection().size() > 0) {
+            LogUtil.d(TAG, "开始统计");
+            resetLastAlarm(1);
+            loadStockIdSuccess();
+        }
+    }
+
+    private void checkUpdateListener() {
+        if (updateListener != null) {
+            for (Runnable event : updateListener) {
+                event.run();
+            }
+        }
+    }
+
+    public void registerUpdate(Runnable event) {
+        if (updateListener == null) {
+            updateListener = new ArrayList<>();
+        }
+        updateListener.add(event);
+    }
+
+    public void unregisterUpdate(Runnable event) {
+        if (updateListener != null) {
+            updateListener.remove(event);
+        }
+    }
+
     public static StockMonitorMgr getInstance() {
         if (instance == null) {
             instance = new StockMonitorMgr();
@@ -149,7 +169,7 @@ public class StockMonitorMgr {
     }
 
     public static void destroy() {
-        IO.saveToLocal(IO.getLocalFilePath(App.getInstance().getApplicationContext()), StockMonitorMgr.getInstance().getMonitorBeans());
+        IO.saveToLocal(IO.getLocalFilePath(App.getInstance().getApplicationContext()), getInstance().getMonitorBeans());
         if (instance != null && instance.monitorTimer != null) {
             instance.monitorTimer.stop();
             instance.monitorTimer = null;
