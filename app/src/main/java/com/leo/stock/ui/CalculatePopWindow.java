@@ -111,7 +111,6 @@ public class CalculatePopWindow extends Dialog implements View.OnTouchListener {
                 }
 
                 String s = FloatUtil.handleFloatString(fSpace, "0.00") + "";
-                LogUtil.e(s);
                 editText.setText(s);
                 btnAdd.postDelayed(this, 20);
             }

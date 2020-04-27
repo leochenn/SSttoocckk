@@ -9,12 +9,12 @@ def emailProperties = new Properties()
 emailProperties.load(new FileInputStream(emailConfigFile))
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         applicationId "com.leo.stock"
         minSdkVersion 14
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
 
@@ -44,6 +44,7 @@ android {
             signingConfig signingConfigs.releaseSign
         }
     }
+    buildToolsVersion = '29.0.2'
 
     android.variantFilter { variant ->
         if (isDebug == 1 && variant.buildType.name.contains("release")) {

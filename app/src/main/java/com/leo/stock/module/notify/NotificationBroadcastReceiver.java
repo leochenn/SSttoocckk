@@ -16,7 +16,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if (action.equals("com.leo.stock.cancel")) {
-            LogUtil.d("NotificationBroadcastReceiver");
+//            LogUtil.d("NotificationBroadcastReceiver");
             NotifycationHelper.lauch(context, "广播启动");
 //            start(context);
         }

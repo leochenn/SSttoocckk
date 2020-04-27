@@ -82,6 +82,10 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
             return "sz" + code;
         }
 
+        if (code.startsWith("163402")) {
+            return "sz" + code;
+        }
+
         LogUtil.e("获取沪深编码异常:" + code);
         return "sh" + code;
     }

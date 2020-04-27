@@ -86,7 +86,7 @@ public class MailHelper {
             msg.setContent(mainPart, "text/html; charset=utf-8");
 
             transportSend(msg);
-            LogUtil.d(TAG, "sendEmail success");
+//            LogUtil.d(TAG, "sendEmail success");
         } catch (Exception e) {
             LogUtil.e(e, TAG, "sendEmail");
             state = false;
