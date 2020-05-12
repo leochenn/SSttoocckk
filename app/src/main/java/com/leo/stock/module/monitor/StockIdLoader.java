@@ -67,7 +67,11 @@ public class StockIdLoader {
     }
 
     public void loadFromRemote() {
-        Request request = new Request.Builder().get().url(Config.STOCK_ID_URL).build();
+        String url = Config.STOCK_ID_URL;
+        Request request = new Request.Builder().get().url(url)
+                .removeHeader("User-Agent")
+                .addHeader("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 6.0.1; Redmi Note 4X MIUI/V8.5.6.0.MCFCNED)")
+                .build();
         OkHttpManager.getIntance().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -97,7 +101,7 @@ public class StockIdLoader {
                     LogUtil.e(e, TAG, "loadFromRemote");
                 }
 
-                if (beanList.isEmpty()) {
+                if (beanList.isEmpty() || beanList.get(0).contains("html")) {
                     LogUtil.e(TAG, "远程获取为空");
                     NotifycationHelper.sendMsg(context, "错误", "远程获取为空");
                     if (monitorBeans.getSize() > 0) {

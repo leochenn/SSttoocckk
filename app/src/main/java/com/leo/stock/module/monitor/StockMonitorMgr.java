@@ -105,7 +105,7 @@ public class StockMonitorMgr {
             return;
         }
         lastAlarmTime = currentTime;
-        LogUtil.d(TAG, "警报" + alarmBean);
+//        LogUtil.d(TAG, "警报" + alarmBean);
 
         if (Settings.isEmailAlarmEnable(context)) {
             ExeOperator.runOnThread(new Runnable() {
@@ -128,7 +128,7 @@ public class StockMonitorMgr {
         }
 
         if (Settings.isNotifyAlarmEnable(context)) {
-            NotifycationHelper.sendMsg(context, alarmBean.emailSubject, alarmBean.emailContent);
+            NotifycationHelper.sendMsg(context, alarmBean.emailSubject, alarmBean.notifyContent);
         }
     }
 

@@ -28,7 +28,7 @@ public class Settings {
     }
     // 刷新间隔
     public static int getRefreshInterval(Context context) {
-        return SpUtil.getInt(context, "edit_refresh", 3);
+        return SpUtil.getInt(context, "edit_refresh", 1);
     }
 
     public static boolean isEmailAlarmEnable(Context context) {
@@ -48,10 +48,10 @@ public class Settings {
     }
 
     public static float getPriceHighAlarmInterval(Context context) {
-        return SpUtil.getFloat(context, "edit_high", 1);
+        return SpUtil.getFloat(context, "edit_high", 1.5f);
     }
 
     public static float getPriceLowAlarmInterval(Context context) {
-        return SpUtil.getFloat(context, "edit_low", 1);
+        return SpUtil.getFloat(context, "edit_low", 1.5f);
     }
 }

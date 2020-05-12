@@ -2,6 +2,8 @@ package com.leo.stock.module.monitor;
 
 import android.text.TextUtils;
 
+import com.leo.stock.library.util.LogUtil;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +19,8 @@ public class AlarmBean {
     public String emailPersonal;
     public String emailSubject;
     public String emailContent;
+
+    public String notifyContent;
 
     public String highString;
     public String lowString;
@@ -51,6 +55,12 @@ public class AlarmBean {
             url += "2";
         }
 
+        if (TextUtils.isEmpty(notifyContent)) {
+            notifyContent = "";
+        } else {
+            notifyContent += "!";
+        }
+
         if (TextUtils.isEmpty(emailContent)) {
             emailContent = "</br>";
         } else {
@@ -61,6 +71,10 @@ public class AlarmBean {
         emailContent += bean.name + ", " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice;
         emailContent += "</a>"  + "," + bean.code;
         emailContent = emailContent.replaceAll("转债", "");
+
+        notifyContent += bean.name + ", " + bean.getHLSpace() + " , " + bean.currentPrice;
+        notifyContent = notifyContent.replaceAll("转债", "");
+
     }
 
     public boolean handle() {
@@ -76,6 +90,15 @@ public class AlarmBean {
                 }
                 highString += bean.name + "(" + bean.getHLSpace() + ")";
                 highString = highString.replaceAll("转债", "");
+
+                String url = "https://wap.eastmoney.com/quota/stock/index/" + bean.code;
+                if(bean.getCode().contains("sh")) {
+                    url += "1";
+                } else {
+                    url += "2";
+                }
+                LogUtil.d("涨: " + bean.name + " , " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + "," + url);
+
                 setEmailContent(true, bean);
             }
         }
@@ -90,6 +113,15 @@ public class AlarmBean {
                 }
                 lowString += bean.name + "(" + bean.getHLSpace() + ")";
                 lowString = lowString.replaceAll("转债", "");
+
+                String url = "https://wap.eastmoney.com/quota/stock/index/" + bean.code;
+                if(bean.getCode().contains("sh")) {
+                    url += "1";
+                } else {
+                    url += "2";
+                }
+                LogUtil.d("跌: " + bean.name + " , " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + "," + url);
+
                 setEmailContent(false, bean);
             }
         }
