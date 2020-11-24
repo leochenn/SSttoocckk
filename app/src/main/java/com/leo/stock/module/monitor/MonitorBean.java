@@ -82,7 +82,7 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
             return "sz" + code;
         }
 
-        if (code.startsWith("163402")) {
+        if (code.startsWith("163") || code.startsWith("161")) {
             return "sz" + code;
         }
 

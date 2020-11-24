@@ -44,7 +44,7 @@ public class MonitorTimer {
         final int start = 9 * 60 * 60 + 23 * 60;
         final int end = 11 * 60 * 60 + 32 * 60;
 
-        final int start2 = 12 * 60 * 60 + 58 * 60;
+        final int start2 = 12 * 60 * 60 + 45 * 60;
 
         int endTime = Settings.getEndTime(context);
         final int end2 = endTime * 60 * 60 + 60;
@@ -112,8 +112,8 @@ public class MonitorTimer {
     }
 
     private void loadPrice() {
-        if (failedCount > 4) {
-            handleFail("获取实时价格失败三次");
+        if (failedCount > 30) {
+            handleFail("获取实时价格失败30次");
             return;
         }
 

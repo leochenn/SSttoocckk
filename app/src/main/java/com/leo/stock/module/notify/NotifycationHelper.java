@@ -12,6 +12,7 @@ import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 
 import com.leo.stock.R;
+import com.leo.stock.library.util.LogUtil;
 import com.leo.stock.module.monitor.BgService;
 import com.leo.stock.ui.MainActivity;
 
@@ -21,6 +22,8 @@ import java.util.Calendar;
  * Created by Leo on 2019/12/25.
  */
 public class NotifycationHelper {
+
+    static final String TAG = "NotifycationHelper";
 
     static final int CODE_LAUCH = 1;
     static final int CODE_EMAIL = 2;
@@ -58,6 +61,7 @@ public class NotifycationHelper {
         Notification notification = new NotificationCompat.Builder(context, channelId)
                 .setContentTitle(title)
                 .setContentText(content)
+                .setSound(null)
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
@@ -80,6 +84,7 @@ public class NotifycationHelper {
 
     private static Notification createNormalNotification(Context context, String channelId,
                                                          String title, String content) {
+        LogUtil.d(TAG, "createNormalNotification", title, content);
         return new NotificationCompat.Builder(context, channelId)
                 .setContentTitle(title)
                 .setContentText(content)
