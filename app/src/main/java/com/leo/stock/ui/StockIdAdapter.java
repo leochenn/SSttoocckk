@@ -6,6 +6,7 @@ package com.leo.stock.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -96,9 +97,15 @@ public class StockIdAdapter extends BaseAdapter {
 
         final MonitorBean sinaStockBean = mData.get(position);
 
+        boolean same = false;
         if (TextUtils.isEmpty(sinaStockBean.name)) {
             holder.tvName.setText(sinaStockBean.code);
         } else {
+            if (sinaStockBean.name.equals(holder.tvName.getText().toString())) {
+                same = true;
+            } else {
+                same = false;
+            }
             holder.tvName.setText(sinaStockBean.name);
         }
         holder.tvName.setOnLongClickListener(new View.OnLongClickListener() {
@@ -126,8 +133,51 @@ public class StockIdAdapter extends BaseAdapter {
             }
         });
 
+        float value = sinaStockBean.getHL();
+        if (value > 0) {
+            holder.tvCurrentPrice.setTextColor(Color.parseColor("#F22323"));
+            holder.tvPriceChange.setTextColor(Color.parseColor("#F22323"));
+            holder.tvPriceChangePercent.setTextColor(Color.parseColor("#F22323"));
+        } else if (value < 0){
+            holder.tvCurrentPrice.setTextColor(Color.parseColor("#039E00"));
+            holder.tvPriceChange.setTextColor(Color.parseColor("#039E00"));
+            holder.tvPriceChangePercent.setTextColor(Color.parseColor("#039E00"));
+        } else if (value == 0) {
+            holder.tvCurrentPrice.setTextColor(Color.parseColor("#000000"));
+            holder.tvPriceChange.setTextColor(Color.parseColor("#000000"));
+            holder.tvPriceChangePercent.setTextColor(Color.parseColor("#000000"));
+        }
+
+        view.setBackgroundColor(Color.parseColor("#ffffff"));
+
+        String ddd = holder.tvPriceChange.getText().toString();
+        if (!"涨跌数".equals(ddd) && same) {
+            float value2 = Float.parseFloat(ddd);
+            if (value > value2) {
+                view.setBackgroundColor(Color.parseColor("#30F22323"));
+                final View tmpView = view;
+                tmpView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        tmpView.setBackgroundColor(Color.parseColor("#ffffff"));
+                    }
+                }, 1000);
+            } else if (value < value2) {
+                view.setBackgroundColor(Color.parseColor("#30039E00"));
+                final View tmpView = view;
+                tmpView.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        tmpView.setBackgroundColor(Color.parseColor("#ffffff"));
+                    }
+                }, 1000);
+            } else {
+
+            }
+        }
+
         holder.tvCurrentPrice.setText("" + sinaStockBean.currentPrice);
-        holder.tvPriceChange.setText("" + sinaStockBean.getHL());
+        holder.tvPriceChange.setText("" + value);
         holder.tvPriceChangePercent.setText("" + sinaStockBean.getHLSpace());
         holder.tvOpenPrice.setText("" + sinaStockBean.todayOpenPrice);
         holder.tvLastClosePrice.setText("" + sinaStockBean.yestodayPrice);

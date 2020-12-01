@@ -28,7 +28,7 @@ public class Settings {
     }
     // 刷新间隔
     public static int getRefreshInterval(Context context) {
-        return SpUtil.getInt(context, "edit_refresh", 1);
+        return SpUtil.getInt(context, "edit_refresh", 3);
     }
 
     public static boolean isEmailAlarmEnable(Context context) {

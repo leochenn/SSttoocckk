@@ -30,6 +30,62 @@ public class StockHelper {
 //    周K线查询： http://image.sinajs.cn/newchart/weekly/n/sh000001.gif
 //    月K线查询： http://image.sinajs.cn/newchart/monthly/n/sh000001.gif
 
+    public static void getTXSimpleStockList(final IRequestListener<List<MonitorBean>> listener) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        final MonitorBeans monitorBeans = StockMonitorMgr.getInstance().getMonitorBeans();
+
+        for (MonitorBean params : monitorBeans.getCollection()) {
+            if (stringBuilder.length() == 0) {
+                stringBuilder.append("list=");
+            } else {
+                stringBuilder.append(",");
+            }
+            if (Float.compare(0, params.todayOpenPrice) != 0 || Float.compare(0, params.yestodayPrice) != 0 ) {
+                stringBuilder.append("s_" + params.getCode());
+            } else {
+                stringBuilder.append(params.getCode());
+            }
+        }
+
+        SinaService sinaService = RetrofitHelper.create(SinaService.class);
+        Call<String> call = sinaService.getStockList(stringBuilder.toString());
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                String sinaStockBean = response.body();
+                List<SinaStockBean> list = StockBeanParser.parse(sinaStockBean);
+
+                if (list == null || list.isEmpty()) {
+                    LogUtil.e("获取实时价格解析失败");
+                    LogUtil.d("onResponse\n" + sinaStockBean + "\n");
+                    listener.failed(0, "获取实时价格解析失败");
+                    return;
+                }
+
+                if (list.size() != monitorBeans.getSize()) {
+                    LogUtil.e("获取实时价格个数不等于代码个数");
+                    LogUtil.d("onResponse\n" + sinaStockBean + "\n");
+                    listener.failed(0, "获取实时价格个数异常");
+                    return;
+                }
+
+                for (SinaStockBean bean : list) {
+                    MonitorBean monitorBean = monitorBeans.getMonitorBean(bean.stockId);
+                    monitorBean.setStockBean(bean);
+                }
+                listener.success(null);
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                LogUtil.e(t, "getStock onFailure");
+                listener.failed(0, t.getMessage());
+            }
+        });
+    }
+
+
     public static void getSimpleStockList(final IRequestListener<List<MonitorBean>> listener) {
         StringBuilder stringBuilder = new StringBuilder();
 
