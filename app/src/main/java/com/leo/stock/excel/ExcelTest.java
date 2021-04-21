@@ -21,8 +21,13 @@ import java.text.SimpleDateFormat;
 
 /**
  * Created by Leo on 2021/4/21.
+ *
  */
 public class ExcelTest {
+    // https://blog.csdn.net/u013533369/article/details/105741178
+    // https://github.com/andruhon/android5xlsx/blob/master/example/app/src/main/java/pro
+    // /kondratev/xlsxpoiexample/MainActivity.java
+    // https://blog.csdn.net/blueheart20/article/details/45028311
 
     Activity activity;
 
@@ -30,11 +35,6 @@ public class ExcelTest {
         this.activity = activity;
     }
 
-    // https://blog.csdn.net/u013533369/article/details/105741178
-    // https://github.com/andruhon/android5xlsx/blob/master/example/app/src/main/java/pro
-    // /kondratev/xlsxpoiexample/MainActivity.java
-
-    // https://blog.csdn.net/blueheart20/article/details/45028311
     public void read() {
         try {
             InputStream stream = activity.getAssets().open("1.xls");
@@ -55,7 +55,69 @@ public class ExcelTest {
             LogUtil.e(e);
         }
     }
-    public void read1() {
+
+    private String getCellAsString(Row row, int c, FormulaEvaluator formulaEvaluator) {
+        String value = "";
+        try {
+            Cell cell = row.getCell(c);
+            CellValue cellValue = formulaEvaluator.evaluate(cell);
+            if (cellValue == null) {
+                return value;
+            }
+
+            int cellType = cellValue.getCellType();
+
+            switch (cellType) {
+                case Cell.CELL_TYPE_NUMERIC:
+                    double numericValue = cellValue.getNumberValue();
+                    if (HSSFDateUtil.isCellDateFormatted(cell)) {
+                        double date = cellValue.getNumberValue();
+                        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yy");
+                        value = formatter.format(HSSFDateUtil.getJavaDate(date));
+                    } else {
+                        value = "" + numericValue;
+                    }
+                    break;
+
+                case Cell.CELL_TYPE_STRING:
+                    value = "" + cellValue.getStringValue();
+                    break;
+
+                case Cell.CELL_TYPE_FORMULA:
+                    value = "unexpected CELL_TYPE_FORMULA";
+                    break;
+
+                case Cell.CELL_TYPE_BLANK:
+                    value = "unexpected CELL_TYPE_BLANK";
+                    break;
+
+                case Cell.CELL_TYPE_BOOLEAN:
+                    value = "" + cellValue.getBooleanValue();
+                    break;
+
+                case Cell.CELL_TYPE_ERROR:
+                    value = "error CELL_TYPE_ERROR";
+                    break;
+
+                default:
+                    value = "unexpected " + cellType;
+            }
+        } catch (NullPointerException e) {
+            log("error:" + e.toString());
+        }
+        return value;
+    }
+
+    private void log(String str) {
+        if (TextUtils.isEmpty(str)) {
+            LogUtil.d("null");
+        } else {
+            LogUtil.d(str);
+        }
+    }
+
+    // 读取失败
+    private void read1() {
         try {
             InputStream stream = activity.getAssets().open("1.xls");
             XSSFWorkbook workbook = new XSSFWorkbook(stream);
@@ -74,49 +136,6 @@ public class ExcelTest {
             }
         } catch (Exception e) {
             LogUtil.e(e);
-        }
-    }
-
-    protected String getCellAsString(Row row, int c, FormulaEvaluator formulaEvaluator) {
-        String value = "";
-        try {
-            Cell cell = row.getCell(c);
-            CellValue cellValue = formulaEvaluator.evaluate(cell);
-            if (cellValue == null) {
-                return value;
-            }
-
-            switch (cellValue.getCellType()) {
-                case Cell.CELL_TYPE_BOOLEAN:
-                    value = "" + cellValue.getBooleanValue();
-                    break;
-                case Cell.CELL_TYPE_NUMERIC:
-                    double numericValue = cellValue.getNumberValue();
-                    if (HSSFDateUtil.isCellDateFormatted(cell)) {
-                        double date = cellValue.getNumberValue();
-                        SimpleDateFormat formatter =
-                                new SimpleDateFormat("dd/MM/yy");
-                        value = formatter.format(HSSFDateUtil.getJavaDate(date));
-                    } else {
-                        value = "" + numericValue;
-                    }
-                    break;
-                case Cell.CELL_TYPE_STRING:
-                    value = "" + cellValue.getStringValue();
-                    break;
-                default:
-            }
-        } catch (NullPointerException e) {
-            log("error:" + e.toString());
-        }
-        return value;
-    }
-
-    private void log(String str) {
-        if (TextUtils.isEmpty(str)) {
-            LogUtil.d("null");
-        } else {
-            LogUtil.d(str);
         }
     }
 }
