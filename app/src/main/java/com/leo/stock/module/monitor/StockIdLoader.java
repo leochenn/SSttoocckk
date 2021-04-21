@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +69,7 @@ public class StockIdLoader {
 
     public void loadFromRemote() {
         String url = Config.STOCK_ID_URL;
+//        url = "http://leochenandroid.gitee.io/stock/1.xls";
         Request request = new Request.Builder().get().url(url)
                 .removeHeader("User-Agent")
                 .addHeader("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 6.0.1; Redmi Note 4X MIUI/V8.5.6.0.MCFCNED)")
@@ -90,13 +92,17 @@ public class StockIdLoader {
                 List<String> beanList = new ArrayList<>();
 
                 try {
-                    BufferedReader reader =
-                            new BufferedReader(new InputStreamReader(response.body().byteStream()));
+                    InputStream inputStream = response.body().byteStream();
+
+//                    ExcelTest excelTest = new ExcelTest();
+//                    excelTest.read(inputStream);
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
                     String line;
                     while (!TextUtils.isEmpty(line = reader.readLine())) {
                         beanList.add(line);
                     }
-                    response.body().byteStream().close();
+                    inputStream.close();
                 } catch (Exception e) {
                     LogUtil.e(e, TAG, "loadFromRemote");
                 }

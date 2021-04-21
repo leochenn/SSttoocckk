@@ -1,8 +1,8 @@
 package com.leo.stock.excel;
 
-import android.app.Activity;
 import android.text.TextUtils;
 
+import com.leo.stock.App;
 import com.leo.stock.library.util.LogUtil;
 
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
@@ -29,32 +29,88 @@ public class ExcelTest {
     // /kondratev/xlsxpoiexample/MainActivity.java
     // https://blog.csdn.net/blueheart20/article/details/45028311
 
-    Activity activity;
+    int maxColumn, rowsCount;
 
-    public ExcelTest(Activity activity) {
-        this.activity = activity;
+    public ExcelTest() {
     }
 
     public void read() {
         try {
-            InputStream stream = activity.getAssets().open("1.xls");
+            // 可以支持 xls xlsx格式
+            InputStream stream = App.getInstance().getApplicationContext().getAssets().open("1.xls");
+
             Workbook workbook = WorkbookFactory.create(stream);
             Sheet sheet = workbook.getSheetAt(0);
-            int rowsCount = sheet.getPhysicalNumberOfRows();
+            rowsCount = sheet.getPhysicalNumberOfRows();
+
             FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
+
             for (int r = 0; r < rowsCount; r++) {
                 Row row = sheet.getRow(r);
-                int cellsCount = row.getPhysicalNumberOfCells();
-                for (int c = 0; c < cellsCount; c++) {
-                    String value = getCellAsString(row, c, formulaEvaluator);
-                    String cellInfo = "row:" + r + "; cell:" + c + "; value:" + value;
+                if (row != null) {
+                    int cellsCount = row.getPhysicalNumberOfCells();
+                    if (maxColumn < cellsCount) {
+                        maxColumn = cellsCount;
+                    }
+                    for (int c = 0; c < cellsCount; c++) {
+                        String value = getCellAsString(row, c, formulaEvaluator);
+                        String cellInfo = "row:" + r + "; cell:" + c + "; value:" + value;
+                        log(cellInfo);
+                    }
+                    log("");
+                } else {
+                    String cellInfo = "row:" + r + "; 空";
                     log(cellInfo);
                 }
+            }
+
+            if (stream != null) {
+                stream.close();
             }
         } catch (Exception e) {
             LogUtil.e(e);
         }
+
+        log("共有行数:" + rowsCount + ", 最大列数:" + maxColumn);
     }
+
+    public void read(InputStream stream) {
+        try {
+            Workbook workbook = WorkbookFactory.create(stream);
+            Sheet sheet = workbook.getSheetAt(0);
+            rowsCount = sheet.getPhysicalNumberOfRows();
+
+            FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
+
+            for (int r = 0; r < rowsCount; r++) {
+                Row row = sheet.getRow(r);
+                if (row != null) {
+                    int cellsCount = row.getPhysicalNumberOfCells();
+                    if (maxColumn < cellsCount) {
+                        maxColumn = cellsCount;
+                    }
+                    for (int c = 0; c < cellsCount; c++) {
+                        String value = getCellAsString(row, c, formulaEvaluator);
+                        String cellInfo = "row:" + r + "; cell:" + c + "; value:" + value;
+                        log(cellInfo);
+                    }
+                    log("");
+                } else {
+                    String cellInfo = "row:" + r + "; 空";
+                    log(cellInfo);
+                }
+            }
+
+            if (stream != null) {
+                stream.close();
+            }
+        } catch (Exception e) {
+            LogUtil.e(e);
+        }
+
+        log("共有行数:" + rowsCount + ", 最大列数:" + maxColumn);
+    }
+
 
     private String getCellAsString(Row row, int c, FormulaEvaluator formulaEvaluator) {
         String value = "";
@@ -110,7 +166,7 @@ public class ExcelTest {
 
     private void log(String str) {
         if (TextUtils.isEmpty(str)) {
-            LogUtil.d("null");
+            LogUtil.d("");
         } else {
             LogUtil.d(str);
         }
@@ -119,7 +175,7 @@ public class ExcelTest {
     // 读取失败
     private void read1() {
         try {
-            InputStream stream = activity.getAssets().open("1.xls");
+            InputStream stream = App.getInstance().getApplicationContext().getAssets().open("1.xls");
             XSSFWorkbook workbook = new XSSFWorkbook(stream);
             XSSFSheet sheet = workbook.getSheetAt(0);
             int rowsCount = sheet.getPhysicalNumberOfRows();
