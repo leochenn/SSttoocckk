@@ -9,6 +9,8 @@ import com.leo.stock.library.util.LogUtil;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Leo on 2020/3/25.
@@ -72,13 +74,62 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
         if (TextUtils.isEmpty(code)) {
             return null;
         }
-        // 上海发债7，可转债 110,113， 基金51
-        if (code.startsWith("000001") || code.startsWith("110") || code.startsWith("113") || code.startsWith("6") || code.startsWith("5") || code.startsWith("7")) {
+
+        // 上证指数000001
+        if (code.startsWith("000001")) {
             return "sh" + code;
         }
 
-        // 深圳发债3，可转债123,127,128
-        if (code.startsWith("123") || code.startsWith("127") || code.startsWith("128") || code.startsWith("3") || code.startsWith("000")) {
+        List<String> listSH = new ArrayList<String>();
+        // 沪主板 600开头股票 转债110
+        listSH.add("600");
+        listSH.add("110");
+        // 沪主板 601开头股票 转债1130
+        listSH.add("601");
+        listSH.add("1130");
+        // 沪主板 603开头股票 转债1135 1136
+        listSH.add("603");
+        listSH.add("1135");
+        listSH.add("1136");
+
+        // 沪可交换债
+        listSH.add("132");
+
+        for (String abc : listSH) {
+            if (code.startsWith(abc)) {
+                return "sh" + code;
+            }
+        }
+
+        List<String> listSZ = new ArrayList<String>();
+        // 深主板 000开头股票 转债127
+        listSZ.add("000");
+        listSZ.add("127");
+
+        // 深创业板 300开头股票 转债123
+        listSZ.add("300");
+        listSZ.add("123");
+
+        // 深中小板 002开头股票 转债128
+        listSZ.add("002");
+        listSZ.add("128");
+
+        // 深可交换债
+        listSZ.add("120");
+
+        for (String abc : listSZ) {
+            if (code.startsWith(abc)) {
+                return "sz" + code;
+            }
+        }
+
+        // 上海发债7，基金51
+        if (code.startsWith("5") || code.startsWith("7")) {
+            return "sh" + code;
+        }
+
+        // 深圳发债3
+        if (code.startsWith("3")) {
             return "sz" + code;
         }
 
