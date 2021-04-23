@@ -178,6 +178,7 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
         } else {
             value = turnover.longValue();
         }
+        value = turnover.longValue();
 
         if (value < 10000) {
             result = value + "";
