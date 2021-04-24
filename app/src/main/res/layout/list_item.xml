@@ -5,27 +5,25 @@
     android:background="#ffffff"
     android:descendantFocusability="blocksDescendants"
     android:orientation="horizontal"
-    android:padding="5dp" >
+    android:padding="0dp" >
 
     <TextView
         android:id="@+id/tv_name"
-        android:layout_width="80dp"
-        android:layout_height="40dp"
+        android:layout_width="60dp"
+        android:layout_height="26dp"
         android:layout_alignParentLeft="true"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
         android:gravity="center"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:maxLines="2"
         android:ellipsize="end"
         android:text="名称"
         android:textColor="#000000"
-        android:textSize="14sp" />
+        android:textSize="12sp" />
 
     <com.leo.stock.ui.widget.InterceptScrollLinearLayout
         android:id="@+id/intercept_sl"
         android:layout_width="fill_parent"
-        android:layout_height="40dp"
+        android:layout_height="26dp"
         android:layout_alignParentRight="true"
         android:layout_toRightOf="@id/tv_name"
         android:focusable="false" >
@@ -33,7 +31,7 @@
         <com.leo.stock.ui.widget.CustomHScrollView
             android:id="@+id/h_scrollView"
             android:layout_width="fill_parent"
-            android:layout_height="40dp"
+            android:layout_height="26dp"
             android:focusable="false"
             android:scrollbars="none" >
 
@@ -44,7 +42,7 @@
                 android:orientation="horizontal" >
 
                 <LinearLayout
-                    android:layout_width="80dp"
+                    android:layout_width="60dp"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:layout_gravity="center"
@@ -54,18 +52,16 @@
                         android:id="@+id/tv_currentPrice"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="2dp"
                         android:text="现价"
                         android:textColor="#000000"
                         android:gravity="center"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="80dp"
+                    android:layout_width="50dp"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:layout_gravity="center"
@@ -75,20 +71,19 @@
                         android:id="@+id/tv_priceChangePercent"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="2dp"
                         android:text="涨跌幅"
                         android:gravity="center"
                         android:textColor="#000000"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="80dp"
+                    android:layout_width="50dp"
                     android:layout_height="match_parent"
                     android:gravity="center"
+                    android:visibility="gone"
                     android:layout_gravity="center"
                     android:orientation="vertical" >
 
@@ -96,39 +91,54 @@
                         android:id="@+id/tv_priceChange"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="2dp"
                         android:text="涨跌数"
                         android:textColor="#000000"
                         android:gravity="center"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="80dp"
+                    android:layout_width="50dp"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:layout_gravity="center"
                     android:orientation="vertical" >
 
                     <TextView
-                        android:id="@+id/tv_openPrice"
+                        android:id="@+id/tv_profitloss"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="2dp"
-                        android:gravity="center"
-                        android:text="开盘价"
+                        android:text="今日盈亏"
                         android:textColor="#000000"
-                        android:textSize="14sp"
+                        android:gravity="center"
+                        android:textSize="12sp"
                         android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="80dp"
+                    android:layout_width="70dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:orientation="vertical" >
+
+                    <TextView
+                        android:id="@+id/tv_turnover"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="成交额"
+                        android:textColor="#000000"
+                        android:textSize="12sp"
+                        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="60dp"
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:layout_gravity="center"
@@ -138,24 +148,22 @@
                         android:id="@+id/tv_lastClosePrice"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="2dp"
-                        android:layout_marginRight="2dp"
                         android:gravity="center"
                         android:text="昨收"
                         android:textColor="#000000"
-                        android:textSize="14sp"
+                        android:textSize="12sp"
                         android:textAppearance="?android:attr/textAppearanceMedium" />
 
                 </LinearLayout>
 
                 <TextView
-                    android:id="@+id/tv_turnover"
-                    android:layout_width="80dp"
+                    android:id="@+id/tv_openPrice"
+                    android:layout_width="60dp"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="成交额"
+                    android:text="开盘价"
                     android:textColor="#000000"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:textAppearance="?android:attr/textAppearanceMedium"/>
             </LinearLayout>
         </com.leo.stock.ui.widget.CustomHScrollView>

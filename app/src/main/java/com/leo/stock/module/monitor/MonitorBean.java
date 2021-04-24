@@ -38,17 +38,46 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     // 上一次警报的股价
     public float lastAlarmPrice;
 
+    // 现价
     public transient float currentPrice;
 
+    // 昨日收盘价
     public transient float yestodayPrice;
 
+    // 开盘价
     public transient float todayOpenPrice;
 
     // 10 成交额,单位为“元”，为了一目了然，通常以“万元”为成交金额的单位，所以通常把该值除以一万
     public transient BigDecimal turnover;
 
+    public StockId stockId;
+
     public MonitorBean(String code) {
+        StockId id = new StockId();
+        id.stockCode = code;
+        this.stockId = id;
         this.code = code;
+    }
+
+    public MonitorBean(StockId stockId) {
+        this.stockId = stockId;
+        code = stockId.stockCode;
+    }
+
+    public String getName() {
+        if (TextUtils.isEmpty(name)) {
+            if (stockId != null) {
+                return stockId.stockName;
+            }
+        }
+        return name;
+    }
+
+    public boolean isOwn() {
+        if (stockId == null) {
+            return false;
+        }
+        return stockId.stockCount > 0;
     }
 
     public void setStockBean(SinaStockBean sinaStockBean) {
@@ -100,6 +129,26 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     }
 
     /**
+     * 计算盈亏
+     * @return
+     */
+    public Float getProfitLoss() {
+        Float hl = getHL();
+        if (hl == 0) {
+            return 0f;
+        }
+
+        if (stockId == null) {
+            return 0f;
+        }
+        int count = stockId.stockCount;
+
+        BigDecimal bigDecimal = new BigDecimal(StockUtil.getBondCount(code, count)).multiply(new BigDecimal(0.01)).multiply(new BigDecimal(getHLSpaceFloat())).multiply(new BigDecimal(yestodayPrice));
+//        getHLSpaceFloat() * 0.01F * StockUtil.getBondCount(code, count) * yestodayPrice;
+        return bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).floatValue();
+    }
+
+    /**
      * 现价涨跌数
      * @return
      */
@@ -144,6 +193,6 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     @NonNull
     @Override
     public String toString() {
-        return code + "," + name + "," + lastAlarmTime + "," + lastAlarmPrice;
+        return code + "," + getName() + "," + lastAlarmTime + "," + lastAlarmPrice;
     }
 }

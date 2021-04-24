@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import com.leo.stock.App;
 import com.leo.stock.biz.IGetData;
+import com.leo.stock.excel.ExcelTest;
 import com.leo.stock.library.util.LogUtil;
 import com.leo.stock.module.email.Config;
 import com.leo.stock.module.ftp.FtpMgr;
@@ -62,7 +63,7 @@ public class StockIdLoader {
                     loadFromRemote();
                 } else {
                     LogUtil.d(TAG, "Ftp代码数量:" + strings.size());
-                    loadSuccess(strings);
+                    loadSuccess();
                 }
             }
         });
@@ -70,7 +71,9 @@ public class StockIdLoader {
 
     public void loadFromRemote() {
         String url = Config.STOCK_ID_URL;
-//        url = "http://leochenandroid.gitee.io/stock/1.xls";
+        url = "http://leochenandroid.gitee.io/stock/1.xls";
+
+        final boolean isExcel = url.endsWith(".xls") || url.endsWith(".xlsx");
         Request request = new Request.Builder().get().url(url)
                 .removeHeader("User-Agent")
                 .addHeader("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 6.0.1; Redmi Note 4X MIUI/V8.5.6.0.MCFCNED)")
@@ -90,42 +93,69 @@ public class StockIdLoader {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) {
-                List<String> beanList = new ArrayList<>();
-
-                try {
-                    InputStream inputStream = response.body().byteStream();
-
-//                    ExcelTest excelTest = new ExcelTest();
-//                    excelTest.read(inputStream);
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                    String line;
-                    while (!TextUtils.isEmpty(line = reader.readLine())) {
-                        beanList.add(line);
-                    }
-                    inputStream.close();
-                } catch (Exception e) {
-                    LogUtil.e(e, TAG, "loadFromRemote");
-                }
-
-                if (beanList.isEmpty() || beanList.get(0).contains("html")) {
-                    LogUtil.e(TAG, "远程获取为空");
-                    NotifycationHelper.sendMsg(context, "错误", "远程获取为空");
-                    if (monitorBeans.getSize() > 0) {
-                        StockMonitorMgr.getInstance().loadStockIdSuccess();
-                    } else {
-                        BgService.stopService(context);
-                    }
+                if (isExcel) {
+                    handleExcel(response);
                 } else {
-                    LogUtil.d(TAG, "代码数量:" + beanList.size());
-                    loadSuccess(beanList);
+                    handleList(response);
                 }
             }
         });
     }
 
-    private void loadSuccess(List<String> strings) {
-        monitorBeans.add(strings);
+    private void handleList(Response response) {
+        List<String> beanList = new ArrayList<>();
+        try {
+            InputStream inputStream = response.body().byteStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+            while (!TextUtils.isEmpty(line = reader.readLine())) {
+                beanList.add(line);
+            }
+            inputStream.close();
+        } catch (Exception e) {
+            LogUtil.e(e, TAG, "loadFromRemote");
+        }
+
+        if (beanList.isEmpty() || beanList.get(0).contains("html")) {
+            LogUtil.e(TAG, "远程获取为空");
+            NotifycationHelper.sendMsg(context, "错误", "远程获取为空");
+            if (monitorBeans.getSize() > 0) {
+                StockMonitorMgr.getInstance().loadStockIdSuccess();
+            } else {
+                BgService.stopService(context);
+            }
+        } else {
+            LogUtil.d(TAG, "代码数量:" + beanList.size());
+            monitorBeans.add(beanList);
+            loadSuccess();
+        }
+    }
+
+    private void handleExcel(Response response) {
+        List<StockId> list = null;
+        try {
+            InputStream inputStream = response.body().byteStream();
+            ExcelTest excelTest = new ExcelTest();
+            list = excelTest.read(inputStream);
+        } catch (Exception e) {
+            LogUtil.e(e, TAG, "handleExcel");
+        }
+        if (list == null || list.isEmpty()) {
+            LogUtil.e(TAG, "远程获取为空");
+            NotifycationHelper.sendMsg(context, "错误", "远程获取为空");
+            if (monitorBeans.getSize() > 0) {
+                StockMonitorMgr.getInstance().loadStockIdSuccess();
+            } else {
+                BgService.stopService(context);
+            }
+        } else {
+            LogUtil.d(TAG, "代码数量:" + list.size());
+            monitorBeans.addStockId(list);
+            loadSuccess();
+        }
+    }
+
+    private void loadSuccess() {
         StockMonitorMgr.getInstance().addSZIndex();
         IO.saveToLocal(IO.getLocalFilePath(context), monitorBeans);
         StockMonitorMgr.getInstance().loadStockIdSuccess();

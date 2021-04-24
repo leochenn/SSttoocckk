@@ -63,11 +63,11 @@ public class AlarmBean {
         }
         emailContent += "<a href=\"" + url + "\" style=\"color:" + (high ? "red" : "green") + "\">";
 
-        emailContent += bean.name + ", " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice;
+        emailContent += bean.getName() + ", " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice;
         emailContent += "</a>"  + "," + bean.code;
         emailContent = emailContent.replaceAll("转债", "");
 
-        notifyContent += bean.name + ", " + bean.getHLSpace() + " , " + bean.currentPrice;
+        notifyContent += bean.getName() + ", " + bean.getHLSpace() + " , " + bean.currentPrice;
         notifyContent = notifyContent.replaceAll("转债", "");
 
     }
@@ -83,11 +83,11 @@ public class AlarmBean {
                 } else {
                     highString = "";
                 }
-                highString += bean.name + "(" + bean.getHLSpace() + ")";
+                highString += bean.getName() + "(" + bean.getHLSpace() + ")";
                 highString = highString.replaceAll("转债", "");
 
                 String url = bean.getEastMoneyUrl();
-                LogUtil.d("涨: " + bean.name + " , " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + "," + url);
+                LogUtil.d("涨: " + bean.getName() + " , " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + "," + url);
 
                 setEmailContent(true, bean);
             }
@@ -101,11 +101,11 @@ public class AlarmBean {
                 } else {
                     lowString = "";
                 }
-                lowString += bean.name + "(" + bean.getHLSpace() + ")";
+                lowString += bean.getName() + "(" + bean.getHLSpace() + ")";
                 lowString = lowString.replaceAll("转债", "");
 
                 String url = bean.getEastMoneyUrl();
-                LogUtil.d("跌: " + bean.name + " , " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + "," + url);
+                LogUtil.d("跌: " + bean.getName() + " , " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + "," + url);
 
                 setEmailContent(false, bean);
             }

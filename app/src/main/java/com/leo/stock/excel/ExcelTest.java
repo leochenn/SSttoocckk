@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.leo.stock.App;
 import com.leo.stock.library.util.LogUtil;
+import com.leo.stock.module.monitor.StockId;
 
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -18,6 +19,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Leo on 2021/4/21.
@@ -34,39 +37,12 @@ public class ExcelTest {
     public ExcelTest() {
     }
 
+    // 测试本地文件
     public void read() {
         try {
             // 可以支持 xls xlsx格式
             InputStream stream = App.getInstance().getApplicationContext().getAssets().open("1.xls");
-
-            Workbook workbook = WorkbookFactory.create(stream);
-            Sheet sheet = workbook.getSheetAt(0);
-            rowsCount = sheet.getPhysicalNumberOfRows();
-
-            FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
-
-            for (int r = 0; r < rowsCount; r++) {
-                Row row = sheet.getRow(r);
-                if (row != null) {
-                    int cellsCount = row.getPhysicalNumberOfCells();
-                    if (maxColumn < cellsCount) {
-                        maxColumn = cellsCount;
-                    }
-                    for (int c = 0; c < cellsCount; c++) {
-                        String value = getCellAsString(row, c, formulaEvaluator);
-                        String cellInfo = "row:" + r + "; cell:" + c + "; value:" + value;
-                        log(cellInfo);
-                    }
-                    log("");
-                } else {
-                    String cellInfo = "row:" + r + "; 空";
-                    log(cellInfo);
-                }
-            }
-
-            if (stream != null) {
-                stream.close();
-            }
+            read(stream);
         } catch (Exception e) {
             LogUtil.e(e);
         }
@@ -74,13 +50,16 @@ public class ExcelTest {
         log("共有行数:" + rowsCount + ", 最大列数:" + maxColumn);
     }
 
-    public void read(InputStream stream) {
+    public List<StockId> read(InputStream stream) {
+        List<StockId> list = new ArrayList<>();
         try {
             Workbook workbook = WorkbookFactory.create(stream);
             Sheet sheet = workbook.getSheetAt(0);
             rowsCount = sheet.getPhysicalNumberOfRows();
 
             FormulaEvaluator formulaEvaluator = workbook.getCreationHelper().createFormulaEvaluator();
+
+            int codeStartRow = -1;
 
             for (int r = 0; r < rowsCount; r++) {
                 Row row = sheet.getRow(r);
@@ -89,26 +68,47 @@ public class ExcelTest {
                     if (maxColumn < cellsCount) {
                         maxColumn = cellsCount;
                     }
+                    StockId stockId = null;
                     for (int c = 0; c < cellsCount; c++) {
                         String value = getCellAsString(row, c, formulaEvaluator);
-                        String cellInfo = "row:" + r + "; cell:" + c + "; value:" + value;
-                        log(cellInfo);
+//                        String cellInfo = "row:" + r + "; cell:" + c + "; value:" + value;
+//                        log(cellInfo);
+
+                        if (codeStartRow != -1 && r > codeStartRow) {
+                            if (stockId == null) {
+                                stockId = new StockId();
+                            }
+                            stockId.setValue(c, value);
+                        }
+
+                        if ("证券代码".equals(value)) {
+                            codeStartRow = r;
+                        }
                     }
-                    log("");
+                    if (stockId != null) {
+                        log(stockId.toString());
+                        list.add(stockId);
+                    }
                 } else {
                     String cellInfo = "row:" + r + "; 空";
                     log(cellInfo);
                 }
             }
-
-            if (stream != null) {
-                stream.close();
-            }
         } catch (Exception e) {
             LogUtil.e(e);
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (Exception e) {
+                    LogUtil.e(e);
+                }
+            }
         }
 
         log("共有行数:" + rowsCount + ", 最大列数:" + maxColumn);
+
+        return list;
     }
 
 

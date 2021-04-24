@@ -29,14 +29,14 @@ public class StockMonitorMgr {
 
     private List<Runnable> updateListener;
 
-    private MonitorBeans monitorBeans;
+    private MonitorBeans monitorBeans = new MonitorBeans();
 
     private StockMonitorMgr() {
         context = App.getInstance().getApplicationContext();
     }
 
     public void start() {
-        monitorBeans = new MonitorBeans();
+        monitorBeans.clear();
         StockIdLoader loader = new StockIdLoader(monitorBeans);
         loader.startLoad();
     }

@@ -83,6 +83,7 @@ public class StockIdAdapter extends BaseAdapter {
             holder.tvOpenPrice = view.findViewById(R.id.tv_openPrice);
             holder.tvLastClosePrice = view.findViewById(R.id.tv_lastClosePrice);
             holder.tvTurnover = view.findViewById(R.id.tv_turnover);
+            holder.tvProfitLoss = view.findViewById(R.id.tv_profitloss);
 
             CustomHScrollView scrollView = view.findViewById(R.id.h_scrollView);
             holder.scrollView = scrollView;
@@ -97,16 +98,20 @@ public class StockIdAdapter extends BaseAdapter {
 
         final MonitorBean sinaStockBean = mData.get(position);
 
+        String textValue = holder.tvName.getText().toString();
+        String nameValue = sinaStockBean.getName();
+
         boolean same = false;
-        if (TextUtils.isEmpty(sinaStockBean.name)) {
+
+        if (TextUtils.isEmpty(nameValue)) {
             holder.tvName.setText(sinaStockBean.code);
         } else {
-            if (sinaStockBean.name.equals(holder.tvName.getText().toString())) {
+            if (nameValue.equals(textValue)) {
                 same = true;
             } else {
                 same = false;
             }
-            holder.tvName.setText(sinaStockBean.name);
+            holder.tvName.setText(nameValue);
         }
         holder.tvName.setOnLongClickListener(new View.OnLongClickListener() {
 
@@ -128,19 +133,28 @@ public class StockIdAdapter extends BaseAdapter {
             }
         });
 
+        if (sinaStockBean.isOwn()) {
+            holder.tvName.setTextColor(Color.parseColor("#F22323"));
+        } else {
+            holder.tvName.setTextColor(Color.parseColor("#000000"));
+        }
+
         float value = sinaStockBean.getHL();
         if (value > 0) {
             holder.tvCurrentPrice.setTextColor(Color.parseColor("#F22323"));
             holder.tvPriceChange.setTextColor(Color.parseColor("#F22323"));
             holder.tvPriceChangePercent.setTextColor(Color.parseColor("#F22323"));
+            holder.tvProfitLoss.setTextColor(Color.parseColor("#F22323"));
         } else if (value < 0){
             holder.tvCurrentPrice.setTextColor(Color.parseColor("#039E00"));
             holder.tvPriceChange.setTextColor(Color.parseColor("#039E00"));
             holder.tvPriceChangePercent.setTextColor(Color.parseColor("#039E00"));
+            holder.tvProfitLoss.setTextColor(Color.parseColor("#F22323"));
         } else if (value == 0) {
             holder.tvCurrentPrice.setTextColor(Color.parseColor("#000000"));
             holder.tvPriceChange.setTextColor(Color.parseColor("#000000"));
             holder.tvPriceChangePercent.setTextColor(Color.parseColor("#000000"));
+            holder.tvProfitLoss.setTextColor(Color.parseColor("#F22323"));
         }
 
         view.setBackgroundColor(Color.parseColor("#ffffff"));
@@ -166,9 +180,13 @@ public class StockIdAdapter extends BaseAdapter {
                         tmpView.setBackgroundColor(Color.parseColor("#ffffff"));
                     }
                 }, 1000);
-            } else {
-
             }
+        }
+
+        if (sinaStockBean.isOwn()) {
+            holder.tvProfitLoss.setText("" + sinaStockBean.getProfitLoss());
+        } else {
+            holder.tvProfitLoss.setText("");
         }
 
         holder.tvCurrentPrice.setText("" + sinaStockBean.currentPrice);
@@ -198,6 +216,7 @@ public class StockIdAdapter extends BaseAdapter {
         TextView tvCurrentPrice;
         TextView tvPriceChange;
         TextView tvPriceChangePercent;
+        TextView tvProfitLoss;
         TextView tvOpenPrice;
         TextView tvLastClosePrice;
         TextView tvTurnover;

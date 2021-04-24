@@ -21,6 +21,9 @@ public class IO {
     }
 
     public static void loadFromLocal(String path, MonitorBeans monitorBeans) {
+        if (true) {
+            return;
+        }
         File file = new File(path);
         if (!file.exists()) {
             return;
@@ -50,6 +53,9 @@ public class IO {
     }
 
     public static void saveToLocal(String path, MonitorBeans monitorBeans) {
+        if (true) {
+            return;
+        }
         File file = new File(path);
         if (file.exists()) {
             file.delete();

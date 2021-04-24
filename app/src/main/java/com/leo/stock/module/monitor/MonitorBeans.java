@@ -15,9 +15,19 @@ public class MonitorBeans {
         monitorBeanHashMap = new ConcurrentHashMap<>();
     }
 
+    public void clear() {
+        monitorBeanHashMap.clear();
+    }
+
     public void add(List<String> list) {
         for (String stock : list) {
             add(stock);
+        }
+    }
+
+    public void addStockId(List<StockId> list) {
+        for (StockId stock : list) {
+            add(new MonitorBean(stock));
         }
     }
 
