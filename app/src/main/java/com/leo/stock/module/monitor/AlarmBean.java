@@ -48,12 +48,7 @@ public class AlarmBean {
     }
 
     private void setEmailContent(boolean high, MonitorBean bean) {
-        String url = "https://wap.eastmoney.com/quota/stock/index/" + bean.code;
-        if(bean.getCode().contains("sh")) {
-            url += "1";
-        } else {
-            url += "2";
-        }
+        String url = bean.getEastMoneyUrl();
 
         if (TextUtils.isEmpty(notifyContent)) {
             notifyContent = "";
@@ -91,12 +86,7 @@ public class AlarmBean {
                 highString += bean.name + "(" + bean.getHLSpace() + ")";
                 highString = highString.replaceAll("转债", "");
 
-                String url = "https://wap.eastmoney.com/quota/stock/index/" + bean.code;
-                if(bean.getCode().contains("sh")) {
-                    url += "1";
-                } else {
-                    url += "2";
-                }
+                String url = bean.getEastMoneyUrl();
                 LogUtil.d("涨: " + bean.name + " , " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + "," + url);
 
                 setEmailContent(true, bean);
@@ -114,12 +104,7 @@ public class AlarmBean {
                 lowString += bean.name + "(" + bean.getHLSpace() + ")";
                 lowString = lowString.replaceAll("转债", "");
 
-                String url = "https://wap.eastmoney.com/quota/stock/index/" + bean.code;
-                if(bean.getCode().contains("sh")) {
-                    url += "1";
-                } else {
-                    url += "2";
-                }
+                String url = bean.getEastMoneyUrl();
                 LogUtil.d("跌: " + bean.name + " , " + bean.getHLSpace() + " , " + bean.currentPrice + " ,昨:" + bean.yestodayPrice + ",开:" + bean.todayOpenPrice + "," + url);
 
                 setEmailContent(false, bean);

@@ -121,12 +121,7 @@ public class StockIdAdapter extends BaseAdapter {
         holder.tvName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = "https://wap.eastmoney.com/quota/stock/index/" + sinaStockBean.code;
-                if(sinaStockBean.getCode().contains("sh")) {
-                    url += "1";
-                } else {
-                    url += "2";
-                }
+                String url = sinaStockBean.getEastMoneyUrl();
                 Intent intent = new Intent(context, WebActivity.class);
                 intent.putExtra("url", url);
                 context.startActivity(intent);

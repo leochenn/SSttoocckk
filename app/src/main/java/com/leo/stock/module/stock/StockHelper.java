@@ -19,6 +19,7 @@ import retrofit2.Response;
 
 /**
  * Created by Leo on 2019/12/21.
+ * 执行业务网络请求类
  */
 public class StockHelper {
 
@@ -42,9 +43,9 @@ public class StockHelper {
                 stringBuilder.append(",");
             }
             if (Float.compare(0, params.todayOpenPrice) != 0 || Float.compare(0, params.yestodayPrice) != 0 ) {
-                stringBuilder.append("s_" + params.getCode());
+                stringBuilder.append("s_" + params.getHSCode());
             } else {
-                stringBuilder.append(params.getCode());
+                stringBuilder.append(params.getHSCode());
             }
         }
 
@@ -85,7 +86,6 @@ public class StockHelper {
         });
     }
 
-
     public static void getSimpleStockList(final IRequestListener<List<MonitorBean>> listener) {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -98,9 +98,9 @@ public class StockHelper {
                 stringBuilder.append(",");
             }
             if (Float.compare(0, params.todayOpenPrice) != 0 || Float.compare(0, params.yestodayPrice) != 0 ) {
-                stringBuilder.append("s_" + params.getCode());
+                stringBuilder.append("s_" + params.getHSCode());
             } else {
-                stringBuilder.append(params.getCode());
+                stringBuilder.append(params.getHSCode());
             }
         }
 
@@ -112,7 +112,7 @@ public class StockHelper {
                 String sinaStockBean = response.body();
                 List<SinaStockBean> list = StockBeanParser.parse(sinaStockBean);
 
-                if (list == null || list.isEmpty()) {
+                if (list.isEmpty()) {
                     LogUtil.e("获取实时价格解析失败");
                     LogUtil.d("onResponse\n" + sinaStockBean + "\n");
                     listener.failed(0, "获取实时价格解析失败");
