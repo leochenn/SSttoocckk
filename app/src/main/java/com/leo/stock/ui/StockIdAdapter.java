@@ -149,12 +149,12 @@ public class StockIdAdapter extends BaseAdapter {
             holder.tvCurrentPrice.setTextColor(Color.parseColor("#039E00"));
             holder.tvPriceChange.setTextColor(Color.parseColor("#039E00"));
             holder.tvPriceChangePercent.setTextColor(Color.parseColor("#039E00"));
-            holder.tvProfitLoss.setTextColor(Color.parseColor("#F22323"));
+            holder.tvProfitLoss.setTextColor(Color.parseColor("#039E00"));
         } else if (value == 0) {
             holder.tvCurrentPrice.setTextColor(Color.parseColor("#000000"));
             holder.tvPriceChange.setTextColor(Color.parseColor("#000000"));
             holder.tvPriceChangePercent.setTextColor(Color.parseColor("#000000"));
-            holder.tvProfitLoss.setTextColor(Color.parseColor("#F22323"));
+            holder.tvProfitLoss.setTextColor(Color.parseColor("#000000"));
         }
 
         view.setBackgroundColor(Color.parseColor("#ffffff"));
