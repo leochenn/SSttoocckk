@@ -83,7 +83,7 @@ public class AlarmBean {
                 } else {
                     highString = "";
                 }
-                highString += bean.getName() + "(" + bean.getHLSpace() + ")";
+                highString += bean.getName() + "(" + bean.getHLSpace() + "↑)";
                 highString = highString.replaceAll("转债", "");
 
                 String url = bean.getEastMoneyUrl();
@@ -101,7 +101,7 @@ public class AlarmBean {
                 } else {
                     lowString = "";
                 }
-                lowString += bean.getName() + "(" + bean.getHLSpace() + ")";
+                lowString += bean.getName() + "(" + bean.getHLSpace() + "↓)";
                 lowString = lowString.replaceAll("转债", "");
 
                 String url = bean.getEastMoneyUrl();

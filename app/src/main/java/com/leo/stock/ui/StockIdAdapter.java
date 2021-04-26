@@ -133,11 +133,7 @@ public class StockIdAdapter extends BaseAdapter {
             }
         });
 
-        if (sinaStockBean.isOwn()) {
-            holder.tvName.setTextColor(Color.parseColor("#F22323"));
-        } else {
-            holder.tvName.setTextColor(Color.parseColor("#000000"));
-        }
+        holder.tvName.setTextColor(Color.parseColor("#000000"));
 
         float value = sinaStockBean.getHL();
         if (value > 0) {
@@ -145,16 +141,25 @@ public class StockIdAdapter extends BaseAdapter {
             holder.tvPriceChange.setTextColor(Color.parseColor("#F22323"));
             holder.tvPriceChangePercent.setTextColor(Color.parseColor("#F22323"));
             holder.tvProfitLoss.setTextColor(Color.parseColor("#F22323"));
+            if (sinaStockBean.isOwn()) {
+                holder.tvName.setTextColor(Color.parseColor("#F22323"));
+            }
         } else if (value < 0){
             holder.tvCurrentPrice.setTextColor(Color.parseColor("#039E00"));
             holder.tvPriceChange.setTextColor(Color.parseColor("#039E00"));
             holder.tvPriceChangePercent.setTextColor(Color.parseColor("#039E00"));
             holder.tvProfitLoss.setTextColor(Color.parseColor("#039E00"));
+            if (sinaStockBean.isOwn()) {
+                holder.tvName.setTextColor(Color.parseColor("#039E00"));
+            }
         } else if (value == 0) {
             holder.tvCurrentPrice.setTextColor(Color.parseColor("#000000"));
             holder.tvPriceChange.setTextColor(Color.parseColor("#000000"));
             holder.tvPriceChangePercent.setTextColor(Color.parseColor("#000000"));
             holder.tvProfitLoss.setTextColor(Color.parseColor("#000000"));
+            if (sinaStockBean.isOwn()) {
+                holder.tvName.setTextColor(Color.parseColor("#000000"));
+            }
         }
 
         view.setBackgroundColor(Color.parseColor("#ffffff"));

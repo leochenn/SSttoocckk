@@ -41,7 +41,7 @@ public class MonitorTimer {
 
         int minuteOfDay = hour * 60 * 60 + minute * 60 + second;
 
-        final int start = 9 * 60 * 60 + 23 * 60;
+        final int start = 9 * 60 * 60 + 13 * 60;
         final int end = 11 * 60 * 60 + 32 * 60;
 
         final int start2 = 12 * 60 * 60 + 45 * 60;
