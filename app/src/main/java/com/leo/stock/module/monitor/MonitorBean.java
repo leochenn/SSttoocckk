@@ -113,6 +113,9 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
 
     // 计算涨跌幅度 %
     public String getHLSpace() {
+        if (currentPrice == 0) {
+            return "0%";
+        }
         float valuef = FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
         if (Float.compare(valuef, Float.NaN) == 0) {
             return "0%";
@@ -121,6 +124,9 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
     }
 
     public Float getHLSpaceFloat() {
+        if (currentPrice == 0) {
+            return 0f;
+        }
         float value = FloatUtil.handleFloatString(100f * (currentPrice - yestodayPrice) / yestodayPrice, "0.00");
         if (Float.compare(value, Float.NaN) == 0) {
             return 0f;
@@ -153,6 +159,9 @@ public class MonitorBean implements Comparable<MonitorBean>, Serializable {
      * @return
      */
     public Float getHL() {
+        if (currentPrice == 0) {
+            return 0f;
+        }
         return FloatUtil.handleFloatString(currentPrice - yestodayPrice, "0.00");
     }
 
