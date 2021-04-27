@@ -74,7 +74,7 @@ public class StockBeanParser {
             stockBean.priceChangePercent = FloatUtil.handleFloatString(values[3]);
             stockBean.amount = Long.valueOf(values[4]) * 100;
             stockBean.turnover = Long.valueOf(values[5]) * 10000;
-            stockBean.turnoverDecimal = new BigDecimal(values[5]);
+            stockBean.turnoverDecimal = new BigDecimal(stockBean.turnover);
         } else if (values.length > 6) {
             stockBean.stockName = values[0];
             stockBean.todayOpenPrice = FloatUtil.handleFloatString(values[1]);
