@@ -52,6 +52,7 @@ public class ExcelTest {
 
     public List<StockId> read(InputStream stream) {
         List<StockId> list = new ArrayList<>();
+        List<String> tmp = new ArrayList<>();
         try {
             Workbook workbook = WorkbookFactory.create(stream);
             Sheet sheet = workbook.getSheetAt(0);
@@ -76,6 +77,9 @@ public class ExcelTest {
 
                         if (codeStartRow != -1 && r > codeStartRow) {
                             if (stockId == null) {
+                                if (TextUtils.isEmpty(value)) {
+                                    break;
+                                }
                                 stockId = new StockId();
                             }
                             stockId.setValue(c, value);
@@ -87,7 +91,20 @@ public class ExcelTest {
                     }
                     if (stockId != null) {
                         log(stockId.toString());
-                        list.add(stockId);
+                        if (!tmp.contains(stockId.stockCode)) {
+                            list.add(stockId);
+                            tmp.add(stockId.stockCode);
+                        } else {
+                            for (StockId id : list) {
+                                if (id.stockCode.equals(stockId.stockCode)) {
+                                    id.stockCount += stockId.stockCount;
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        String cellInfo = "row:" + r + "; 不为空，stockId null";
+                        log(cellInfo);
                     }
                 } else {
                     String cellInfo = "row:" + r + "; 空";

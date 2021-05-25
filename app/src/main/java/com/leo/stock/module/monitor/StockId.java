@@ -2,8 +2,6 @@ package com.leo.stock.module.monitor;
 
 import com.leo.stock.library.util.LogUtil;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Created by Leo on 2021/4/24.
  * 对应excel的字段
