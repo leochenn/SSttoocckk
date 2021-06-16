@@ -19,9 +19,12 @@ android {
         versionCode 1
         versionName "1.0"
 
+        String timestamp = new Date().format("yyyyMMddHHmmss", TimeZone.getTimeZone("GMT+8"))
+
         buildConfigField "String", "SEND_ADDRESS", "\"${emailProperties['SEND_ADDRESS']}\""
         buildConfigField "String", "AUTH_CODE", "\"${emailProperties['AUTH_CODE']}\""
         buildConfigField "String", "STOCK_ID_URL", "\"${emailProperties['STOCK_ID_URL']}\""
+        buildConfigField "String", "EGG_TIMESTAMP", "\"${timestamp}\""
 
         setProperty("archivesBaseName", getString())
 

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.leo.stock.R;
 import com.leo.stock.library.util.FloatUtil;
@@ -20,11 +21,15 @@ public class SettingActivity extends Activity {
     EditText editTextRefresh, editTextEmailAuthCode, editTextSoundCount, editTextHighAlarm, editTextLowAlarm, editTextAlarmInterval, editTextEndTime;
     CheckBox checkBoxEmail, checkBoxSound, checkBoxNotify;
     EditText editTextFtpHost, EditTextFtpUser, EditTextFtpPwd;
+    TextView tvVersion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
+
+        tvVersion = findViewById(R.id.tv_version);
+        tvVersion.setText(Config.TIME);
 
         checkBoxEmail = findViewById(R.id.cbx_email);
         checkBoxEmail.setChecked(Settings.isEmailAlarmEnable(this));

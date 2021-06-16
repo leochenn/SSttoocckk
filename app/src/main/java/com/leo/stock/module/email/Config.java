@@ -12,4 +12,5 @@ public class Config {
     public static final String RECIEVE_ADDRESS = SEND_ADDRESS;
     public static final String AUTH_CODE = BuildConfig.AUTH_CODE;
     public static final String STOCK_ID_URL = BuildConfig.STOCK_ID_URL;
+    public static final String TIME = BuildConfig.EGG_TIMESTAMP;
 }
