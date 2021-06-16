@@ -70,9 +70,7 @@ public class StockIdLoader {
     }
 
     public void loadFromRemote() {
-        String url = Config.STOCK_ID_URL;
-        url = "http://leochenandroid.gitee.io/stock/1.xls";
-
+        String url = Settings.getUrl(context);
         final boolean isExcel = url.endsWith(".xls") || url.endsWith(".xlsx");
         Request request = new Request.Builder().get().url(url)
                 .removeHeader("User-Agent")

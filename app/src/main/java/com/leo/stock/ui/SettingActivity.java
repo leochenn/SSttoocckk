@@ -18,7 +18,7 @@ import com.leo.stock.module.monitor.SpUtil;
  */
 public class SettingActivity extends Activity {
 
-    EditText editTextRefresh, editTextEmailAuthCode, editTextSoundCount, editTextHighAlarm, editTextLowAlarm, editTextAlarmInterval, editTextEndTime;
+    EditText editTextRefresh, editTextEmailAuthCode, editTextSoundCount, editTextHighAlarm, editTextLowAlarm, editTextAlarmInterval, editTextEndTime, editTextUrl;
     CheckBox checkBoxEmail, checkBoxSound, checkBoxNotify;
     EditText editTextFtpHost, EditTextFtpUser, EditTextFtpPwd;
     TextView tvVersion;
@@ -30,6 +30,9 @@ public class SettingActivity extends Activity {
 
         tvVersion = findViewById(R.id.tv_version);
         tvVersion.setText(Config.TIME);
+
+        editTextUrl = findViewById(R.id.edit_url);
+        editTextUrl.setText(Settings.getUrl(this));
 
         checkBoxEmail = findViewById(R.id.cbx_email);
         checkBoxEmail.setChecked(Settings.isEmailAlarmEnable(this));
@@ -73,6 +76,8 @@ public class SettingActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        Settings.setUrl(this, editTextUrl.getText().toString().trim());
+
         SpUtil.putBoolean(this, "cb_email", checkBoxEmail.isChecked());
         SpUtil.putBoolean(this, "cb_sound", checkBoxSound.isChecked());
         SpUtil.putBoolean(this, "cb_notify", checkBoxNotify.isChecked());

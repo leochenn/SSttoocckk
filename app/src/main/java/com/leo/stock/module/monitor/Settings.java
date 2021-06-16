@@ -2,6 +2,8 @@ package com.leo.stock.module.monitor;
 
 import android.content.Context;
 
+import com.leo.stock.module.email.Config;
+
 /**
  * Created by Leo on 2020/3/25.
  */
@@ -53,5 +55,13 @@ public class Settings {
 
     public static float getPriceLowAlarmInterval(Context context) {
         return SpUtil.getFloat(context, "edit_low", 1.5f);
+    }
+
+    public static String getUrl(Context context) {
+        return SpUtil.getString(context, "edit_url", Config.STOCK_ID_URL);
+    }
+
+    public static void setUrl(Context context, String url) {
+        SpUtil.putString(context, "edit_url", url);
     }
 }
