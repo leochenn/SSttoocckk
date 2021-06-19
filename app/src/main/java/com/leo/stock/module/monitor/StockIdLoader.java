@@ -71,7 +71,7 @@ public class StockIdLoader {
 
     public void loadFromRemote() {
         String url = Settings.getUrl(context);
-        final boolean isExcel = url.endsWith(".xls") || url.endsWith(".xlsx");
+        final boolean isExcel = url.endsWith(".xls") || url.endsWith(".xlsx") || url.endsWith(".zip") || true;
         Request request = new Request.Builder().get().url(url)
                 .removeHeader("User-Agent")
                 .addHeader("User-Agent", "Dalvik/2.1.0 (Linux; U; Android 6.0.1; Redmi Note 4X MIUI/V8.5.6.0.MCFCNED)")
