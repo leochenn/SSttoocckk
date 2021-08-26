@@ -119,6 +119,7 @@ public class StockIdAdapter extends BaseAdapter {
             public boolean onLongClick(View v) {
                 Intent intent = new Intent(context, StockDetailActivity.class);
                 intent.putExtra("code", sinaStockBean.code);
+                intent.putExtra("name", sinaStockBean.getName());
                 context.startActivity(intent);
                 return true;
             }

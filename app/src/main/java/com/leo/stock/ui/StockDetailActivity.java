@@ -18,7 +18,7 @@ import com.leo.stock.module.monitor.StockMonitorMgr;
 public class StockDetailActivity extends Activity {
 
     private Button btnDelete;
-    private EditText editCode, editLow, editHigh, editLowP, editHighP;
+    private EditText editCode, editLow, editHigh, editLowP, editHighP, editName;
 
     boolean isAddMode;
     MonitorBean monitorBean;
@@ -32,6 +32,7 @@ public class StockDetailActivity extends Activity {
         btnDelete = findViewById(R.id.btn_delete);
 
         editCode = findViewById(R.id.edit_code);
+        editName = findViewById(R.id.edit_name);
         editLow = findViewById(R.id.edit_low);
         editHigh = findViewById(R.id.edit_high);
         editLowP = findViewById(R.id.edit_low_p);
@@ -39,6 +40,7 @@ public class StockDetailActivity extends Activity {
 
         String originCode = getIntent().getStringExtra("code");
         isAddMode = TextUtils.isEmpty(originCode);
+        String name = getIntent().getStringExtra("name");
 
         monitorBeans = StockMonitorMgr.getInstance().getMonitorBeans();
 
@@ -46,7 +48,9 @@ public class StockDetailActivity extends Activity {
             btnDelete.setEnabled(false);
         } else {
             editCode.setText(originCode);
+            editName.setText(name);
             editCode.setEnabled(false);
+            editName.setEnabled(false);
             btnDelete.setEnabled(true);
 
             monitorBean = monitorBeans.getMonitorBean(originCode);
