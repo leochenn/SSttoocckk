@@ -1,0 +1,1 @@
+python.exe E:\caohuawork\workspace-git\CH_MW_PACK\OneKey_Channel_SDK_Pack\stock\mouse.py
