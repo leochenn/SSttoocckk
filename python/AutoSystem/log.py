@@ -83,6 +83,29 @@ def clearLogger():
     file_handler = None
     loggerGlobal = None
 
+#输出hwnd十六进制
+def dhex(*msg):
+    if len(msg) <= 0:
+        return
+
+    content = ''
+    for index in msg:
+        content = content + hex(index) + ", "
+    info(content)
+
+#输出多个内容分块
+def d(*msg):
+    if len(msg) <= 0:
+        return
+
+    content = ''
+    for index in msg:
+        if index:
+            content = content + str(index) + ", "
+        else:
+            content = content + ", null, "
+    info(content)
+
 def info(msg, *args):
     if len(msg) <= 0:
         return

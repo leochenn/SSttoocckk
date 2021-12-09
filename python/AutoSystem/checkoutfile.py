@@ -3,6 +3,7 @@ import os
 import time
 import util
 import log
+from window_widget import WindowWidget
 
 class CheckOutFile:
 
@@ -22,7 +23,7 @@ class CheckOutFile:
         log.info('点击.撤单-输出.控件')
         outputSuccess = None
         for index in range(100):
-            self.tdxWindow.clickBtn2(outputBtn)
+            WindowWidget.clickBtn2(outputBtn)
             time.sleep(0.001)
             if self.tdxWindow.checkOutputTipDialogShown():
                 outputSuccess = 1
