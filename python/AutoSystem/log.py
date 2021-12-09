@@ -101,9 +101,16 @@ def d(*msg):
     content = ''
     for index in msg:
         if index:
-            content = content + str(index) + ", "
+            if content == '':
+                content = str(index)
+            else:
+                content = content + ", " + str(index)
         else:
-            content = content + ", null, "
+            if content == '':
+                content = 'null'
+            else:
+                content = content + ", null"
+
     info(content)
 
 def info(msg, *args):
