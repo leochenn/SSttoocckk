@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 import time
 
+import commctrl
 import pyautogui
 import win32api
 import win32con
 import win32gui
 import win32process
 
+import config
 import log
 
 # 通达信窗体和控件句柄管理
@@ -17,14 +19,14 @@ import util
 # 买入按钮 38*20 , 俩个按钮间隔6
 
 class WindowWidget:
-    # 公司和家里的通达信版本不同 有个控件类名不同
-    frameIdHome = 'Afx:10000000:3:10003:1900010:10027'
-    frameIdOffice = 'Afx:10000000:3:10003:900010:1002b'
-    frameId = frameIdOffice
+
+    frameId = config.frameId
 
     def __init__(self):
+        self.buyTabHwnd = None
         self.findWindow()
-        self.findAllControl()
+        self.findSystemTreeview32Stock()
+        self.initTabClick()
 
     # 找到通达信窗口
     def findWindow(self):
@@ -34,8 +36,62 @@ class WindowWidget:
         if not self.hwnd:
             raise Exception('未找到通达信')
 
+    # 首次启动通达信界面，需要先完成tab菜单的点击
+    def findSystemTreeview32Stock(self):
+        self.systemTreeview32Stock = util.find_subHandle(self.hwnd,
+                                                         [
+                                                             ('AfxFrameOrView42', 0),  # 80a3e
+                                                             ('#32770', 0),  # d080c
+                                                             (self.frameId, 0),  # 907a2
+                                                             ('AfxMDIFrame42', 0),  # a0850
+                                                             ('AfxWnd42', 0),  # 1e06b8
+                                                             ('Afx:10000000:0:10003:0:0', 0),  # 7ff022e
+                                                             ('SysTreeView32', 0)  # 31c0722
+                                                         ])
+        self.menuBar = util.find_subHandle(self.hwnd,
+                                           [
+                                               ('AfxFrameOrView42', 0),  # 80a3e
+                                               ('#32770', 0),  # d080c
+                                               (self.frameId, 0),  # 907a2
+                                               ('AfxMDIFrame42', 0),  # a0850
+                                               ('AfxWnd42', 1),  # 1e06b8
+                                               ('MHPDockBar', 0),  # 7ff022e
+                                               ('MHPToolBar', 0)  # 31c0722
+                                           ])
+
+    # 首次启动需要点击各个tab
+    def initTabClick(self):
+        # 首先检查一遍所有的tab
+        self.findAllControl(None)
+        if self.buyTabHwnd:
+            # 如果能找到买入tab hwnd则说明tab已经初始化过
+            return
+
+        WindowWidget.clickBtn(self.systemTreeview32Stock, 5, 5)
+        time.sleep(0.5)
+        # 买入
+        # WindowWidget.clickBtn(windowWidget.menuBar, 19, 10)
+
+        # 卖出
+        WindowWidget.clickBtn(self.menuBar, 58, 10)
+        time.sleep(0.5)
+
+        # 撤单
+        WindowWidget.clickBtn(self.menuBar, 96, 10)
+        time.sleep(0.5)
+
+        # 成交
+        WindowWidget.clickBtn(self.menuBar, 134, 10)
+        time.sleep(0.5)
+
+        # 持仓
+        WindowWidget.clickBtn(self.menuBar, 166, 10)
+        time.sleep(0.2)
+
+        self.findAllControl(1)
+
     # 找到所有的控件并赋值
-    def findAllControl(self):
+    def findAllControl(self, error):
         findCancelTab = None
         for index in range(7):
             tabHwnd = self.getTabHwnd(index)
@@ -64,16 +120,8 @@ class WindowWidget:
                 elif text == '撤 单' and findCancelTab:
                     self.dealTab = tabHwnd
 
-        self.menuBar = util.find_subHandle(self.hwnd,
-                                           [
-                                               ('AfxFrameOrView42', 0),  # 80a3e
-                                               ('#32770', 0),  # d080c
-                                               (self.frameId, 0),  # 907a2
-                                               ('AfxMDIFrame42', 0),  # a0850
-                                               ('AfxWnd42', 1),  # 1e06b8
-                                               ('MHPDockBar', 0),  # 7ff022e
-                                               ('MHPToolBar', 0)  # 31c0722
-                                           ])
+        if not error:
+            return
 
         WindowWidget.checkControlValid(self.buyTabHwnd, self.buyTabBuyBtn, self.buyTabCode, self.buyTabCount,
                                        self.buyTabPrice)
@@ -149,7 +197,7 @@ class WindowWidget:
         WindowWidget.clickBtn(pwdHwnd)
         time.sleep(0.001)
 
-        pyautogui.typewrite('')
+        pyautogui.typewrite(config.pwd)
         pyautogui.press('enter')
 
         time.sleep(0.005)
@@ -257,6 +305,10 @@ class WindowWidget:
     def setEditText(hwnd, content):
         win32api.SendMessage(hwnd, win32con.WM_SETTEXT, 0, content)
 
+    @staticmethod
+    def getListviewRows(hwnd):
+        return win32gui.SendMessage(hwnd, commctrl.LVM_GETITEMCOUNT, 0, 0)
+
     '''
     以下方法是操作特定控件
     '''
@@ -278,10 +330,10 @@ class WindowWidget:
                 if clearCount == 2:
                     log.d('设置数量', content)
                     break
-                log.d('未清空数量')
+                # log.d('未清空数量')
                 time.sleep(0.001)
             else:
-                log.d('清空数量')
+                # log.d('清空数量')
                 clearCount = clearCount + 1
                 WindowWidget.setEditText(hwnd, count)
 
@@ -299,9 +351,9 @@ class WindowWidget:
                 if clearCount == 1:
                     log.d('设置价格', content)
                     break
-                log.d('未清空价格')
+                # log.d('未清空价格')
                 time.sleep(0.001)
             else:
-                log.d('清空价格')
+                # log.d('清空价格')
                 clearCount = clearCount + 1
                 pyautogui.typewrite(buyCode)

@@ -19,21 +19,15 @@ if __name__ == '__main__':
 
     windowWidget = WindowWidget()
 
-    buyCode = '113017'
-    buyPrice = '130'
+    buyCode = '110038'
+    buyPrice = '116.81'
     # 买入数量  上海1手 = 深圳10张
-    buyCount = '100'
+    buyCount = '1'
 
     windowWidget.bringToFront()
-    locked = windowWidget.checkLocked()
 
-    # 3.检查是否有提示窗口遮挡，如果刚解锁则不需要判断
-    # 实际运行时，为节省时间，该步骤可注释
-    if not locked:
+    if not windowWidget.checkLocked():
         shelter = windowWidget.closeTipDlgBeforeOperator()
-
-    cancelWindow = CancelWindow(windowWidget)
-    cancelWindow.init()
 
     log.info('卖出')
 
@@ -62,12 +56,15 @@ if __name__ == '__main__':
             if msg:
                 if '合同号是' in msg:
                     buyOrder = re.findall("\d+", msg)[0]
-                    log.d("委托提交成功，点击关闭", buyOrder)
+                    log.d("委托提交成功，点击关闭", buyOrder, str(datetime.datetime.now() - curr_time))
                     btnHwnd = WindowWidget.getTipDlgBtn(tipDialogHandle)
                     WindowWidget.clickBtn2(btnHwnd)
 
                     # 检查委托状态， 通过读取撤单列表行数来进行判断
-                    cancelWindow.getListCount()
+                    cancelWindow = CancelWindow(windowWidget)
+                    success = cancelWindow.getListCount()
+                    if success:
+                        log.d("卖出成功", str(datetime.datetime.now() - curr_time))
                 else:
                     log.d('委托失败', msg)
             else:
@@ -77,3 +74,6 @@ if __name__ == '__main__':
             if retry == 2:
                 raise Exception('异常：未弹出委托对话框')
             log.d('异常：未弹出委托对话框, 重试下单')
+
+    curr_time_end = datetime.datetime.now()
+    log.d("运行完毕", str(curr_time_end - curr_time))

@@ -19,33 +19,33 @@ class CancelWindow:
         self.refresh = windowWidget.cancelTabRefresh
         self.menuBar = windowWidget.menuBar
 
-    def init(self):
-        self.initCount = win32gui.SendMessage(self.SysListView32, commctrl.LVM_GETITEMCOUNT, 0, 0)
-        log.info('初始撤单列表数量:' + str(self.initCount))
-
-    def switchToCancelWindow(self):
-        if self.windowWidget.isTabVisible(self.windowWidget.cancelTab):
-            log.d('switchToCancelWindow visible')
-        else:
-            log.d('switchToCancelWindow invisible')
-
-        WindowWidget.clickBtn(self.menuBar, 96, 10)
-
-        time.sleep(1)
-        if self.windowWidget.isTabVisible(self.windowWidget.cancelTab):
-            log.d('switchToCancelWindow visible')
-        else:
-            log.d('switchToCancelWindow invisible')
+    def getRows(self):
+        return WindowWidget.getListviewRows(self.SysListView32)
 
     def getListCount(self):
-        count = win32gui.SendMessage(self.SysListView32, commctrl.LVM_GETITEMCOUNT, 0, 0)
-        log.info('获取撤单列表数量:' + str(count))
+        self.initCount = self.getRows()
+        log.info('撤单列表初始数量:' + str(self.initCount))
 
-        self.switchToCancelWindow()
+        WindowWidget.clickBtn(self.menuBar, 96, 10)
+        for index in range(100):
+            if self.windowWidget.isTabVisible(self.windowWidget.cancelTab):
+                break
+            time.sleep(0.01)
 
-        count = win32gui.SendMessage(self.SysListView32, commctrl.LVM_GETITEMCOUNT, 0, 0)
-        log.info('刷新后撤单列表数量:' + str(count))
+        if not self.windowWidget.isTabVisible(self.windowWidget.cancelTab):
+            raise Exception('撤单窗口未显示')
 
+        log.info('撤单窗口显示')
+
+        time.sleep(0.1)
+
+        for index in range(200):
+            count = self.getRows()
+            log.info('数量:' + str(count))
+            if count == self.initCount:
+                return 1
+            WindowWidget.clickBtn(self.refresh)
+            time.sleep(0.2)
 
     '''
     暂未使用的方法
