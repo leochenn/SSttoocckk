@@ -1,0 +1,80 @@
+深A股    000*
+深B股    200*
+深中小板 002*
+深创业板 300*
+深新股   00*
+深配股   080*
+深权证   031*
+
+沪A股    600*,601*,603*
+沪B股    900*
+沪新股   730*
+沪配股   700*
+沪权证   580*
+
+
+沪市可转债的单位是手， 数量1手=一千元
+深市可转债的单位是张， 数量10张=一千元
+1手=10张=1000元，1张=100元
+
+沪主板 600开头股票 转债110
+沪主板 601开头股票 转债1130
+沪主板 603开头股票 转债1135 1136
+沪可交换债 132
+上海发债7
+
+深主板 000开头股票 转债127
+深创业板 300开头股票 转债123
+深中小板 002开头股票 转债128
+深可交换债 120
+深圳发债3
+
+lof 基金
+163
+161
+
+基金
+51
+============================================================
+网易，能查股票历史分时数据，不能查可转债
+http://quotes.money.163.com/trade/cjmx_300059.html#01b05
+
+
+以下数据网站，只能查今日分时数据
+https://vip.stock.finance.sina.com.cn/quotes_service/view/vMS_tradedetail.php?symbol=sz128087
+
+
+孚日转债 128087
+https://quote.eastmoney.com/f1.html?code=128087&market=2
+永安转债
+https://quote.eastmoney.com/f1.html?code=113609&market=1
+
+===================================
+
+闻泰转债 110081
+http://push2ex.eastmoney.com/getStockFenShi?pagesize=6644&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&pageindex=0&id=110081&sort=1&ft=1&code=110081&market=1&_=2817838285534
+
+https://push2ex.eastmoney.com/
+getStockFenShi?pagesize=144&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&cb=jQuery112402089360009600496_1639138074501&pageindex=1&id=110081&sort=1&ft=1&code=110081&market=1&_=1639138074504
+
+
+亨通 110056
+http://push2ex.eastmoney.com/getStockFenShi?pagesize=6644&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&pageindex=0&id=110056&sort=1&ft=1&code=110056&market=1&_=9095877246223
+成功
+https://push2ex.eastmoney.com/
+getStockFenShi?pagesize=144&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&cb=jQuery112402089360009600496_1639138074501&pageindex=1&id=1100561&sort=1&ft=1&code=110056&market=1&_=1639138074504
+
+大业 113535
+http://push2ex.eastmoney.com/getStockFenShi?pagesize=6644&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&pageindex=0&id=113535&sort=1&ft=1&code=113535&market=1&_=8259486055072
+
+飞凯 123078 获取失败
+http://push2ex.eastmoney.com/getStockFenShi?pagesize=6644&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&pageindex=0&id=123078&sort=1&ft=1&code=123078&market=2&_=6678077892388
+
+孚日 128087 失败
+http://push2ex.eastmoney.com/getStockFenShi?pagesize=6644&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&pageindex=0&id=128087&sort=1&ft=1&code=128087&market=2&_=9675957665491
+成功
+https://push2ex.eastmoney.com/getStockFenShi?pagesize=6644&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&pageindex=0&id=1280872&sort=1&ft=1&code=128087&market=0&_=1639137993249
+
+孚日 128087 成功
+https://push2ex.eastmoney.com/
+getStockFenShi?pagesize=144&ut=7eea3edcaed734bea9cbfc24409ed989&dpt=wzfscj&cb=jQuery1124022419355780997674_1639137993245&pageindex=0&id=1280872&sort=1&ft=1&code=128087&market=0&_=1639137993249
