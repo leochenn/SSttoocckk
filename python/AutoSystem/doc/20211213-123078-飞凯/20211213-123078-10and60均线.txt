@@ -1,0 +1,68 @@
+buy_index:90, buy_price:159.5, date:93430
+sell_index:91, sell_price:159.505, date:93433, 0.0050
+buy_index:101, buy_price:159.755, date:93506
+sell_index:240, sell_price:161.501, date:94315, 1.7460
+buy_index:250, buy_price:161.81, date:94409
+sell_index:265, sell_price:161.663, date:94515, -0.1470
+buy_index:273, buy_price:162.0, date:94542
+sell_index:292, sell_price:161.5, date:94645, -0.5000
+buy_index:307, buy_price:161.853, date:94748
+sell_index:308, sell_price:161.511, date:94751, -0.3420
+buy_index:328, buy_price:161.997, date:94936
+sell_index:374, sell_price:161.943, date:95245, -0.0540
+buy_index:467, buy_price:160.842, date:100224
+sell_index:468, sell_price:160.88, date:100227, 0.0380
+buy_index:469, buy_price:160.88, date:100236
+sell_index:489, sell_price:160.81, date:100421, -0.0700
+buy_index:491, buy_price:160.812, date:100427
+sell_index:492, sell_price:160.77, date:100430, -0.0420
+buy_index:499, buy_price:160.856, date:100530
+sell_index:516, sell_price:160.871, date:100633, 0.0150
+buy_index:576, buy_price:160.976, date:101539
+sell_index:593, sell_price:160.547, date:101815, -0.4290
+buy_index:599, buy_price:160.551, date:101857
+sell_index:614, sell_price:160.512, date:102121, -0.0390
+buy_index:666, buy_price:160.669, date:103303
+sell_index:774, sell_price:161.305, date:104315, 0.6360
+buy_index:790, buy_price:161.588, date:104500
+sell_index:806, sell_price:161.38, date:104624, -0.2080
+buy_index:982, buy_price:159.504, date:110948
+sell_index:1044, sell_price:159.791, date:111648, 0.2870
+buy_index:1063, buy_price:160.5, date:111909
+sell_index:1126, sell_price:160.7, date:112424, 0.2000
+buy_index:1134, buy_price:161.06, date:112600
+sell_index:1142, sell_price:160.95, date:112700, -0.1100
+buy_index:1150, buy_price:161.09, date:112824
+sell_index:1160, sell_price:160.827, date:130006, -0.2630
+buy_index:1176, buy_price:161.0, date:130339
+sell_index:1186, sell_price:160.782, date:130424, -0.2180
+buy_index:1194, buy_price:161.0, date:130548
+sell_index:1213, sell_price:160.833, date:130942, -0.1670
+buy_index:1225, buy_price:160.994, date:131103
+sell_index:1236, sell_price:160.9, date:131242, -0.0940
+buy_index:1246, buy_price:160.985, date:131412
+sell_index:1247, sell_price:160.834, date:131536, -0.1510
+buy_index:1265, buy_price:160.98, date:132000
+sell_index:1283, sell_price:160.886, date:132245, -0.0940
+buy_index:1296, buy_price:161.07, date:132539
+sell_index:1303, sell_price:160.59, date:132833, -0.4800
+buy_index:1332, buy_price:161.155, date:133857
+sell_index:1389, sell_price:160.908, date:135009, -0.2470
+buy_index:1412, buy_price:161.0, date:135348
+sell_index:1413, sell_price:161.0, date:135354, 0.0000
+buy_index:1424, buy_price:161.15, date:135718
+sell_index:1497, sell_price:161.148, date:141127, -0.0020
+buy_index:1576, buy_price:161.078, date:141948
+sell_index:1581, sell_price:161.078, date:142036, 0.0000
+buy_index:1601, buy_price:161.039, date:142439
+sell_index:1606, sell_price:160.733, date:142609, -0.3060
+buy_index:1618, buy_price:161.136, date:142751
+sell_index:1628, sell_price:160.815, date:142842, -0.3210
+buy_index:1656, buy_price:160.912, date:143336
+sell_index:1672, sell_price:160.48, date:143548, -0.4320
+buy_index:1723, buy_price:160.44, date:144130
+sell_index:1791, sell_price:160.37, date:144915, -0.0700
+buy_index:1805, buy_price:161.0, date:145033
+sell_index:1882, sell_price:161.003, date:145627, 0.0030
+
+end:-1.8560,66
