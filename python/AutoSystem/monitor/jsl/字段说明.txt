@@ -1,0 +1,60 @@
+ 'bond_id': '123083',	转债代码
+ 'bond_nm': '朗新转债',	转债名称
+ 'bond_py': 'lxzz',	转债缩写
+ 'price': 262.69,	转债现价
+ 'increase_rt': 6.77,	涨跌幅
+ 'stock_id': '300682',	正股代码
+ 'stock_nm': '朗新科技',	正股名称
+ 'stock_py': 'lxkj',	正股缩写
+ 'sprice': 40.65,	股票现价
+ 'sincrease_rt': 6.97,	股票涨跌幅
+ 'pb': 7.65,	pb
+ 'convert_price': 15.4,	转股价
+ 'convert_value': 263.96,	转股价值
+ 'convert_dt': 0,	
+ 'premium_rt': -0.48,	溢价率
+ 'dblow': 262.21,	双低
+ 'adjust_condition': '15/30  85%',	下修条件
+ 'sw_cd': '710202',	
+ 'market_cd': 'szcy',	
+ 'btype': 'C',	
+ 'list_dt': '2021-01-06',	上市日期？
+ 'qflag2': 'N',	
+ 'owned': 0,	
+ 'hold': 0,	
+ 'bond_value': None,	
+ 'rating_cd': 'AA',	评级
+ 'option_value': None,	
+ 'put_convert_price': 10.78,	回售触发价
+ 'force_redeem_price': 20.02,	强赎触发价
+ 'convert_amt_ratio': 2.1,	转债流通市值占比2.1%
+ 'fund_rt': None,	
+ 'short_maturity_dt': '26-12-08',	到期时间
+ 'year_left': 4.984,	剩余年限
+ 'curr_iss_amt': 6.256,	剩余规模（亿元）
+ 'volume': 110510.78,	成交额（万元）
+ 'svolume': 36915.4,	股票成交额（万元）
+ 'turnover_rt': 68.71,	换手率68.71%
+ 'ytm_rt': -15.5,	到期税前收益 -15.5%
+ 'put_ytm_rt': None,	
+ 'notes': None,	
+ 'noted': 0,	
+ 'bond_nm_tip': '',	
+ 'redeem_icon': '',	
+ 'last_time': '15:04:03',	
+ 'qstatus': '00',	
+ 'margin_flg': '',	
+ 'sqflag': 'Y',	
+ 'pb_flag': 'N',	
+ 'adj_cnt': 0,	下修次数？
+ 'adj_scnt': 0,	等于下修次数？
+ 'convert_price_valid': 'Y',	是否可以转股
+ 'convert_price_tips': '',	
+ 'convert_cd_tip': '2021-06-15 开始转股',	
+ 'ref_yield_info': '',	
+ 'adjusted': 'N',	
+ 'orig_iss_amt': 8,	
+ 'price_tips': '全价：262.690 最后更新：15:04:03',	
+ 'redeem_dt': None,	
+ 'real_force_redeem_price': None,	
+ 'option_tip': ''	
