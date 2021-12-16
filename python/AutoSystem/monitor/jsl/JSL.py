@@ -137,7 +137,7 @@ def checkKzzBelong(code):
     if str(code).startswith('123'):
         return 2
 
-
+# 盘后获取当日历史分时, 盘中获取实时的历史分时
 def downloadFensiData(item, data_folder):
     code = str(item['bond_id'])
     name = str(item['bond_nm'])
@@ -145,14 +145,6 @@ def downloadFensiData(item, data_folder):
     if str(item['price_tips']) == '待上市':
         print('待上市：' + code + '_' + name)
         return
-
-    if code == '123098':
-        a = 1
-        pass
-
-    if code == '128107':
-        a = 1
-        pass
 
     data = None
     belong = checkKzzBelong(code)
