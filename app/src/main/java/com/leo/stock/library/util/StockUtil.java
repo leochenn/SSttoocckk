@@ -169,8 +169,12 @@ public class StockUtil {
         }
 
         // lof 基金
-        if (code.startsWith("163") || code.startsWith("161")) {
+        if (code.startsWith("163") || code.startsWith("161") || code.startsWith("159")) {
             return "sz" + code;
+        }
+
+        if (code.startsWith("513")) {
+            return "fu" + code;
         }
 
         LogUtil.e("获取沪深编码异常:" + code);
