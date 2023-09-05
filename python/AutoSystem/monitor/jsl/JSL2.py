@@ -7,21 +7,39 @@ import csv
 import tushare as ts
 from pandas import DataFrame
 
+# https://blog.csdn.net/geofferysun/article/details/114640013
+
+# 计算每只转债历史均值：波动浮度，日均成交量，日均涨跌，近一周，俩周，一个月的涨跌幅度，成交量等等
 def getCloseData(item, data_folder):
     code = str(item['bond_id'])
     name = str(item['bond_nm'])
+    code = str(item['stock_id'])
+    name = str(item['stock_nm'])
+
 
     if str(item['price_tips']) == '待上市':
         print('待上市：' + code + '_' + name)
         return
 
-    # 实时分笔, 描述当天全天交易情况，最高最低 成交等等
-    data = ts.get_realtime_quotes_kzz(code)
+    # https://mp.weixin.qq.com/s/XoyACntxEXX3ZEqvECUbBg  get_k_data说明
+    data = ts.get_k_data(code, autype='qfq')
+    # 该接口用于获取实时的价格，不适合收盘使用；收盘应该使用get_k_data 可以获取历史k线数据
+    # data = ts.get_realtime_quotes_kzz(code)
+
+    exit()
     if data is None:
         print('Error get!!! code:' + code + ", name:" + name)
         return
 
-    exit()
+    file_path = data_folder + '\\' + code + '_' + name + '.xlsx'
+
+    if os.path.exists(file_path):
+        return
+
+    print('save:' + code + '_' + name)
+
+    df = DataFrame(data)
+    df.to_excel(file_path)
 
 if __name__ == '__main__':
     curr_time = datetime.datetime.now()
@@ -35,7 +53,7 @@ if __name__ == '__main__':
 
     date = str(time.strftime('%Y-%m-%d', time.localtime()))
 
-    data_folder = 'kzz_stock_close_data' + '\\' + date
+    data_folder = 'stock_close_data' + '\\' + date
     if not os.path.exists(data_folder):
         os.makedirs(data_folder)
 

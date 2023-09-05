@@ -20,6 +20,9 @@ public class StockId {
 
     public void setValue(int cell, String value) {
         if (cell == 0) {
+            if (value.contains(".")) {
+                value = value.split("\\.")[0];
+            }
             stockCode = value;
         } else if (cell == 1) {
             stockName = value;

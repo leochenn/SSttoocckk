@@ -1,0 +1,3 @@
+kzz_fenshi_data：可转债每日收盘后的当天分时数据
+kzz_close_data：可转债从20190430以来的k线数据
+stock_close_data：可转债对应正股20190430以来的k线数据

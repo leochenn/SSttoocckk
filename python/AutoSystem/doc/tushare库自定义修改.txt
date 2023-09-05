@@ -1,0 +1,12 @@
+1.get_today_ticks只能获取沪市转债，
+新增get_today_ticks_sz获取深市转债
+
+2.get_today_ticks 方法，bs_type新增值为3的情况
+bs_type = {'1':u'买入', 
+           '2': u'卖出',
+           '3': u'+',
+           '4': u'-'}
+
+3.get_realtime_quotes
+ 该方法内部获取股票数据，获取的买一成交量在原始数据上除以了100；
+ 需要修正的是：获取可转债时 获取的买一成交量原始数据只需要除以10

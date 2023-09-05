@@ -128,7 +128,9 @@ public class StockHelper {
 
                 for (SinaStockBean bean : list) {
                     MonitorBean monitorBean = monitorBeans.getMonitorBean(bean.stockId);
-                    monitorBean.setStockBean(bean);
+                    if (monitorBean != null) {
+                        monitorBean.setStockBean(bean);
+                    }
                 }
                 listener.success(null);
             }
