@@ -1,11 +1,13 @@
-import re
+import sys
 import time
 import log
 import chlog
 import math
+import keyboard
 import pyautogui
 from openpyxl.reader.excel import load_workbook
 from window_widget import WindowWidget
+from threading import Event
 
 # 深市 单位为张，一张等于100元
 # 123（创业板）
@@ -30,7 +32,19 @@ level3_price = 1.0488
 
 windowWidget = None
 
+exit_flag = Event()
+
+# 监听所有按键,按q退出程序
+def on_press(key):
+    if key.name in ['up', 'down', 'left', 'right']:
+        chlog.e('按方向键退出执行', key.name)
+        exit_flag.set()  # 设置退出标志
+
 def doSell(name, buyCode, buyCount, buyPrice):
+    if exit_flag.is_set():
+        chlog.e('执行退出1')
+        sys.exit(0)
+
     buyCode = str(buyCode)
     buyCount = str(buyCount)
     buyPrice = str(math.floor(buyPrice * 10) / 10)
@@ -67,8 +81,11 @@ def doSell(name, buyCode, buyCount, buyPrice):
     if buyPrice != readSellPrice:
         chlog.e('输入价格', buyPrice, '读取价格', readSellPrice)
 
-    time.sleep(0.2)
-    time.sleep(5)
+    time.sleep(1)
+
+    if exit_flag.is_set():
+        chlog.e('执行退出2')
+        sys.exit(0)
 
     for retry in range(2):
         # 点击买入下单
@@ -81,9 +98,10 @@ def doSell(name, buyCode, buyCount, buyPrice):
             msg = WindowWidget.getTipDlgContent(tipDialogHandle)
             if msg:
                 if '股票代码' in msg:
-                    buyOrder = re.findall("\d+", msg)[0]
-                    chlog.d("委托提交成功，点击关闭", buyOrder)
+                    # buyOrder = re.findall("\d+", msg)[0]
+                    # chlog.d("委托提交成功，点击关闭", buyOrder)
                     btnHwnd = WindowWidget.getTipDlgBtn(tipDialogHandle)
+                    time.sleep(0.2)
                     WindowWidget.clickBtn2(btnHwnd)
                     time.sleep(0.2)
 
@@ -91,15 +109,13 @@ def doSell(name, buyCode, buyCount, buyPrice):
                     tipDialogHandle2 = windowWidget.getTipDlgHwndAfterCommit()
                     if tipDialogHandle2:
                         msg2 = WindowWidget.getTipDlgContent(tipDialogHandle2)
-                        if '合同号' in msg2:
-                            chlog.d("本次交易操作成功")
-                        else:
+                        if '合同号' not in msg2:
                             chlog.e("本次交易操作失败\n", msg2)
 
                         btnHwnd2 = WindowWidget.getTipDlgBtn(tipDialogHandle2)
+                        time.sleep(0.2)
                         WindowWidget.clickBtn2(btnHwnd2)
                         time.sleep(0.2)
-                        chlog.d("关闭最后的提示框！")
                     else:
                         chlog.e('获取委托后的弹窗句柄失败!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
@@ -156,6 +172,8 @@ if __name__ == '__main__':
     log.setTag("xxx")
     chlog.setTag("xxx")
 
+    keyboard.on_press(on_press)
+
     windowWidget = WindowWidget()
     windowWidget.bringToFront()
 
@@ -180,5 +198,7 @@ if __name__ == '__main__':
                 chlog.e('错误:代码或数量不合法！！！', zzName, zzCode, zzCount, zzPrice)
             else:
                 sellByCodeAndCount(zzName, zzCode, zzCount, zzPrice)
+        else:
+            chlog.e('非转债', zzName)
 
     chlog.e('执行结束')

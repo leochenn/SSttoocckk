@@ -218,7 +218,7 @@ class WindowWidget:
         for index in range(30):
             hwnd = self.getTipDlgHwnd(msg)
             if hwnd:
-                log.d('已弹出委托对话框', count)
+                # log.d('已弹出委托对话框', count)
                 break
             else:
                 count = count + 1
