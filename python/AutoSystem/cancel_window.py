@@ -3,6 +3,8 @@ import os
 import time
 
 import commctrl
+import win32api
+import win32con
 import win32gui
 
 import util
@@ -58,7 +60,7 @@ class CancelWindow:
 
         log.info("输出窗口显示")
         # 点击 输出到excel
-        # btn = stock_util.find_idxSubHandle(outputTipDialogHandle, 'Button', 2)
+        # btn = util.find_idxSubHandle(outputTipDialogHandle, 'Button', 2)
         # if btn:
         #     log.info("提示窗口：excel点击")
         #     left, top, right, bottom = win32gui.GetWindowRect(btn)
@@ -70,13 +72,16 @@ class CancelWindow:
         btn = util.find_idxSubHandle(outputTipDialogHandle, 'Button', 8)
         if btn:
             log.info("点击输出按钮")
+            time.sleep(5)
             WindowWidget.clickBtn2(btn)
+            time.sleep(1)
 
             outputTipDialogHandle = 0
             for index in range(10):
                 outputTipDialogHandle = self.windowWidget.getOutputDlgHwnd()
                 if not outputTipDialogHandle:
                     break
+                time.sleep(5)
 
                 WindowWidget.clickBtn2(btn)
                 time.sleep(0.001)
@@ -85,7 +90,7 @@ class CancelWindow:
                 # todo 点击窗口并未关闭
                 raise Exception('关闭输出窗口异常')
 
-            util.postCloseNotepad()
+            # util.postCloseNotepad()
             return 1
         else:
             log.info("未找到确定按钮点击")
@@ -93,8 +98,8 @@ class CancelWindow:
 
     def checkBuyOrderState(self, orderId):
         outputSuccess = None
-        for index in range(100):
-            WindowWidget.clickBtn2(self.tdxWindow.windowWidget.cancelTabOutputBtn)
+        for index in range(2):
+            WindowWidget.clickBtn2(self.windowWidget.cancelTabOutputBtn)
             time.sleep(0.001)
             if self.checkOutputTipDialogShown():
                 outputSuccess = 1

@@ -6,6 +6,8 @@ import math
 import keyboard
 import pyautogui
 from openpyxl.reader.excel import load_workbook
+
+from cancel_window import CancelWindow
 from window_widget import WindowWidget
 from threading import Event
 
@@ -30,6 +32,7 @@ level1_price = 1.0289
 level2_price = 1.0388
 level3_price = 1.0488
 
+allSellSuccess = 1
 windowWidget = None
 
 exit_flag = Event()
@@ -41,7 +44,7 @@ def on_press(key):
         exit_flag.set()  # 设置退出标志
 
 def doSell(name, buyCode, buyCount, buyPrice):
-    if exit_flag.is_set():
+    if exit_flag.is_set() :
         chlog.e('执行退出1')
         sys.exit(0)
 
@@ -49,7 +52,7 @@ def doSell(name, buyCode, buyCount, buyPrice):
     buyCount = str(buyCount)
     buyPrice = str(math.floor(buyPrice * 10) / 10)
 
-    chlog.d('卖出', name, buyCode, buyCount, buyPrice)
+    chlog.d('卖出', name, buyCode, buyPrice, buyCount)
     time.sleep(0.2)
 
     if not windowWidget.checkLocked():
@@ -87,6 +90,8 @@ def doSell(name, buyCode, buyCount, buyPrice):
         chlog.e('执行退出2')
         sys.exit(0)
 
+    success = None
+
     for retry in range(2):
         # 点击买入下单
         # 注意：不能在这里使用clickBtn2
@@ -115,6 +120,7 @@ def doSell(name, buyCode, buyCount, buyPrice):
                         btnHwnd2 = WindowWidget.getTipDlgBtn(tipDialogHandle2)
                         time.sleep(0.2)
                         WindowWidget.clickBtn2(btnHwnd2)
+                        success = 1
                         time.sleep(0.2)
                     else:
                         chlog.e('获取委托后的弹窗句柄失败!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
@@ -136,6 +142,8 @@ def doSell(name, buyCode, buyCount, buyPrice):
                 raise Exception('异常：未弹出委托对话框')
             chlog.e('异常：未弹出委托对话框, 重试下单!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
+    if not success:
+        allSellSuccess = 0
     chlog.d("--------------------------------")
 
 def isSh(code):
@@ -168,6 +176,26 @@ def sellByCodeAndCount(name, code, count, price):
             doSell(name, code, math.floor(count * 0.5 / rate) * rate, price * level1_price)
             doSell(name, code, math.floor(count * 0.5 / rate) * rate, price * level3_price)
 
+# 导出挂单列表
+def exportList():
+    if not windowWidget.isTabVisible(windowWidget.cancelTab):
+        chlog.d('撤单窗口未聚焦')
+        WindowWidget.clickBtn(windowWidget.menuBar, 96, 10)
+        time.sleep(0.5)
+
+    if not windowWidget.isTabVisible(windowWidget.cancelTab):
+        chlog.d('撤单窗口还是未聚焦')
+
+    chlog.d('撤单窗口聚焦')
+
+    cancelWindow = CancelWindow(windowWidget)
+
+    count = cancelWindow.getListCount()
+    chlog.d('getListCount', count)
+    if count:
+        cancelWindow.checkBuyOrderState('')
+        chlog.d('读取excel')
+
 if __name__ == '__main__':
     log.setTag("xxx")
     chlog.setTag("xxx")
@@ -192,7 +220,7 @@ if __name__ == '__main__':
             zzPrice = ws.cell(row, 5).value
 
             chlog.e("--------------------------------")
-            chlog.d(row, " ", zzName, zzCode, zzCount, zzPrice)
+            chlog.d(row, " ", zzName, zzCode, zzPrice, zzCount)
             chlog.d("--------------------------------")
             if zzCode is None or zzCount < 1 or zzPrice < 80:
                 chlog.e('错误:代码或数量不合法！！！', zzName, zzCode, zzCount, zzPrice)
@@ -201,4 +229,9 @@ if __name__ == '__main__':
         else:
             chlog.e('非转债', zzName)
 
-    chlog.e('执行结束')
+    if not allSellSuccess:
+        chlog.e('执行结束, 有操作失败的情况！！！')
+    else:
+        chlog.e('执行结束')
+        # 导出撤单列表，对比挂单所有结果是否符合设定，进行检查
+        # exportList()
