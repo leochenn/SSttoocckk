@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import re
+import time
 
 import pyautogui
 import log
@@ -50,21 +51,39 @@ if __name__ == '__main__':
         # 点击买入下单
         # 注意：不能在这里使用clickBtn2
         WindowWidget.clickBtn(windowWidget.sellTabSellBtn)
-        tipDialogHandle = windowWidget.getTipDlgHwndAfterCommit()
+        time.sleep(0.2)
+        tipDialogHandle = windowWidget.getTipDlgHwndAfterCommit('卖出交易确认')
         if tipDialogHandle:
             msg = WindowWidget.getTipDlgContent(tipDialogHandle)
             if msg:
-                if '合同号是' in msg:
+                if '股票代码' in msg:
                     buyOrder = re.findall("\d+", msg)[0]
                     log.d("委托提交成功，点击关闭", buyOrder, str(datetime.datetime.now() - curr_time))
                     btnHwnd = WindowWidget.getTipDlgBtn(tipDialogHandle)
                     WindowWidget.clickBtn2(btnHwnd)
 
+                    # 点击后的弹窗
+                    tipDialogHandle2 = windowWidget.getTipDlgHwndAfterCommit()
+                    if tipDialogHandle2:
+                        msg2 = WindowWidget.getTipDlgContent(tipDialogHandle2)
+                        if '合同号' in msg2:
+                            log.d("本次交易操作成功")
+                        else:
+                            log.d("本次交易操作失败\n", msg2)
+
+                        btnHwnd2 = WindowWidget.getTipDlgBtn(tipDialogHandle2)
+                        WindowWidget.clickBtn2(btnHwnd2)
+                        log.d("关闭最后的提示框！")
+                    else:
+                        log.d('获取委托后的弹窗句柄失败')
+
+                    # 提交失败
+
                     # 检查委托状态， 通过读取撤单列表行数来进行判断
-                    cancelWindow = CancelWindow(windowWidget)
-                    success = cancelWindow.getListCount()
-                    if success:
-                        log.d("卖出成功", str(datetime.datetime.now() - curr_time))
+                    # cancelWindow = CancelWindow(windowWidget)
+                    # success = cancelWindow.getListCount()
+                    # if success:
+                    #     log.d("卖出成功", str(datetime.datetime.now() - curr_time))
                 else:
                     log.d('委托失败', msg)
             else:

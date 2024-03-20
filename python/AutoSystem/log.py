@@ -36,7 +36,8 @@ def getlogger(tag):
     file_handler = logging.FileHandler(log_file, "w", "UTF-8")
     file_handler.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('%(asctime)s: %(message)s   _pid:%(process)s ')
+    # formatter = logging.Formatter('%(asctime)s: %(message)s   _pid:%(process)s ')
+    formatter = logging.Formatter('%(asctime)s: %(message)s')
     file_handler.setFormatter(formatter)
 
     stream_handler = logging.StreamHandler()

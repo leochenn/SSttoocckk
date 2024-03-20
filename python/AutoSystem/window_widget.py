@@ -162,7 +162,7 @@ class WindowWidget:
         if not dlg_hwnd:
             return
 
-        log.info('提示对话框遮挡')
+        log.info('提示对话框遮挡!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
         content = WindowWidget.getTipDlgContent(dlg_hwnd)
         if content:
@@ -174,8 +174,8 @@ class WindowWidget:
             WindowWidget.clickBtn(btn_hwnd)
 
     # "提示"对话框句柄
-    def getTipDlgHwnd(self):
-        return self.getDlgHwndMatchTitle('提示')
+    def getTipDlgHwnd(self, msg='提示'):
+        return self.getDlgHwndMatchTitle(msg)
 
     # 通达信软件前置
     def bringToFront(self):
@@ -210,11 +210,11 @@ class WindowWidget:
         return 1
 
     # 提交委托之后检查对话框弹出
-    def getTipDlgHwndAfterCommit(self):
+    def getTipDlgHwndAfterCommit(self, msg='提示'):
         count = 0
         hwnd = None
         for index in range(30):
-            hwnd = self.getTipDlgHwnd()
+            hwnd = self.getTipDlgHwnd(msg)
             if hwnd:
                 log.d('已弹出委托对话框', count)
                 break
