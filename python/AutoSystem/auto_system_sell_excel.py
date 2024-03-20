@@ -143,6 +143,7 @@ def doSell(name, buyCode, buyCount, buyPrice):
             chlog.e('异常：未弹出委托对话框, 重试下单!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
     if not success:
+        global allSellSuccess
         allSellSuccess = 0
     chlog.d("--------------------------------")
 
