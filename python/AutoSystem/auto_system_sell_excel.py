@@ -1,6 +1,7 @@
 import re
 import time
 import log
+import chlog
 import math
 import pyautogui
 from openpyxl.reader.excel import load_workbook
@@ -30,35 +31,44 @@ level3_price = 1.0488
 windowWidget = None
 
 def doSell(name, buyCode, buyCount, buyPrice):
-    log.d('卖出', name, buyCode, buyCount, math.floor(buyPrice * 10) / 10)
-    time.sleep(0.2)
-
-    if not windowWidget.checkLocked():
-        shelter = windowWidget.closeTipDlgBeforeOperator()
-        time.sleep(1)
-
     buyCode = str(buyCode)
     buyCount = str(buyCount)
     buyPrice = str(math.floor(buyPrice * 10) / 10)
 
+    chlog.d('卖出', name, buyCode, buyCount, buyPrice)
+    time.sleep(0.2)
+
+    if not windowWidget.checkLocked():
+        shelter = windowWidget.closeTipDlgBeforeOperator()
+        if shelter:
+            chlog.e('closeTipDlgBeforeOperator')
+            time.sleep(1)
+
+    if not windowWidget.isTabVisible(windowWidget.sellTabHwnd):
+        chlog.e('卖出窗口未聚焦')
+        WindowWidget.clickBtn(windowWidget.menuBar, 58, 10)
+        time.sleep(0.5)
+
     if windowWidget.isTabVisible(windowWidget.sellTabHwnd):
         WindowWidget.focusEditCodeAndClear(windowWidget.sellTabCode)
         WindowWidget.setEditText(windowWidget.sellTabCount, buyCount)
-        log.info("输入证券数量：" + str(buyCount))
+        readSellCount = WindowWidget.getEditContent(windowWidget.sellTabCount)
+        if buyCount != readSellCount:
+            chlog.e("输入数量：" + str(buyCount), '读取数量', readSellCount)
         pyautogui.typewrite(buyCode)
     else:
-        log.info('卖出窗口未聚焦')
-        WindowWidget.clickBtn(windowWidget.menuBar, 58, 10)
-        windowWidget.setEditCountTwice(windowWidget.sellTabCount, buyCount)
-        log.d("设置数量", str(buyCount), '读取数量', WindowWidget.getEditContent(windowWidget.sellTabCount))
-        windowWidget.setSellEditCodeTwice(windowWidget.sellTabPrice, buyCode)
+        chlog.e('卖出窗口还是未聚焦')
+        exit(0)
 
     time.sleep(0.2)
 
     WindowWidget.setEditText(windowWidget.sellTabPrice, buyPrice)
-    log.d('设置价格', buyPrice, '读取价格', WindowWidget.getEditContent(windowWidget.sellTabPrice))
+    readSellPrice = WindowWidget.getEditContent(windowWidget.sellTabPrice)
+    if buyPrice != readSellPrice:
+        chlog.e('输入价格', buyPrice, '读取价格', readSellPrice)
 
     time.sleep(0.2)
+    time.sleep(5)
 
     for retry in range(2):
         # 点击买入下单
@@ -72,7 +82,7 @@ def doSell(name, buyCode, buyCount, buyPrice):
             if msg:
                 if '股票代码' in msg:
                     buyOrder = re.findall("\d+", msg)[0]
-                    log.d("委托提交成功，点击关闭", buyOrder)
+                    chlog.d("委托提交成功，点击关闭", buyOrder)
                     btnHwnd = WindowWidget.getTipDlgBtn(tipDialogHandle)
                     WindowWidget.clickBtn2(btnHwnd)
                     time.sleep(0.2)
@@ -82,18 +92,16 @@ def doSell(name, buyCode, buyCount, buyPrice):
                     if tipDialogHandle2:
                         msg2 = WindowWidget.getTipDlgContent(tipDialogHandle2)
                         if '合同号' in msg2:
-                            log.d("本次交易操作成功")
+                            chlog.d("本次交易操作成功")
                         else:
-                            log.d("本次交易操作失败\n", msg2)
+                            chlog.e("本次交易操作失败\n", msg2)
 
                         btnHwnd2 = WindowWidget.getTipDlgBtn(tipDialogHandle2)
                         WindowWidget.clickBtn2(btnHwnd2)
                         time.sleep(0.2)
-                        log.d("关闭最后的提示框！")
-                        log.d("xxxxxxxxxxxxxx")
+                        chlog.d("关闭最后的提示框！")
                     else:
-                        log.d('获取委托后的弹窗句柄失败!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-                        log.d("xxxxxxxxxxxxxx")
+                        chlog.e('获取委托后的弹窗句柄失败!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
                     # 提交失败
 
@@ -103,20 +111,19 @@ def doSell(name, buyCode, buyCount, buyPrice):
                     # if success:
                     #     log.d("卖出成功", str(datetime.datetime.now() - curr_time))
                 else:
-                    log.d('委托失败', msg)
+                    chlog.e('委托失败', msg)
             else:
-                log.d('异常：委托对话框内容为空')
+                chlog.e('异常：委托对话框内容为空')
             break
         else:
             if retry == 2:
                 raise Exception('异常：未弹出委托对话框')
-            log.d('异常：未弹出委托对话框, 重试下单!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            chlog.e('异常：未弹出委托对话框, 重试下单!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
-
+    chlog.d("--------------------------------")
 
 def isSh(code):
     return code.startswith('110') or code.startswith('111') or code.startswith('113') or code.startswith('118')
-
 
 def sellByCodeAndCount(name, code, count, price):
     rate = 10
@@ -145,18 +152,18 @@ def sellByCodeAndCount(name, code, count, price):
             doSell(name, code, math.floor(count * 0.5 / rate) * rate, price * level1_price)
             doSell(name, code, math.floor(count * 0.5 / rate) * rate, price * level3_price)
 
-
 if __name__ == '__main__':
-    log.setTag("auto_system_sell_excel")
+    log.setTag("xxx")
+    chlog.setTag("xxx")
 
     windowWidget = WindowWidget()
     windowWidget.bringToFront()
 
     wb = load_workbook(r'C:\Users\Administrator\Desktop\可转债轮动\收盘后的数据整理.xlsx')
-    sheetname = wb.sheetnames[7]
+    sheetname = wb.sheetnames[0]
     ws = wb[sheetname]
     max_row = ws.max_row + 1
-    log.d('启动', sheetname)
+    chlog.e('开始执行', sheetname)
 
     for row in range(2, max_row):
         zzName = ws.cell(row, 2).value
@@ -166,11 +173,12 @@ if __name__ == '__main__':
             zzCount = ws.cell(row, 3).value
             zzPrice = ws.cell(row, 5).value
 
-            log.d("--------------------------------")
-            log.d("--------------------------------")
-            log.d(row, " ", zzName, zzCode, zzCount, zzPrice)
-            # print("第{0}行{1},{2},{3}, {4}".format(row, zzName, zzCode, zzCount, zzPrice))
+            chlog.e("--------------------------------")
+            chlog.d(row, " ", zzName, zzCode, zzCount, zzPrice)
+            chlog.d("--------------------------------")
             if zzCode is None or zzCount < 1 or zzPrice < 80:
-                print("错误:代码或数量不合法！！！")
+                chlog.e('错误:代码或数量不合法！！！', zzName, zzCode, zzCount, zzPrice)
             else:
                 sellByCodeAndCount(zzName, zzCode, zzCount, zzPrice)
+
+    chlog.e('执行结束')

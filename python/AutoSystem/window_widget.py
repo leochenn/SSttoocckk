@@ -160,7 +160,7 @@ class WindowWidget:
     def closeTipDlgBeforeOperator(self):
         dlg_hwnd = self.getTipDlgHwnd()
         if not dlg_hwnd:
-            return
+            return 0
 
         log.info('提示对话框遮挡!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
@@ -172,6 +172,8 @@ class WindowWidget:
         if btn_hwnd:
             log.info("关闭对话框")
             WindowWidget.clickBtn(btn_hwnd)
+
+        return 1
 
     # "提示"对话框句柄
     def getTipDlgHwnd(self, msg='提示'):
@@ -195,7 +197,7 @@ class WindowWidget:
 
         log.info('窗口已锁定')
         WindowWidget.clickBtn(pwdHwnd)
-        time.sleep(0.001)
+        time.sleep(1)
 
         pyautogui.typewrite(config.pwd)
         pyautogui.press('enter')
