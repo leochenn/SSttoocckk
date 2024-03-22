@@ -1,6 +1,11 @@
-import datetime
+import os
+from datetime import datetime
 import sys
 import time
+
+import win32con
+import win32gui
+
 import log
 import chlog
 import math
@@ -55,6 +60,10 @@ def doSell(name, buyCode, buyCount, buyPrice):
     buyCode = str(buyCode)
     buyCount = str(buyCount)
     buyPrice = str(math.floor(buyPrice * 10) / 10)
+    if buyPrice.endswith('.0'):
+        chlog.e('价格去掉.0', buyPrice)
+        buyPrice = buyPrice.replace('.0', '')
+        chlog.e('价格去掉.0', buyPrice)
 
     chlog.d('卖出', name, buyCode, buyPrice, buyCount)
     time.sleep(0.2)
@@ -88,7 +97,7 @@ def doSell(name, buyCode, buyCount, buyPrice):
     if buyPrice != readSellPrice:
         chlog.e('输入价格', buyPrice, '读取价格', readSellPrice)
 
-    time.sleep(1)
+    time.sleep(2)
 
     if exit_flag.is_set():
         chlog.e('执行退出2')
@@ -196,6 +205,17 @@ def compareData():
     chlog.d("xlsfile  path", xlsfile)
     chlog.d("xlsxfile path", xlsxfile)
 
+    if not os.path.exists(xlsfile):
+        chlog.e('文件不存在', xlsfile)
+        exit()
+
+    if os.path.exists(xlsxfile):
+        os.remove(xlsxfile)
+        chlog.e('删除已存在的文件', xlsxfile)
+    if os.path.exists(xlsxfile):
+        chlog.e('删除已存在的文件 失败', xlsxfile)
+        exit()
+
     excel = win32.gencache.EnsureDispatch('Excel.Application')
     wb = excel.Workbooks.Open(xlsfile)
     #  xlsx: FileFormat=51
@@ -204,7 +224,7 @@ def compareData():
     wb.Close()
     excel.Application.Quit()
 
-    time.sleep(2)
+    time.sleep(1)
 
     wb = load_workbook(xlsxfile)
     sheetname = wb.sheetnames[0]
@@ -218,8 +238,10 @@ def compareData():
         zzName = ws.cell(row, 4).value
         zzName = zzName.replace('"', '').replace("'", "").replace('=', '')
         zzPrice = ws.cell(row, 6).value
+        zzPrice = str(zzPrice)
         zzCount = ws.cell(row, 7).value
-        chlog.e(row, '行', zzName, zzPrice, zzCount)
+        zzCount = str(zzCount)
+        # chlog.e(row, '行', zzName, zzPrice, zzCount)
         if zzName not in data:
             data[zzName] = {}
 
@@ -232,6 +254,7 @@ def compareData():
     else:
         chlog.e('结果不匹配')
         # 遍历并打印出不同的项目
+        chlog.e('对比1')
         for outer_key, inner_dict1 in data.items():
             if outer_key not in successSellData:
                 chlog.e('在外层键中发现差异', str(outer_key), '只存在于第一个data中')
@@ -242,6 +265,7 @@ def compareData():
                         chlog.e('在内层键值对中发现差异', str(outer_key), str(inner_key), '的值在两个字典中不同', str(value1), 'vs',
                                 str(inner_dict2.get(inner_key)))
 
+        chlog.e('对比2')
         for outer_key, inner_dict1 in successSellData.items():
             if outer_key not in data:
                 chlog.e('在外层键中发现差异', str(outer_key), '只存在于第一个data中')
@@ -268,6 +292,16 @@ def exportList():
     if count:
         cancelWindow.checkBuyOrderState('')
 
+def closeWps():
+    current_date = datetime.now()
+    formatted_date = current_date.strftime('%Y%m%d')
+    xlsfile = '{0} 撤单查询.xls - WPS Office'.format(formatted_date)
+    target_window = win32gui.FindWindow(None, xlsfile)  # 根据窗口标题或类名找到目标窗口的句柄
+    chlog.d('target_window', xlsfile, target_window)
+    if target_window:
+        chlog.e('关闭wps表格')
+        win32gui.PostMessage(target_window, win32con.WM_CLOSE, 0, 0)
+
 if __name__ == '__main__':
     log.setTag("xxx")
     chlog.setTag("xxx")
@@ -286,6 +320,7 @@ if __name__ == '__main__':
     for row in range(2, max_row):
         zzName = ws.cell(row, 2).value
         if zzName is not None and len(zzName) != 0 and '转' in zzName:
+            zzName = zzName.replace('"', '').replace("'", "").replace('=', '')
             zzCode = ws.cell(row, 1).value
             zzCode = ''.join([c for c in zzCode if c.isdigit()])
             zzCount = ws.cell(row, 3).value
@@ -307,10 +342,19 @@ if __name__ == '__main__':
     else:
         chlog.d(successSellData)
         chlog.e('自动挂单执行结束，成功')
-        # 导出撤单列表，对比挂单所有结果是否符合设定，进行检查
         time.sleep(1)
+
+        # 导出撤单列表
         exportList()
+
         time.sleep(1)
+
+        # excel窗口是否打开
+        closeWps()
+
+        time.sleep(1)
+
+        # 对比结果
         compareData()
         chlog.e('完成所有操作，结束程序！')
 
