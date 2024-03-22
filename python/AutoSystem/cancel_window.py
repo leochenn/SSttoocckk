@@ -60,19 +60,19 @@ class CancelWindow:
 
         log.info("输出窗口显示")
         # 点击 输出到excel
-        # btn = util.find_idxSubHandle(outputTipDialogHandle, 'Button', 2)
-        # if btn:
-        #     log.info("提示窗口：excel点击")
-        #     left, top, right, bottom = win32gui.GetWindowRect(btn)
-        #     win32api.SetCursorPos([left + 5, top + 5])
-        #     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP | win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-        # else:
-        #     log.info("未找到excel按钮")
+        btn = util.find_idxSubHandle(outputTipDialogHandle, 'Button', 2)
+        if btn:
+            log.info("提示窗口：excel点击")
+            left, top, right, bottom = win32gui.GetWindowRect(btn)
+            win32api.SetCursorPos([left + 5, top + 5])
+            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP | win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+        else:
+            log.info("未找到excel按钮")
 
         btn = util.find_idxSubHandle(outputTipDialogHandle, 'Button', 8)
         if btn:
             log.info("点击输出按钮")
-            time.sleep(5)
+            time.sleep(1)
             WindowWidget.clickBtn2(btn)
             time.sleep(1)
 
@@ -81,7 +81,7 @@ class CancelWindow:
                 outputTipDialogHandle = self.windowWidget.getOutputDlgHwnd()
                 if not outputTipDialogHandle:
                     break
-                time.sleep(5)
+                time.sleep(1)
 
                 WindowWidget.clickBtn2(btn)
                 time.sleep(0.001)

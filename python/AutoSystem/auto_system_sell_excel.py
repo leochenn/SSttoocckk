@@ -1,3 +1,4 @@
+import datetime
 import sys
 import time
 import log
@@ -10,6 +11,7 @@ from openpyxl.reader.excel import load_workbook
 from cancel_window import CancelWindow
 from window_widget import WindowWidget
 from threading import Event
+import win32com.client as win32
 
 # 深市 单位为张，一张等于100元
 # 123（创业板）
@@ -36,6 +38,8 @@ allSellSuccess = 1
 windowWidget = None
 
 exit_flag = Event()
+
+successSellData = {}
 
 # 监听所有按键,按q退出程序
 def on_press(key):
@@ -121,6 +125,9 @@ def doSell(name, buyCode, buyCount, buyPrice):
                         time.sleep(0.2)
                         WindowWidget.clickBtn2(btnHwnd2)
                         success = 1
+                        if name not in successSellData:
+                            successSellData[name] = {}
+                        successSellData[name][buyPrice] = buyCount
                         time.sleep(0.2)
                     else:
                         chlog.e('获取委托后的弹窗句柄失败!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
@@ -177,6 +184,74 @@ def sellByCodeAndCount(name, code, count, price):
             doSell(name, code, math.floor(count * 0.5 / rate) * rate, price * level1_price)
             doSell(name, code, math.floor(count * 0.5 / rate) * rate, price * level3_price)
 
+
+def compareData():
+    # 获取当前日期和时间
+    current_date = datetime.now()
+    # 格式化为"YYYYMMDD"格式的字符串
+    formatted_date = current_date.strftime('%Y%m%d')
+
+    xlsfile = r'C:\Users\Administrator\Documents\{0} 撤单查询.xls'.format(formatted_date)
+    xlsxfile = xlsfile[:-3].replace('[', '').replace(']', '') + 'xlsx'
+    chlog.d("xlsfile  path", xlsfile)
+    chlog.d("xlsxfile path", xlsxfile)
+
+    excel = win32.gencache.EnsureDispatch('Excel.Application')
+    wb = excel.Workbooks.Open(xlsfile)
+    #  xlsx: FileFormat=51
+    #  xls:  FileFormat=56
+    wb.SaveAs(xlsxfile, FileFormat=51)
+    wb.Close()
+    excel.Application.Quit()
+
+    time.sleep(2)
+
+    wb = load_workbook(xlsxfile)
+    sheetname = wb.sheetnames[0]
+    ws = wb[sheetname]
+    max_row = ws.max_row + 1
+    chlog.e('开始读取撤单列表', max_row)
+
+    data = {}
+
+    for row in range(2, max_row):
+        zzName = ws.cell(row, 4).value
+        zzName = zzName.replace('"', '').replace("'", "").replace('=', '')
+        zzPrice = ws.cell(row, 6).value
+        zzCount = ws.cell(row, 7).value
+        chlog.e(row, '行', zzName, zzPrice, zzCount)
+        if zzName not in data:
+            data[zzName] = {}
+
+        data[zzName][zzPrice] = zzCount
+
+    chlog.d(data)
+
+    if data == successSellData:
+        chlog.d('结果匹配')
+    else:
+        chlog.e('结果不匹配')
+        # 遍历并打印出不同的项目
+        for outer_key, inner_dict1 in data.items():
+            if outer_key not in successSellData:
+                chlog.e('在外层键中发现差异', str(outer_key), '只存在于第一个data中')
+            else:
+                inner_dict2 = successSellData[outer_key]
+                for inner_key, value1 in inner_dict1.items():
+                    if inner_key not in inner_dict2 or inner_dict2[inner_key] != value1:
+                        chlog.e('在内层键值对中发现差异', str(outer_key), str(inner_key), '的值在两个字典中不同', str(value1), 'vs',
+                                str(inner_dict2.get(inner_key)))
+
+        for outer_key, inner_dict1 in successSellData.items():
+            if outer_key not in data:
+                chlog.e('在外层键中发现差异', str(outer_key), '只存在于第一个data中')
+            else:
+                inner_dict2 = data[outer_key]
+                for inner_key, value1 in inner_dict1.items():
+                    if inner_key not in inner_dict2 or inner_dict2[inner_key] != value1:
+                        chlog.e('在内层键值对中发现差异', str(outer_key), str(inner_key), '的值在两个字典中不同', str(value1), 'vs',
+                                str(inner_dict2.get(inner_key)))
+
 # 导出挂单列表
 def exportList():
     if not windowWidget.isTabVisible(windowWidget.cancelTab):
@@ -187,15 +262,11 @@ def exportList():
     if not windowWidget.isTabVisible(windowWidget.cancelTab):
         chlog.d('撤单窗口还是未聚焦')
 
-    chlog.d('撤单窗口聚焦')
-
     cancelWindow = CancelWindow(windowWidget)
 
     count = cancelWindow.getListCount()
-    chlog.d('getListCount', count)
     if count:
         cancelWindow.checkBuyOrderState('')
-        chlog.d('读取excel')
 
 if __name__ == '__main__':
     log.setTag("xxx")
@@ -228,11 +299,18 @@ if __name__ == '__main__':
             else:
                 sellByCodeAndCount(zzName, zzCode, zzCount, zzPrice)
         else:
-            chlog.e('非转债', zzName)
+            if zzName is not None:
+                chlog.e('非转债', zzName)
 
     if not allSellSuccess:
-        chlog.e('执行结束, 有操作失败的情况！！！')
+        chlog.e('自动挂单执行结束, 有操作失败的情况！！！')
     else:
-        chlog.e('执行结束')
+        chlog.d(successSellData)
+        chlog.e('自动挂单执行结束，成功')
         # 导出撤单列表，对比挂单所有结果是否符合设定，进行检查
-        # exportList()
+        time.sleep(1)
+        exportList()
+        time.sleep(1)
+        compareData()
+        chlog.e('完成所有操作，结束程序！')
+
