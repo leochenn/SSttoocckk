@@ -194,7 +194,7 @@ def sellByCodeAndCount(name, code, count, price):
             doSell(name, code, math.floor(count * 0.5 / rate) * rate, price * level3_price)
 
 
-def compareData():
+def compareData(successSellData1):
     # 获取当前日期和时间
     current_date = datetime.now()
     # 格式化为"YYYYMMDD"格式的字符串
@@ -249,24 +249,24 @@ def compareData():
 
     chlog.d(data)
 
-    if data == successSellData:
+    if data == successSellData1:
         chlog.d('结果匹配')
     else:
         chlog.e('结果不匹配')
         # 遍历并打印出不同的项目
         chlog.e('对比1')
         for outer_key, inner_dict1 in data.items():
-            if outer_key not in successSellData:
+            if outer_key not in successSellData1:
                 chlog.e('在外层键中发现差异', str(outer_key), '只存在于第一个data中')
             else:
-                inner_dict2 = successSellData[outer_key]
+                inner_dict2 = successSellData1[outer_key]
                 for inner_key, value1 in inner_dict1.items():
                     if inner_key not in inner_dict2 or inner_dict2[inner_key] != value1:
                         chlog.e('在内层键值对中发现差异', str(outer_key), str(inner_key), '的值在两个字典中不同', str(value1), 'vs',
                                 str(inner_dict2.get(inner_key)))
 
         chlog.e('对比2')
-        for outer_key, inner_dict1 in successSellData.items():
+        for outer_key, inner_dict1 in successSellData1.items():
             if outer_key not in data:
                 chlog.e('在外层键中发现差异', str(outer_key), '只存在于第一个data中')
             else:
@@ -341,20 +341,32 @@ if __name__ == '__main__':
         chlog.e('自动挂单执行结束, 有操作失败的情况！！！')
     else:
         chlog.d(successSellData)
-        chlog.e('自动挂单执行结束，成功')
-        time.sleep(1)
 
-        # 导出撤单列表
-        exportList()
+        xlsfile1 = r'C:\Users\Administrator\Desktop\{0}.txt'.format('successSellData')
+        # 打开一个txt文件并以追加模式（不会覆盖原有内容，而是添加到文件末尾）
+        with open(xlsfile1, 'a', encoding='utf-8') as f:
+            # 追加字符串
+            f.write(str(successSellData))
 
-        time.sleep(1)
+        chlog.e('自动挂单执行结束，成功! 等待手动操作，导出撤单列表')
 
-        # excel窗口是否打开
-        closeWps()
+        # 等待手动导出
+        time.sleep(20)
+        compareData(successSellData)
 
-        time.sleep(1)
-
-        # 对比结果
-        compareData()
+        # time.sleep(1)
+        #
+        # # 导出撤单列表
+        # exportList()
+        #
+        # time.sleep(1)
+        #
+        # # excel窗口是否打开
+        # closeWps()
+        #
+        # time.sleep(1)
+        #
+        # # 对比结果
+        # compareData()
         chlog.e('完成所有操作，结束程序！')
 
