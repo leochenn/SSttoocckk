@@ -57,6 +57,26 @@ function doOnClick() {
   })  
 }
 
+// 刷新需要注入的页面，才能注入生效
+function refreshPage() {
+  chrome.tabs.query({ windowType: 'normal' }, (tabs) => {
+      tabs.forEach(function(tab){                  
+        if (tab.url.indexOf('xueqiu.com') != -1 || tab.title.indexOf('雪球') != -1 || tab.url.indexOf('test-title-change') != -1) {
+          log("已找需要刷新的tab", tab);
+          chrome.tabs.reload(tab.id, {
+            bypassCache: false // 可选参数，如果设置为true，则忽略缓存进行硬刷新
+          }, function(tab) {
+            if (chrome.runtime.lastError) {
+              log('刷新标签页时出错:', chrome.runtime.lastError.message);
+            } else {
+              log('标签页刷新成功');
+            }
+          });
+        }
+      });
+  })  
+}
+
 log('雪球插件启动', '')
 chrome.notifications.create({
     type: "basic",
@@ -68,6 +88,8 @@ chrome.notifications.create({
     log('雪球插件启动', '消息发送成功')
   }
 );
+
+refreshPage();
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === 'from_popup') {
