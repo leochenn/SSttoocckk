@@ -58,6 +58,16 @@ function doOnClick() {
 }
 
 log('雪球插件启动', '')
+chrome.notifications.create({
+    type: "basic",
+    title: '雪球插件启动',
+    message: '',
+    iconUrl: "../icon/icon.png"
+  },
+  (notificationId) => {    
+    log('雪球插件启动', '消息发送成功')
+  }
+);
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === 'from_popup') {
