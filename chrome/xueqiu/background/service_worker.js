@@ -1,9 +1,34 @@
 var switchState = 1
 var lastNotifyId = ''
 
-function log(tag, data) {
-  console.log('leo:', tag + '->' + JSON.stringify(data))
+function getTime() {
+  // 创建一个Date对象，代表当前时间
+  let now = new Date();
+
+  // 获取年、月、日、时、分、秒
+  let year = now.getFullYear();
+  let month = now.getMonth() + 1; // 注意月份是从0开始的，所以要加1
+  let day = now.getDate();
+  let hours = now.getHours();
+  let minutes = now.getMinutes();
+  let seconds = now.getSeconds();
+  // 格式化时间，确保月份和日期是两位数
+  month = month < 10 ? '0' + month : month;
+  day = day < 10 ? '0' + day : day;
+  hours = hours < 10 ? '0' + hours : hours;
+  minutes = minutes < 10 ? '0' + minutes : minutes;
+  seconds = seconds < 10 ? '0' + seconds : seconds;
+
+  // 拼接成字符串
+  let formattedTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  return formattedTime;
 }
+
+function log(tag, data) {
+  console.log(getTime() + ' leo:', tag + '->' + JSON.stringify(data))
+}
+
+log('雪球插件启动', '')
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   if (message.action === 'from_popup') {
@@ -42,7 +67,21 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           if (JSON.stringify(lastNotifyId) == JSON.stringify(notificationId)) {
             lastNotifyId = ''
             // 当用户点击通知时，打开特定的网页
-            chrome.tabs.create({ url: "http://www.baidu.com" });
+            // chrome.tabs.create({ url: "http://www.baidu.com" });
+            chrome.tabs.query({ windowType: 'normal' }, (tabs) => {
+                tabs.forEach(function(tab){                  
+                  if (tab.url.indexOf('xueqiu.com') != -1 || tab.title.indexOf('雪球') != -1) {
+                    log("已找到雪球tab", tab);
+                    chrome.tabs.update(tab.id, { active: true }, function(targetTabId) {
+                      log("已切换到雪球页面", targetTabId);
+                    });
+
+                    chrome.windows.update(tab.windowId, { focused: true }, function(window) {
+                      log("浏览器窗口前置", window);
+                    });
+                  }
+                });
+            })
           }        
       });
     } else {
