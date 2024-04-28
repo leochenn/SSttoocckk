@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "XueQiu",
+  "version": "0.0.1",
+  "description": "Monitor XueQiu new message",
+  "icons": {
+    "16": "icon/icon.png",
+    "32": "icon/icon.png",
+    "48": "icon/icon.png",
+    "128": "icon/icon.png"
+  },
+  "action": {
+    "default_icon": "icon/icon.png",
+    "default_title": "Popup Title",
+    "default_popup": "popup/index.html"
+  },
+  "background": {
+    "service_worker": "background/service_worker.js",
+    "type": "module"
+  },
+  "permissions": [
+    "notifications"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://xueqiu.com/","file:///E:/caohuawork/workspace-git/SSttoocckk/chrome/xueqiu/test-title-change.html"],
+      "js": ["content/index.js"]
+    }
+  ]
+}
