@@ -28,6 +28,35 @@ function log(tag, data) {
   console.log(getTime() + ' leo:', tag + '->' + JSON.stringify(data))
 }
 
+function injectScrollToTopScript(tabId) {
+  chrome.scripting.executeScript({
+    target : {tabId : tabId},
+    files : [ "background/contentScript.js" ],
+  }).then(() => log("雪球页面注入脚本成功", ''));
+}
+
+function doOnClick() {
+  // 当用户点击通知时，打开特定的网页
+  // chrome.tabs.create({ url: "http://www.baidu.com" });
+  chrome.tabs.query({ windowType: 'normal' }, (tabs) => {
+      tabs.forEach(function(tab){                  
+        if (tab.url.indexOf('xueqiu.com') != -1 || tab.title.indexOf('雪球') != -1) {
+          log("已找到雪球tab", tab);
+          chrome.tabs.update(tab.id, { active: true }, function(targetTabId) {
+            log("已切换到雪球页面", targetTabId);
+
+            // 使用实际的tabId调用此函数
+            injectScrollToTopScript(tab.id);
+          });
+
+          chrome.windows.update(tab.windowId, { focused: true }, function(window) {
+            log("浏览器窗口前置", window);
+          });
+        }
+      });
+  })  
+}
+
 log('雪球插件启动', '')
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
@@ -66,22 +95,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           log('消息被点击', notificationId + ', ' + lastNotifyId)
           if (JSON.stringify(lastNotifyId) == JSON.stringify(notificationId)) {
             lastNotifyId = ''
-            // 当用户点击通知时，打开特定的网页
-            // chrome.tabs.create({ url: "http://www.baidu.com" });
-            chrome.tabs.query({ windowType: 'normal' }, (tabs) => {
-                tabs.forEach(function(tab){                  
-                  if (tab.url.indexOf('xueqiu.com') != -1 || tab.title.indexOf('雪球') != -1) {
-                    log("已找到雪球tab", tab);
-                    chrome.tabs.update(tab.id, { active: true }, function(targetTabId) {
-                      log("已切换到雪球页面", targetTabId);
-                    });
-
-                    chrome.windows.update(tab.windowId, { focused: true }, function(window) {
-                      log("浏览器窗口前置", window);
-                    });
-                  }
-                });
-            })
+            doOnClick();
           }        
       });
     } else {

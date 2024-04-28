@@ -19,7 +19,10 @@
     "type": "module"
   },
   "permissions": [
-    "notifications", "tabs", "windows"
+    "notifications", "tabs", "windows","scripting", "activeTab"
+  ],
+  "host_permissions": [
+    "https://xueqiu.com/*"
   ],
   "content_scripts": [
     {
