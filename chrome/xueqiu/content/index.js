@@ -45,8 +45,8 @@ function updateGetTitle() {
     currentTitle = document.title;	
 	if (currentTitle !== lastTitle) {
         lastTitle = currentTitle
-        if (lastTitle.indexOf('新') || lastTitle.indexOf('消息')) {
-            logAndSend('title_changed', '有新消息')
+        if (lastTitle.indexOf('新') != -1 || lastTitle.indexOf('消息') != -1) {
+            logAndSend('title_changed', '标题有新消息')
         }        
 	}
 }
@@ -54,12 +54,12 @@ function updateGetTitle() {
 
 log('脚本启动')
 var lastTitle = document.title;
-setInterval(updateGetTitle, 10000);
+setInterval(updateGetTitle, 3000);
 
-// 选择你想要监控的div节点
-const targetNode = document.querySelector('.status-list');
+// 监控Timeline新消息
+var targetNode = document.querySelector('.status-list');
 if (targetNode) {
-    log('开始进行监听节点')
+    log('找到Timeline新消息节点')
     // 配置观察器选项: 'childList' 表示监听子节点的变化
     const config = { attributes: false, childList: true, subtree: true };
 
@@ -74,7 +74,7 @@ if (targetNode) {
                         // 检查a标签是否有class为"home-xxx"
                         const classList = addedNode.classList;
                         if (classList.contains('home-timeline__unread')) {
-                            logAndSend('content_changed', '新增x条内容')
+                            logAndSend('content_changed', '新增x条关注内容')
                         }
                     }
                 });
@@ -91,7 +91,42 @@ if (targetNode) {
     // 记得在不需要观察时停止观察，避免内存泄漏
     // observer.disconnect();
 
-    log('开始观察目标节点')
+    log('开始进行监听Timeline新消息')
 } else {
-    log('未找到节点')
+    log('未找到Timeline新消息节点')
+}
+
+
+// 监控聊天
+var targetNode1 = document.querySelector('.snbim-mvhead-unreadNum');
+if (targetNode1) {
+    log('找到聊天节点')
+    // 配置观察器选项: 'childList' 表示监听子节点的变化
+    const config1 = { attributes: false, childList: true, subtree: true };
+
+    // 回调函数，当变化发生时会被调用
+    const callback1 = function(mutationsList) {
+        for(const mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+               // 检查是否有新增的文本节点或者子节点的变化
+                const addedNodes = Array.from(mutation.addedNodes);
+                if (addedNodes.some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '')) {
+                    logAndSend('chat_changed', '有新聊天消息:' + mutation.target.textContent.trim())
+                }
+            }
+        }
+    };
+
+    // 创建一个观察器实例并传入回调函数
+    const observer1 = new MutationObserver(callback1);
+
+    // 开始观察目标节点
+    observer1.observe(targetNode1, config1);
+
+    // 记得在不需要观察时停止观察，避免内存泄漏
+    // observer.disconnect();
+
+    log('开始进行监听聊天新消息')
+} else {
+    log('未找到聊天节点')
 }

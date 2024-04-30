@@ -108,10 +108,19 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       switchState = 1
       log('开启通知', switchState)
     }
-  } else if (message.action === 'title_changed' || message.action === 'content_changed') {
+  } else if (message.action === 'title_changed' || message.action === 'content_changed' || message.action === 'chat_changed') {
     log('执行指令', '')
     log(message.action, message.message)
-    var title = message.action === 'title_changed' ? '标题更新' : '内容更新'
+    var title = '无'
+    if (message.action === 'title_changed') {
+        title = '标题更新'
+    }
+    if (message.action === 'content_changed') {
+        title = '内容更新'
+    }
+    if (message.action === 'chat_changed') {
+        title = '消息更新'
+    }
 
     if (switchState == 1) {
       chrome.notifications.create({
