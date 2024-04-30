@@ -1,3 +1,26 @@
+function getTime() {
+  // 创建一个Date对象，代表当前时间
+  let now = new Date();
+
+  // 获取年、月、日、时、分、秒
+  let year = now.getFullYear();
+  let month = now.getMonth() + 1; // 注意月份是从0开始的，所以要加1
+  let day = now.getDate();
+  let hours = now.getHours();
+  let minutes = now.getMinutes();
+  let seconds = now.getSeconds();
+  // 格式化时间，确保月份和日期是两位数
+  month = month < 10 ? '0' + month : month;
+  day = day < 10 ? '0' + day : day;
+  hours = hours < 10 ? '0' + hours : hours;
+  minutes = minutes < 10 ? '0' + minutes : minutes;
+  seconds = seconds < 10 ? '0' + seconds : seconds;
+
+  // 拼接成字符串
+  let formattedTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  return formattedTime;
+}
+
 function logAndSend(action, msg) {
     var currentTitle = document.title;
     var currentUrl = window.location.href;
@@ -7,7 +30,7 @@ function logAndSend(action, msg) {
         title:currentTitle,
         url:currentUrl
     }
-    console.log('leo:', JSON.stringify(data))
+    console.log(getTime() + ' leo:', JSON.stringify(data))
     chrome.runtime.sendMessage({
         action: action,
         message: data
@@ -21,7 +44,10 @@ function log(msg) {
 function updateGetTitle() {
     currentTitle = document.title;	
 	if (currentTitle !== lastTitle) {
-        logAndSend('title_changed', '有新消息')
+        lastTitle = currentTitle
+        if (lastTitle.indexOf('新') || lastTitle.indexOf('消息')) {
+            logAndSend('title_changed', '有新消息')
+        }        
 	}
 }
 
