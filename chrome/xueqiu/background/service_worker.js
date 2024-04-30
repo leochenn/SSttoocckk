@@ -1,5 +1,6 @@
 var switchState = 1
 var lastNotifyId = ''
+var lastCreateTime = 0;
 
 function getTime() {
   // 创建一个Date对象，代表当前时间
@@ -121,6 +122,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.action === 'chat_changed') {
         title = '消息更新'
     }
+
+    var now = new Date().getTime();
+    if (now - lastCreateTime < 4000) {
+        log('4秒内不频繁发送通知', '')
+        return;
+    }
+    lastCreateTime = now;
 
     if (switchState == 1) {
       chrome.notifications.create({

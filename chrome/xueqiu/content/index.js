@@ -111,7 +111,7 @@ if (targetNode1) {
                // 检查是否有新增的文本节点或者子节点的变化
                 const addedNodes = Array.from(mutation.addedNodes);
                 if (addedNodes.some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '')) {
-                    logAndSend('chat_changed', '有新聊天消息:' + mutation.target.textContent.trim())
+                    logAndSend('chat_changed', '有新聊天消息:' + mutation.target.textContent.trim() + '条')
                 }
             }
         }
