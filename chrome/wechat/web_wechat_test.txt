@@ -1,0 +1,78 @@
+// 2024-04-30 网页微信 自动发送消息测试
+======================================================
+// 以下代码可以实现往输入框自动写入内容，但是通过该方式输入后无法点击发送按钮；
+var editArea = document.getElementById('editArea');
+if (editArea!= null) {
+    console.log('读取内容1', editArea.innerText)
+    editArea.innerText = editArea.innerText + '新内容'
+    console.log('读取内容2', editArea.innerText)
+}
+ 
+// 以下代码可以实现点击发送按钮
+var linkAll = document.querySelector('.btn.btn_send');
+if (linkAll != null) {
+    console.log('点击', linkAll)
+    linkAll.click()
+}
+==================================================
+// 必须先聚焦输入框
+// 第一步，focus （实测有效）
+// 第二步，触发鼠标点击（实测有效）
+// 第三步，模拟输入（无效） 手动输入（实测有效）
+// 第四步，模拟点击（实测有效）
+
+var element = document.getElementById('editArea');
+setTimeout(function() {    
+    element.focus();
+    console.log('聚焦', element)
+}, 3000);
+
+setTimeout(function() {
+    // 创建鼠标点击事件
+    var event = new MouseEvent('click', {
+        bubbles: true, // 是否冒泡
+        cancelable: true, // 是否可取消
+        view: window // 视口，一般为window
+    });
+
+    // 触发点击事件
+    element.dispatchEvent(event);
+    console.log('点击', element)
+}, 4000);
+
+setTimeout(function() {
+    //element.setSelectionRange(element.value.length, element.value.length);
+    console.log('setSelectionRange', element.innerText)
+    var text = '2234'
+    let charCode = text.charCodeAt(0);
+    // 模拟keydown
+    var keyDownEvent = new KeyboardEvent('keydown', {
+        bubbles: true,
+        cancelable: true,
+        keyCode: charCode,
+        which: charCode, // keyCode的别名，某些情况下也需要设置
+        charCode: charCode
+    });
+    element.dispatchEvent(keyDownEvent);
+    // 模拟keyup
+    var keyUpEvent = new KeyboardEvent('keyup', {
+        bubbles: true,
+        cancelable: true,
+        keyCode: charCode,
+        which: charCode,
+        charCode: charCode
+    });
+    element.dispatchEvent(keyUpEvent);
+
+    element.innerText += charCode <= 32 ? String.fromCharCode(charCode) : charCode; // 处理特殊字符
+
+    console.log('输入', element.innerText)
+}, 8000);
+
+setTimeout(function() {    
+    var linkAll = document.querySelector('.btn.btn_send');
+    if (linkAll != null) {
+        console.log('点击发送', linkAll)
+        linkAll.click()
+    }
+}, 10000);
