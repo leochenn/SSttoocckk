@@ -142,14 +142,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           log('消息发送成功', notificationId)
         }
       );
-      
-      chrome.notifications.onClicked.addListener(function(notificationId) {
-          log('消息被点击', notificationId + ', ' + lastNotifyId)
-          if (JSON.stringify(lastNotifyId) == JSON.stringify(notificationId)) {
-            lastNotifyId = ''
-            doOnClick();
-          }        
-      });
+      if (!chrome.notifications.onClicked.hasListeners()) {
+          chrome.notifications.onClicked.addListener(function(notificationId) {
+              log('消息被点击', notificationId + ', ' + lastNotifyId)
+              if (JSON.stringify(lastNotifyId) == JSON.stringify(notificationId)) {
+                lastNotifyId = ''
+                doOnClick();
+              }        
+          });
+      }
     } else {
       log('通知已关闭', '!!!')
     }
