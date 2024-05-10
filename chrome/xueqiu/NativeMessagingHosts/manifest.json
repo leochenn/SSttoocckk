@@ -1,0 +1,7 @@
+{
+    "name": "com.example.myapp",
+    "description": "My Native Messaging Host",
+    "path": "myapp.bat",
+    "type": "stdio",
+    "allowed_origins": ["chrome-extension://cfdndjpipmjlefkhfobklccgighpaicf/"]
+}

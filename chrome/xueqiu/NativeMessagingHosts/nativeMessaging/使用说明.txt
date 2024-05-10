@@ -1,0 +1,6 @@
+该目录是官方示例代码，可以参考
+https://blog.csdn.net/longji/article/details/119929509
+
+https://github.com/GoogleChrome/chrome-extensions-samples
+
+chrome-extension://knldjmfmopnpolahpmmgbagdohdnhkik/main.html

@@ -93,6 +93,27 @@ chrome.notifications.create({
   }
 );
 
+// 替换 'com.example.myapp' 为你的Native Messaging host在manifest.json中定义的名字
+var nativeAppName = 'com.example.myapp';
+
+// 准备发送的消息内容
+var message = {
+  text: "Hello from the Chrome extension!",
+  additionalData: "Some data you want to send"
+};
+
+
+var port = chrome.runtime.connectNative(nativeAppName);
+log("connectNative 启动", port);
+
+port.onMessage.addListener(function (msg) {
+  log("connectNative 收到消息", msg);
+});
+port.onDisconnect.addListener(function () {
+  log("connectNative 已断开", chrome.runtime.lastError.message);
+});
+port.postMessage(message);
+
 refreshPage();
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {

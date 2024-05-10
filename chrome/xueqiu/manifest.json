@@ -19,7 +19,7 @@
     "type": "module"
   },
   "permissions": [
-    "notifications", "tabs", "windows","scripting", "activeTab"
+    "nativeMessaging", "notifications", "tabs", "windows","scripting", "activeTab"
   ],
   "host_permissions": [
     "https://xueqiu.com/*"
