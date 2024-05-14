@@ -15,6 +15,7 @@ import chlog
 
 from pywinauto import Application
 from pywinauto.keyboard import send_keys
+from pywinauto.findwindows import find_elements
 
 # 方法一：通过pyautogui
 def send_msg1():
@@ -54,12 +55,21 @@ def send_msg1():
     win32api.SetCursorPos([right - 80, bottom - 30])
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP | win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
 
+
+def recursive_child_search(control):
+    for child in control.children():
+        print(child.window_text())
+        # 递归调用自身，遍历子控件的子控件
+        recursive_child_search(child)
+
+
 def send_msg2():
+    # 假设我们正在寻找一个按钮，通过文本内容来定位
+    # elements = find_elements(title_re='微信')
+
     app = Application(backend="uia").connect(title_re="微信")
-    chlog.e('connect', app)
     dlg = app.window(title='微信')
     dlg.set_focus()
-    chlog.e('app.window', dlg)
 
     # dlg.print_control_identifiers()
 
@@ -67,23 +77,28 @@ def send_msg2():
 
     a = '1马甲群已置顶'
     b = '文件传输助手'
-    fileSend = dlg.child_window(title=a, control_type='ListItem')
-    fileSend.print_control_identifiers()
+    chatWin = dlg.child_window(title=a, control_type='ListItem')
+    # chatWin.print_control_identifiers()
 
-    fileSend.click_input()
-    chlog.e('fileSend.click_input')
+    chatWin.click_input()
     time.sleep(0.2)
 
-    # dlg.child_window(title='文件传输助手', control_type='Edit').click_input()
-    # chlog.e('fileSend.click_input Edit')
-    # time.sleep(2)
+    # 获取消息列表
+    inputWin = dlg.child_window(title="消息", control_type="List")
+    # inputWin.print_control_identifiers()
 
-    send_keys('321我是谁')
-    chlog.e('SendKeys')
+    # 遍历控件
+    recursive_child_search(inputWin)
+
+    # 退出程序
+    exit(0)
+
+    # 获取当前时间
+    now = time.strftime("%Y-%m-%d--%H:%M:%S", time.localtime())
+    send_keys(now)
     time.sleep(0.1)
 
     sendBtn = dlg.child_window(title='发送(S)', control_type='Button')
-    chlog.e('发送')
     time.sleep(0.2)
 
     sendBtn.click_input()
