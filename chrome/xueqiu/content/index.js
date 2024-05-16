@@ -51,6 +51,23 @@ function updateGetTitle() {
 	}
 }
 
+var lastTimelineMsg = ''
+function getNewTimelineContent() {
+    var targetNode = document.querySelector('.status-list');
+    var articel1 = targetNode.querySelector('.timeline__item');
+    if (articel1) {
+        var content = articel1.querySelector('.user-name').textContent;
+        var text = articel1.querySelector('.content.content--description div').textContent;
+        var msg = content + ':' + text
+        if (lastTimelineMsg != msg) {
+            lastTimelineMsg = msg
+        } else {
+            log('新增相同关注内容，不进行通知')
+            return
+        }
+        logAndSend('content_changed', msg)
+    }
+}
 
 log('脚本启动')
 var lastTitle = document.title;
@@ -74,7 +91,14 @@ if (targetNode) {
                         // 检查a标签是否有class为"home-xxx"
                         const classList = addedNode.classList;
                         if (classList.contains('home-timeline__unread')) {
-                            logAndSend('content_changed', '新增x条关注内容')
+                            var tmpNode = document.querySelector('.home-timeline__unread');
+                            if (tmpNode) {
+                                tmpNode.click();
+                                log('点击新增x条关注内容')
+                                setTimeout(function() {
+                                    getNewTimelineContent()
+                                }, 100)
+                            }
                         }
                     }
                 });

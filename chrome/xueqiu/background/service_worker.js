@@ -144,7 +144,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.action === 'chat_changed') {
         title = '消息更新'
     }
-    sendNativeMsg(title)
+    sendNativeMsg(title + ":" + message.message.msg)
 
     var now = new Date().getTime();
     if (now - lastCreateTime < 4000) {
