@@ -4,8 +4,11 @@ import queue
 import threading
 import time
 
+import pyautogui
 from flask import Flask, request
 from urllib.parse import parse_qs
+from pywinauto import Application
+from pywinauto.keyboard import send_keys
 
 app = Flask(__name__)
 
@@ -15,6 +18,35 @@ work_queue = queue.Queue()
 def log(msg):
     print(f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} - -  {msg}")
 
+
+def wxsendmsg(msg):
+    # 获取光标位置
+    cursor_x, cursor_y = pyautogui.position()
+
+    app = Application(backend="uia").connect(title_re="微信")
+    dlg = app.window(title='微信')
+
+    # 检查微信窗口是否为活动窗口
+    is_wechat_active = dlg.is_active()
+
+    if not is_wechat_active:
+        log("微信窗口不是活动窗口")
+        dlg.set_focus()
+
+    chatWin = dlg.child_window(title='1马甲群已置顶', control_type='ListItem')
+    chatWin.click_input()
+
+    send_keys(msg, pause=0)
+
+    sendBtn = dlg.child_window(title='发送(S)', control_type='Button')
+    sendBtn.click_input()
+
+    if not is_wechat_active:
+        dlg.minimize()
+
+    # 移动鼠标光标到指定位置
+    pyautogui.moveTo(cursor_x, cursor_y)
+
 # 定义一个后台处理函数
 def worker():
     global work_queue
@@ -23,9 +55,8 @@ def worker():
         item = work_queue.get()
         if item is None:  # 如果收到None，表示应该退出循环
             break
-        # log(f"正在处理: {item}")
-        # # 模拟处理数据的过程
-        # time.sleep(5)
+        log(f"正在处理: {item}")
+        wxsendmsg(item)
         log(f"处理完成: {item}")
 
 
@@ -33,17 +64,15 @@ def worker():
 def index():
     if request.method == 'POST':
         get_data = request.get_data().decode('utf-8')
-        log("收到请求数据:" + str(get_data))
 
         query_params = parse_qs(get_data)
         # 现在你可以通过键来获取对应的值
-        key1_value = query_params.get('key1', [''])[0]  # 使用get方法并提供默认值以防键不存在
-        key2_value = query_params.get('key2', [''])[0]
+        data = query_params.get('data', [''])[0]  # 使用get方法并提供默认值以防键不存在
 
-        # log(f"Key1: {key1_value}, Key2: {key2_value}")
+        log(f"接收到数据: {data}")
 
         global work_queue
-        work_queue.put(key1_value)
+        work_queue.put(data)
 
         return "{\"code\":\"200\",\"msg\":\" success\"}"
     else:

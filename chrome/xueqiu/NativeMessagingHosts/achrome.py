@@ -36,8 +36,7 @@ def write_to_file(message):
         f.write(str(get_current_time()) + '---' + message + '\n')
 def send_post_request(msg):
     data = {
-        'key1': msg,
-        'key2': 'time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())',
+        'data': msg,
     }
     try:
         # 使用Session来复用连接

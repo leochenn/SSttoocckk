@@ -113,9 +113,6 @@ chrome.notifications.create({
   }
 );
 
-var admsg = '雪球'
-sendNativeMsg(admsg)
-
 refreshPage();
 
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
@@ -128,9 +125,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     } else if (message.message === 'close') {
       switchState = 0
       log('关闭通知', switchState)
+      sendNativeMsg('关闭通知')
     } else if (message.message === 'open') {
       switchState = 1
       log('开启通知', switchState)
+      sendNativeMsg('开启通知')
     }
   } else if (message.action === 'title_changed' || message.action === 'content_changed' || message.action === 'chat_changed') {
     log('执行指令', '')
@@ -141,11 +140,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     }
     if (message.action === 'content_changed') {
       title = '内容更新'
-      sendNativeMsg('xq content changed')
     }
     if (message.action === 'chat_changed') {
         title = '消息更新'
     }
+    sendNativeMsg(title)
 
     var now = new Date().getTime();
     if (now - lastCreateTime < 4000) {
@@ -180,7 +179,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     }
   } else {
     log('收到日志', message)
-    sendNativeMsg('日志:' + JSON.stringify(message))
   }
 });
 
