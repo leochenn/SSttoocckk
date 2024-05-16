@@ -1,7 +1,7 @@
 var switchState = 1
 var lastNotifyId = ''
 var lastCreateTime = 0;
-
+var port = undefined
 function getTime() {
   // 创建一个Date对象，代表当前时间
   let now = new Date();
@@ -28,6 +28,26 @@ function getTime() {
 function log(tag, data) {
   console.log(getTime() + ' leo:', tag + '->' + JSON.stringify(data))
 }
+
+function sendNativeMsg(data) {
+  if (!port) {
+    port = chrome.runtime.connectNative('com.example.myapp');
+    log("connectNative 启动", port);
+
+    port.onMessage.addListener(function (msg) {
+      log("connectNative 收到消息", msg);
+    });
+    port.onDisconnect.addListener(function () {
+      log("connectNative 已断开", chrome.runtime.lastError.message);
+      port = undefined;
+    });
+  }
+  if (port) {
+    log("connectNative 发送消息", data);
+    port.postMessage(data);
+  }
+}
+
 
 function injectScrollToTopScript(tabId) {
   chrome.scripting.executeScript({
@@ -93,26 +113,8 @@ chrome.notifications.create({
   }
 );
 
-// 替换 'com.example.myapp' 为你的Native Messaging host在manifest.json中定义的名字
-var nativeAppName = 'com.example.myapp';
-
-// 准备发送的消息内容
-var message = {
-  text: "Hello from the Chrome extension!",
-  additionalData: "Some data you want to send"
-};
-
-
-var port = chrome.runtime.connectNative(nativeAppName);
-log("connectNative 启动", port);
-
-port.onMessage.addListener(function (msg) {
-  log("connectNative 收到消息", msg);
-});
-port.onDisconnect.addListener(function () {
-  log("connectNative 已断开", chrome.runtime.lastError.message);
-});
-port.postMessage(message);
+var admsg = '雪球'
+sendNativeMsg(admsg)
 
 refreshPage();
 
@@ -138,7 +140,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         title = '标题更新'
     }
     if (message.action === 'content_changed') {
-        title = '内容更新'
+      title = '内容更新'
+      sendNativeMsg('xq content changed')
     }
     if (message.action === 'chat_changed') {
         title = '消息更新'
@@ -176,7 +179,8 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       log('通知已关闭', '!!!')
     }
   } else {
-    log('收到日志', message)    
+    log('收到日志', message)
+    sendNativeMsg('日志:' + JSON.stringify(message))
   }
 });
 

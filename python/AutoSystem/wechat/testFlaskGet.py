@@ -23,9 +23,9 @@ def worker():
         item = work_queue.get()
         if item is None:  # 如果收到None，表示应该退出循环
             break
-        log(f"正在处理: {item}")
-        # 模拟处理数据的过程
-        time.sleep(5)
+        # log(f"正在处理: {item}")
+        # # 模拟处理数据的过程
+        # time.sleep(5)
         log(f"处理完成: {item}")
 
 
