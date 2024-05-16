@@ -54,7 +54,7 @@ function updateGetTitle() {
 
 log('脚本启动')
 var lastTitle = document.title;
-setInterval(updateGetTitle, 3000);
+// setInterval(updateGetTitle, 3000);
 
 // 监控Timeline新消息
 var targetNode = document.querySelector('.status-list');
