@@ -144,14 +144,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.action === 'chat_changed') {
         title = '消息更新'
     }
-    sendNativeMsg(title + ":" + message.message.msg)
 
     var now = new Date().getTime();
-    if (now - lastCreateTime < 4000) {
-        log('4秒内不频繁发送通知', '')
+    if (now - lastCreateTime < 10000) {
+        log('10秒内不频繁发送通知', '')
         return;
     }
     lastCreateTime = now;
+
+    sendNativeMsg(title + ":" + message.message.msg)
 
     if (switchState == 1) {
       chrome.notifications.create({
@@ -171,7 +172,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
               if (JSON.stringify(lastNotifyId) == JSON.stringify(notificationId)) {
                 lastNotifyId = ''
                 doOnClick();
-              }        
+              }
           });
       }
     } else {

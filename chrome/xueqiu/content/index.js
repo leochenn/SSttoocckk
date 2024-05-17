@@ -69,6 +69,18 @@ function getNewTimelineContent() {
     }
 }
 
+// 监控聊天窗口-组合调仓消息
+function getNewChat() {
+    var listwrap = document.querySelector('.snbim-nsession-listwrap');
+    if (listwrap) {
+        var text = listwrap.querySelector('.session_item.stickyflag .session_info .session_summary').textContent.trim();
+        var date = listwrap.querySelector('.session_item.stickyflag .session_info .session_timestamp').textContent.trim();
+        var unreadnum = listwrap.querySelector('.session_item.stickyflag .session_info .unread').textContent.trim();
+        var msg = unreadnum + '条--' + text + "--" + date
+        logAndSend('chat_changed', msg)
+    }
+}
+
 log('脚本启动')
 var lastTitle = document.title;
 // setInterval(updateGetTitle, 3000);
@@ -135,7 +147,8 @@ if (targetNode1) {
                // 检查是否有新增的文本节点或者子节点的变化
                 const addedNodes = Array.from(mutation.addedNodes);
                 if (addedNodes.some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '')) {
-                    logAndSend('chat_changed', '有新聊天消息:' + mutation.target.textContent.trim() + '条')
+                    log('有新聊天消息，总数:' + mutation.target.textContent.trim() + '条')
+                    getNewChat()
                 }
             }
         }
