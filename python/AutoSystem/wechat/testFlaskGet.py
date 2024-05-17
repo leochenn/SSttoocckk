@@ -10,6 +10,7 @@ import pyautogui
 from flask import Flask, request
 from urllib.parse import parse_qs
 from pywinauto import Application
+from pywinauto.findwindows import ElementNotFoundError
 from pywinauto.keyboard import send_keys
 from threading import Event
 
@@ -27,14 +28,22 @@ cancel_monitor_flag = Event()
 def log(msg):
     print(f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())} - -  {msg}")
 
-
+#https://www.cnblogs.com/quanxin633/p/16616851.html
 def wxsendmsg(msg):
     # 获取光标位置
     cursor_x, cursor_y = pyautogui.position()
 
-    # 连接微信，且微信窗口必须处在活动状态，可以是最小化状态
-    wx_app = Application(backend="uia").connect(title_re="微信")
-    dlg = wx_app.window(title='微信')
+    Application(backend="uia").active()
+    try:
+        # 可以使用 class_name='WeChatMainWndForPC' 或者 title_re="微信"
+        wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
+    except ElementNotFoundError as e:
+        print('微信未处在前端，需要先启动')
+        Application(backend='uia').start('D:\software\WeChat\WeChat.exe')
+        time.sleep(0.1)
+        wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
+
+    dlg = wx_app.window(class_name='WeChatMainWndForPC')
 
     # 检查微信窗口是否为活动窗口
     is_wechat_active = dlg.is_active()
