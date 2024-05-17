@@ -33,7 +33,6 @@ def wxsendmsg(msg):
     # 获取光标位置
     cursor_x, cursor_y = pyautogui.position()
 
-    Application(backend="uia").active()
     try:
         # 可以使用 class_name='WeChatMainWndForPC' 或者 title_re="微信"
         wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
