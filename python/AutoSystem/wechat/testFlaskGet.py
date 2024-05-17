@@ -59,8 +59,8 @@ def wxsendmsg(msg):
     send_btn = dlg.child_window(title='发送(S)', control_type='Button')
     send_btn.click_input()
 
-    if not is_wechat_active:
-        dlg.minimize()
+    # if not is_wechat_active:
+    dlg.minimize()
 
     # 移动鼠标光标到指定位置
     pyautogui.moveTo(cursor_x, cursor_y)
