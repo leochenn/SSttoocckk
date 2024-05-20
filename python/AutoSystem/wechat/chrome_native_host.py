@@ -13,6 +13,11 @@ import time
 import requests
 import threading
 import queue as queue
+import os
+
+
+path1 = os.path.dirname(os.path.abspath(__file__))
+path = os.path.join(path1, 'output.txt')
 
 work_queue = queue.Queue()
 
@@ -25,15 +30,18 @@ if sys.platform == "win32":
     msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
 
 
-#获取当前时间
+# 获取当前时间
 def get_current_time():
     import time
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
+
 # 实现一个方法，将字符串写入到本地文件
 def write_to_file(message):
-    with open('output.txt', 'a') as f:
+    with open(path, 'a') as f:
         f.write(str(get_current_time()) + '---' + message + '\n')
+
+
 def send_post_request(msg):
     data = {
         'data': msg,
@@ -84,7 +92,6 @@ def read_thread_func():
             break
 
         send_message('{"echo": "1"}')
-        # send_message('{"echo"}')
         write_to_file('send_message back：' + text)
 
         send_post_request(text)
@@ -93,14 +100,15 @@ def read_thread_func():
 
 
 if __name__ == '__main__':
+    if os.path.exists(path):
+        os.remove(path)
+
     write_to_file('启动')
 
     try:
         read_thread_func()
     except Exception as e:
-        write_to_file('异常退出1')
-        write_to_file(str(e))
+        write_to_file('异常退出1:' + str(e))
 
     write_to_file('退出')
     sys.exit(0)
-
