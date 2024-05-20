@@ -144,13 +144,9 @@ def wxsendmsg(msg):
         wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
     except ElementNotFoundError as e:
         write_to_file('微信未处在前端，需要先热启动')
-        if is_wechat_running():
-            Application(backend='uia').start('D:\software\WeChat\WeChat.exe')
-            time.sleep(0.1)
-            wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
-        else:
-            write_to_file('微信进程不存在')
-            raise Exception('微信进程不存在')
+        Application(backend='uia').start('D:\software\WeChat\WeChat.exe')
+        time.sleep(0.1)
+        wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
 
     dlg = wx_app.window(class_name='WeChatMainWndForPC')
 
@@ -193,6 +189,8 @@ def worker():
         crt = datetime.now()
         if last_key_event_time and (crt - last_key_event_time).total_seconds() < 3:
             write_to_file('不超过3秒,不操作微信')
+        elif not is_wechat_running():
+            write_to_file('微信进程不存在')
         else:
             cancel_monitor_flag.set()
             write_to_file(f"正在处理: {item}")
