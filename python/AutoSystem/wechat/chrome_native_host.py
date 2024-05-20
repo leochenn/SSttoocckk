@@ -190,6 +190,8 @@ def worker():
             except Exception as e:
                 write_to_file(f"处理异常: {e}")
                 cancel_monitor_flag.clear()
+                # 当微信发送消息出现异常时，可能是微信风控退出，则不再执行微信操作
+                break
 
 
 if __name__ == '__main__':
