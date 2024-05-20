@@ -24,11 +24,11 @@ import time
 from pywinauto.keyboard import send_keys
 
 
-path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chrome_native_host.txt')
+path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chrome_native_host.log')
 # 创建一个全局的线程安全队列
 work_queue = queue.Queue()
 # 记录最后一次键盘输入事件
-last_key_event_time = datetime.now()
+last_key_event_time = None
 # 当微信在操作时取消监听
 cancel_monitor_flag = Event()
 
@@ -178,8 +178,9 @@ def worker():
 
         # 判断最后一次键盘输入是否间隔3秒
         crt = datetime.now()
-        time_difference = crt - last_key_event_time
-        if time_difference.total_seconds() > 3:
+        if last_key_event_time and (crt - last_key_event_time).total_seconds() < 3:
+            write_to_file('不超过3秒,不操作微信')
+        else:
             cancel_monitor_flag.set()
             write_to_file(f"正在处理: {item}")
             try:
@@ -189,8 +190,6 @@ def worker():
             except Exception as e:
                 write_to_file(f"处理异常: {e}")
                 cancel_monitor_flag.clear()
-        else:
-            write_to_file('不超过3秒,不操作微信')
 
 
 if __name__ == '__main__':
