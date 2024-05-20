@@ -102,16 +102,16 @@ function refreshPage() {
 // 只有开启DevTools窗口时，可以保持常驻；
 // 另一种优化方案，是采用闹钟的模式，最低一分钟重新唤醒一次
 log('雪球插件启动', '')
-chrome.notifications.create({
-    type: "basic",
-    title: '雪球插件启动',
-    message: '',
-    iconUrl: "../icon/icon.png"
-  },
-  (notificationId) => {    
-    log('雪球插件启动', '消息发送成功')
-  }
-);
+// chrome.notifications.create({
+//     type: "basic",
+//     title: '雪球插件启动',
+//     message: '',
+//     iconUrl: "../icon/icon.png"
+//   },
+//   (notificationId) => {    
+//     log('雪球插件启动', '消息发送成功')
+//   }
+// );
 
 refreshPage();
 

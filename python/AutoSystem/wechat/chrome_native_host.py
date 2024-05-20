@@ -2,16 +2,13 @@
 # Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
 # A simple native messaging host. Shows a Tkinter dialog with incoming messages
 # that also allows to send message back to the webapp.
 
 import struct
 import sys
-import time
 
 import requests
-import threading
 import queue as queue
 import os
 
@@ -70,6 +67,13 @@ def send_message(message):
     sys.stdout.flush()
 
 
+def send_message_gbk(message):
+    encoded_message = message.encode('utf-8')
+    sys.stdout.buffer.write(struct.pack('I', len(encoded_message)))
+    sys.stdout.buffer.write(encoded_message)
+    sys.stdout.flush()
+
+
 # Thread that reads messages from the webapp.
 def read_thread_func():
     while 1:
@@ -86,13 +90,15 @@ def read_thread_func():
         # Read the text (JSON object) of the message.
         text = sys.stdin.buffer.read(text_length).decode('utf-8')
         text = str(text)
-        write_to_file('收到数据:' + text)
+        write_to_file('收到chrome消息:' + text)
 
         if text == '{"text":"exit"}':
             break
 
-        send_message('{"echo": "1"}')
-        write_to_file('send_message back：' + text)
+        # 必须是键值对形式，不能是字符串
+        call_back_msg = '{"native已收到": %s}' % (text)
+        send_message_gbk(call_back_msg)
+        write_to_file('回复chrome:' + call_back_msg)
 
         send_post_request(text)
         # 通过异步方式调用send_post_request
