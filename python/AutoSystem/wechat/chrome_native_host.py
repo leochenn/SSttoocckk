@@ -13,9 +13,25 @@ import queue as queue
 import os
 import msvcrt
 
-path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'auto_send_wx_msg_by_http_log.txt')
+import keyboard as k_keyboard
+import threading
+from threading import Event
+from datetime import datetime
+import pyautogui
+from pywinauto.findwindows import ElementNotFoundError
+from pywinauto import Application
+import time
+from pywinauto.keyboard import send_keys
 
+
+path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'chrome_native_host.txt')
+# 创建一个全局的线程安全队列
 work_queue = queue.Queue()
+# 记录最后一次键盘输入事件
+last_key_event_time = datetime.now()
+# 当微信在操作时取消监听
+cancel_monitor_flag = Event()
+
 
 # On Windows, the default I/O mode is O_TEXT. Set this to O_BINARY
 # to avoid unwanted modifications of the input/output streams.
@@ -98,9 +114,83 @@ def read_thread_func():
         send_message_gbk(call_back_msg)
         write_to_file('回复chrome:' + call_back_msg)
 
-        send_post_request(text)
-        # 通过异步方式调用send_post_request
-        # threading.Thread(target=send_post_request, args=(text,)).start()
+        # send_post_request(text)
+        global work_queue
+        work_queue.put(text)
+
+
+# 监听所有按键
+def on_press(key):
+    if not cancel_monitor_flag.is_set():
+        global last_key_event_time
+        last_key_event_time = datetime.now()
+
+
+def wxsendmsg(msg):
+    # 获取光标位置
+    cursor_x, cursor_y = pyautogui.position()
+
+    try:
+        # 可以使用 class_name='WeChatMainWndForPC' 或者 title_re="微信"
+        wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
+    except ElementNotFoundError as e:
+        write_to_file('微信未处在前端，需要先启动')
+        Application(backend='uia').start('D:\software\WeChat\WeChat.exe')
+        time.sleep(0.1)
+        wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
+
+    dlg = wx_app.window(class_name='WeChatMainWndForPC')
+
+    # 检查微信窗口是否为活动窗口
+    is_wechat_active = dlg.is_active()
+
+    if not is_wechat_active:
+        write_to_file("微信窗口不是活动窗口")
+        dlg.set_focus()
+
+    chat_win = dlg.child_window(title='1马甲群已置顶', control_type='ListItem')
+    chat_win.click_input()
+
+    # 微信风控，这里不能输入太快
+    if len(msg) > 20:
+        send_keys(msg, pause=0)
+        time.sleep(0.5)
+    else:
+        send_keys(msg, pause=0.05)
+
+    send_btn = dlg.child_window(title='发送(S)', control_type='Button')
+    send_btn.click_input()
+
+    # if not is_wechat_active:
+    dlg.minimize()
+
+    # 移动鼠标光标到指定位置
+    pyautogui.moveTo(cursor_x, cursor_y)
+
+
+def worker():
+    global work_queue, last_key_event_time
+    while True:
+        # 从队列中获取数据，如果队列为空则阻塞等待
+        item = work_queue.get()
+        if item is None:  # 如果收到None，表示应该退出循环
+            break
+
+        # 判断最后一次键盘输入是否间隔3秒
+        crt = datetime.now()
+        time_difference = crt - last_key_event_time
+        if time_difference.total_seconds() > 3:
+            cancel_monitor_flag.set()
+            write_to_file(f"正在处理: {item}")
+            try:
+                wxsendmsg(item)
+                write_to_file(f"处理完成: {item}")
+                cancel_monitor_flag.clear()
+            except Exception as e:
+                write_to_file(f"处理异常: {e}")
+                cancel_monitor_flag.clear()
+        else:
+            write_to_file('不超过3秒,不操作微信')
 
 
 if __name__ == '__main__':
@@ -108,6 +198,14 @@ if __name__ == '__main__':
         os.remove(path)
 
     write_to_file('启动')
+
+    # 监听键盘事件
+    k_keyboard.on_press(on_press)
+
+    # 创建并启动后台线程
+    background_thread = threading.Thread(target=worker)
+    background_thread.daemon = True  # 设置为守护线程，主程序结束时自动关闭
+    background_thread.start()
 
     try:
         read_thread_func()
