@@ -8,6 +8,7 @@
 import struct
 import sys
 
+import psutil
 import requests
 import queue as queue
 import os
@@ -126,6 +127,14 @@ def on_press(key):
         last_key_event_time = datetime.now()
 
 
+# 判断微信进程是否存在
+def is_wechat_running():
+    for proc in psutil.process_iter(['pid', 'name']):
+        if proc.info['name'] == 'WeChat.exe':
+            return True
+    return False
+
+
 def wxsendmsg(msg):
     # 获取光标位置
     cursor_x, cursor_y = pyautogui.position()
@@ -134,10 +143,14 @@ def wxsendmsg(msg):
         # 可以使用 class_name='WeChatMainWndForPC' 或者 title_re="微信"
         wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
     except ElementNotFoundError as e:
-        write_to_file('微信未处在前端，需要先启动')
-        Application(backend='uia').start('D:\software\WeChat\WeChat.exe')
-        time.sleep(0.1)
-        wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
+        write_to_file('微信未处在前端，需要先热启动')
+        if is_wechat_running():
+            Application(backend='uia').start('D:\software\WeChat\WeChat.exe')
+            time.sleep(0.1)
+            wx_app = Application(backend="uia").connect(class_name='WeChatMainWndForPC')
+        else:
+            write_to_file('微信进程不存在')
+            raise Exception('微信进程不存在')
 
     dlg = wx_app.window(class_name='WeChatMainWndForPC')
 
