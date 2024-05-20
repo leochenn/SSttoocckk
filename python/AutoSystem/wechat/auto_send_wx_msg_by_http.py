@@ -54,7 +54,12 @@ def wxsendmsg(msg):
     chat_win = dlg.child_window(title='1马甲群已置顶', control_type='ListItem')
     chat_win.click_input()
 
-    send_keys(msg, pause=0)
+    # 微信风控，这里不能输入太快
+    if len(msg) > 20:
+        send_keys(msg, pause=0)
+        time.sleep(0.5)
+    else:
+        send_keys(msg, pause=0.05)
 
     send_btn = dlg.child_window(title='发送(S)', control_type='Button')
     send_btn.click_input()

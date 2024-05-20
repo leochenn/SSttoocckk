@@ -11,17 +11,15 @@ import sys
 import requests
 import queue as queue
 import os
+import msvcrt
 
-
-path1 = os.path.dirname(os.path.abspath(__file__))
-path = os.path.join(path1, 'output.txt')
+path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'auto_send_wx_msg_by_http_log.txt')
 
 work_queue = queue.Queue()
 
 # On Windows, the default I/O mode is O_TEXT. Set this to O_BINARY
 # to avoid unwanted modifications of the input/output streams.
 if sys.platform == "win32":
-    import os, msvcrt
 
     msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
     msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
