@@ -1,4 +1,5 @@
-var switchState = 1
+var systemSwitchState = 1
+var wxSwitchState = 0
 var lastNotifyId = ''
 var lastCreateTime = 0;
 var port = undefined
@@ -30,6 +31,9 @@ function log(tag, data) {
 }
 
 function sendNativeMsg(data) {
+  if (wxSwitchState == 0) {
+    return;
+  }
   if (!port) {
     port = chrome.runtime.connectNative('com.example.myapp');
     log("connectNative 启动", port);
@@ -120,16 +124,22 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     log('popop', message)
     if (message.data === 'get_state') {
       // 向发送方回复消息
-      log('向popop发消息', switchState)
-      sendResponse({ message: switchState });
-    } else if (message.message === 'close') {
-      switchState = 0
-      log('关闭通知', switchState)
-      sendNativeMsg('关闭通知')
-    } else if (message.message === 'open') {
-      switchState = 1
-      log('开启通知', switchState)
-      sendNativeMsg('开启通知')
+      var msg = { type_system: systemSwitchState, type_wx: wxSwitchState }
+      log('向popop发消息', msg)
+      sendResponse({ message: msg });
+    } else if (message.message === 'close_system') {
+      systemSwitchState = 0
+      log('关闭通知', systemSwitchState)
+    } else if (message.message === 'open_system') {
+      systemSwitchState = 1
+      log('开启通知', systemSwitchState)
+    } else if (message.message === 'open_wx') {
+      wxSwitchState = 1
+      log('开启wx通知', wxSwitchState)
+      sendNativeMsg('开启wx通知')
+    } else if (message.message === 'close_wx') {
+      wxSwitchState = 0
+      log('关闭wx通知', wxSwitchState)
     }
   } else if (message.action === 'title_changed' || message.action === 'content_changed' || message.action === 'chat_changed') {
     log('执行指令', '')
@@ -154,7 +164,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
     sendNativeMsg(title + ":" + message.message.msg)
 
-    if (switchState == 1) {
+    if (systemSwitchState == 1) {
       chrome.notifications.create({
           type: "basic",
           title: title,
