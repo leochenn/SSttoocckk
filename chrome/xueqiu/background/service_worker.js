@@ -1,6 +1,6 @@
 var systemSwitchState = 1
 var wxSwitchState = 0
-var lastNotifyId = ''
+var notifyIdValue = {}
 var lastCreateTime = 0;
 var port = undefined
 function getTime() {
@@ -60,7 +60,7 @@ function injectScrollToTopScript(tabId) {
   }).then(() => log("雪球页面注入脚本成功", ''));
 }
 
-function doOnClick() {
+function doOnClick(id) {
   // 当用户点击通知时，打开特定的网页
   // chrome.tabs.create({ url: "http://www.baidu.com" });
   chrome.tabs.query({ windowType: 'normal' }, (tabs) => {
@@ -75,7 +75,19 @@ function doOnClick() {
           });
 
           chrome.windows.update(tab.windowId, { focused: true }, function(window) {
-            log("浏览器窗口前置", window);
+            log("浏览器窗口前置", id);
+            var msg = notifyIdValue[id]
+            if (msg != null) {
+              delete notifyIdValue[id];
+              if (msg.indexOf('测试组合') != -1) {
+                log("打开【测试组合】页面", '');
+                chrome.tabs.create({ url: "https://xueqiu.com/P/ZH3362205" });
+              }
+              if (msg.indexOf('可转债轮动策略') != -1) {
+                log("打开【可转债轮动策略】页面", '');
+                chrome.tabs.create({ url: "https://xueqiu.com/P/ZH1332574" });
+              }
+            }
           });
         }
       });
@@ -172,17 +184,16 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           iconUrl: "../icon/icon.png"
         },
         (notificationId) => {
-          lastNotifyId = notificationId
+          if (title === '消息更新') {
+            notifyIdValue[notificationId] = message.message.msg
+          }
           log('消息发送成功', notificationId)
         }
       );
       if (!chrome.notifications.onClicked.hasListeners()) {
-          chrome.notifications.onClicked.addListener(function(notificationId) {
-              log('消息被点击', notificationId + ', ' + lastNotifyId)
-              if (JSON.stringify(lastNotifyId) == JSON.stringify(notificationId)) {
-                lastNotifyId = ''
-                doOnClick();
-              }
+        chrome.notifications.onClicked.addListener(function (notificationId) {
+            log('消息被点击', notificationId)
+            doOnClick(notificationId);
           });
       }
     } else {
