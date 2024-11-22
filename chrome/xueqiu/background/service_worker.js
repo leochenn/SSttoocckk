@@ -65,7 +65,7 @@ function doOnClick(id) {
   // chrome.tabs.create({ url: "http://www.baidu.com" });
   chrome.tabs.query({ windowType: 'normal' }, (tabs) => {
       tabs.forEach(function(tab){                  
-        if (tab.url == 'https://xueqiu.com/' || tab.url == 'https://xueqiu.com') {
+        if (tab.url.startsWith('https://xueqiu.com')) {
           log("已找到雪球tab", tab);
           chrome.tabs.update(tab.id, { active: true }, function(targetTabId) {
             log("已切换到雪球页面", targetTabId);
@@ -98,7 +98,7 @@ function doOnClick(id) {
 function refreshPage() {
   chrome.tabs.query({ windowType: 'normal' }, (tabs) => {
       tabs.forEach(function(tab){                  
-        if (tab.url == 'https://xueqiu.com/' || tab.url == 'https://xueqiu.com' || tab.url.indexOf('test-title-change') != -1) {
+        if (tab.url.startsWith('https://xueqiu.com') || tab.url.indexOf('test-title-change') != -1) {
           log("已找需要刷新的tab", tab);
           chrome.tabs.reload(tab.id, {
             bypassCache: false // 可选参数，如果设置为true，则忽略缓存进行硬刷新

@@ -26,7 +26,7 @@
   ],
   "content_scripts": [
     {
-      "matches": ["https://xueqiu.com/","file:///E:/caohuawork/workspace-git/SSttoocckk/chrome/xueqiu/test-title-change.html"],
+      "matches": ["https://xueqiu.com/*","file:///E:/caohuawork/workspace-git/SSttoocckk/chrome/xueqiu/test-title-change.html"],
       "js": ["content/index.js"]
     }
   ]
