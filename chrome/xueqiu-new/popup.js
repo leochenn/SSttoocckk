@@ -1,10 +1,11 @@
 // 雪球监控助手 - 弹出窗口脚本
 document.addEventListener('DOMContentLoaded', function() {
-  const masterSwitch = document.getElementById('masterSwitch');
   const followListSwitch = document.getElementById('followListSwitch');
   const systemMessageSwitch = document.getElementById('systemMessageSwitch');
+  const monitorInterval = document.getElementById('monitorInterval');
   const statusIndicator = document.getElementById('statusIndicator');
   const statusText = document.getElementById('statusText');
+  const frequencyDisplay = document.getElementById('frequencyDisplay');
   const openXueqiuBtn = document.getElementById('openXueqiu');
   const openOptionsBtn = document.getElementById('openSettings');
   
@@ -12,9 +13,10 @@ document.addEventListener('DOMContentLoaded', function() {
   loadSettings();
   
   // 绑定事件监听器
-  masterSwitch.addEventListener('change', handleMasterSwitchChange);
-  followListSwitch.addEventListener('change', handleFollowListSwitchChange);
-  systemMessageSwitch.addEventListener('change', handleSystemMessageSwitchChange);
+  followListSwitch.addEventListener('change', handleNotificationSwitchChange);
+  systemMessageSwitch.addEventListener('change', handleNotificationSwitchChange);
+  monitorInterval.addEventListener('change', handleIntervalChange);
+  monitorInterval.addEventListener('input', handleIntervalInput);
   openXueqiuBtn.addEventListener('click', openXueqiu);
   openOptionsBtn.addEventListener('click', openOptions);
   
@@ -22,45 +24,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // 从background script获取当前设置
     chrome.runtime.sendMessage({ action: 'getSettings' }, (response) => {
       if (response) {
-        masterSwitch.checked = response.isMonitoring;
         followListSwitch.checked = response.followListEnabled;
         systemMessageSwitch.checked = response.systemMessageEnabled;
+        monitorInterval.value = response.monitorInterval || 10;
         
-        updateStatus(response.isMonitoring);
-        updateSwitchStates(response.isMonitoring);
+        // 根据两个通知开关状态确定监控状态
+        const isMonitoring = response.followListEnabled || response.systemMessageEnabled;
+        updateStatus(isMonitoring);
+        updateFrequencyDisplay(response.monitorInterval || 10);
       }
     });
   }
   
-  function handleMasterSwitchChange() {
-    const isEnabled = masterSwitch.checked;
+  function handleNotificationSwitchChange() {
+    const followListEnabled = followListSwitch.checked;
+    const systemMessageEnabled = systemMessageSwitch.checked;
+    const isMonitoring = followListEnabled || systemMessageEnabled;
     
     chrome.runtime.sendMessage({
       action: 'updateSettings',
-      settings: { isMonitoring: isEnabled }
+      settings: { 
+        followListEnabled: followListEnabled,
+        systemMessageEnabled: systemMessageEnabled,
+        isMonitoring: isMonitoring
+      }
     }, (response) => {
       if (response && response.success) {
-        updateStatus(isEnabled);
-        updateSwitchStates(isEnabled);
+        updateStatus(isMonitoring);
       }
-    });
-  }
-  
-  function handleFollowListSwitchChange() {
-    const isEnabled = followListSwitch.checked;
-    
-    chrome.runtime.sendMessage({
-      action: 'updateSettings',
-      settings: { followListEnabled: isEnabled }
-    });
-  }
-  
-  function handleSystemMessageSwitchChange() {
-    const isEnabled = systemMessageSwitch.checked;
-    
-    chrome.runtime.sendMessage({
-      action: 'updateSettings',
-      settings: { systemMessageEnabled: isEnabled }
     });
   }
   
@@ -72,31 +63,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  function updateSwitchStates(masterEnabled) {
-    followListSwitch.disabled = !masterEnabled;
-    systemMessageSwitch.disabled = !masterEnabled;
-    
-    const followListLabel = document.getElementById('followListLabel');
-    const systemMessageLabel = document.getElementById('systemMessageLabel');
-    
-    if (!masterEnabled) {
-      followListLabel.className = 'control-label disabled';
-      systemMessageLabel.className = 'control-label disabled';
-      followListSwitch.parentElement.querySelector('.slider').classList.add('disabled');
-      systemMessageSwitch.parentElement.querySelector('.slider').classList.add('disabled');
-    } else {
-      followListLabel.className = 'control-label';
-      systemMessageLabel.className = 'control-label';
-      followListSwitch.parentElement.querySelector('.slider').classList.remove('disabled');
-      systemMessageSwitch.parentElement.querySelector('.slider').classList.remove('disabled');
-    }
-  }
+
   
   function openXueqiu() {
     chrome.tabs.create({ url: 'https://xueqiu.com/' });
     window.close();
   }
   
+  function handleIntervalChange() {
+    const interval = parseInt(monitorInterval.value) || 10;
+    
+    chrome.runtime.sendMessage({
+      action: 'updateSettings',
+      settings: { monitorInterval: interval }
+    }, (response) => {
+      if (response && response.success) {
+        updateFrequencyDisplay(interval);
+      }
+    });
+  }
+  
+  function handleIntervalInput() {
+    let value = parseInt(monitorInterval.value);
+    
+    if (isNaN(value) || value < 1) {
+      monitorInterval.value = 1;
+    } else if (value > 60) {
+      monitorInterval.value = 60;
+    }
+    
+    updateFrequencyDisplay(parseInt(monitorInterval.value) || 10);
+  }
+  
+  function updateFrequencyDisplay(interval) {
+    if (frequencyDisplay) {
+      frequencyDisplay.textContent = `${interval}秒/次`;
+    }
+  }
+
+  function openXueqiu() {
+    chrome.tabs.create({ url: 'https://xueqiu.com/' });
+    window.close();
+  }
+
   function openOptions() {
     chrome.runtime.openOptionsPage();
     window.close();

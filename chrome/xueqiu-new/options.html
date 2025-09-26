@@ -19,7 +19,7 @@
         </div>
         <div class="section-body status-section">
           <div class="status-indicator" id="statusIndicator"></div>
-          <span class="status-text" id="statusText">正常监控中 - 每3秒检查一次更新</span>
+          <span class="status-text" id="statusText">正常监控中 - 每10秒检查一次更新</span>
         </div>
       </div>
 
@@ -60,6 +60,17 @@
               <span class="slider"></span>
             </label>
           </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">监控时间间隔</div>
+              <p class="setting-description">设置检查更新的时间间隔（秒）</p>
+            </div>
+            <div class="input-group">
+              <input type="number" id="monitorInterval" min="1" max="60" value="10" class="interval-input">
+              <span class="input-suffix">秒</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -71,7 +82,7 @@
           <div class="instructions">
             <h4>功能特性</h4>
             <ol>
-              <li><strong>监控频率:</strong> 每3秒检查一次更新</li>
+              <li><strong>监控频率:</strong> 可自定义设置，默认每10秒检查一次更新</li>
               <li><strong>通知点击:</strong> 直接跳转到对应的雪球页面</li>
               <li><strong>数据存储:</strong> 不存储用户数据，仅内存临时缓存</li>
               <li><strong>权限要求:</strong> 通知、存储、标签页访问</li>

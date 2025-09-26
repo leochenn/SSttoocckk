@@ -13,13 +13,7 @@
 
     <div class="controls">
       <div class="control-group">
-        <div class="control-item master">
-          <span class="control-label master">总开关</span>
-          <label class="switch">
-            <input type="checkbox" id="masterSwitch">
-            <span class="slider"></span>
-          </label>
-        </div>
+
 
         <div class="control-item">
           <span class="control-label" id="followListLabel">关注列表通知</span>
@@ -36,6 +30,14 @@
             <span class="slider"></span>
           </label>
         </div>
+
+        <div class="control-item interval-control">
+          <span class="control-label" id="intervalLabel">监控间隔</span>
+          <div class="interval-input-group">
+            <input type="number" id="monitorInterval" min="1" max="60" value="10" class="interval-input">
+            <span class="interval-suffix">秒</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -46,7 +48,7 @@
 
     <div class="footer">
       <div class="footer-info">
-        <span class="frequency">3秒/次</span>
+        <span class="frequency" id="frequencyDisplay">10秒/次</span>
         <span class="version">v1.0.0</span>
       </div>
     </div>

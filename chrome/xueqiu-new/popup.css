@@ -89,25 +89,10 @@ body {
   border-bottom: none;
 }
 
-.control-item.master {
-  border-bottom: 2px solid #667eea;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-}
-
 .control-label {
   font-weight: 500;
   color: #333;
   flex: 1;
-}
-
-.control-label.master {
-  font-size: 16px;
-  color: #667eea;
-}
-
-.control-label.disabled {
-  color: #999;
 }
 
 .switch {
@@ -155,9 +140,47 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-.slider.disabled {
-  background-color: #ddd;
-  cursor: not-allowed;
+
+
+/* 监控间隔控件样式 */
+.control-item.interval-control {
+  border-top: 1px solid #eee;
+  margin-top: 10px;
+  padding-top: 15px;
+}
+
+.interval-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.interval-input {
+  width: 60px;
+  height: 32px;
+  padding: 6px 8px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  background: white;
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.interval-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+
+
+.interval-suffix {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
 }
 
 .actions {
