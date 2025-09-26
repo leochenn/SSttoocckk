@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雪球插件测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        button {
+            background-color: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #005a87;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 3px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .mock-xueqiu {
+            border: 2px solid #007cba;
+            background-color: #fff;
+            margin: 15px 0;
+            padding: 15px;
+        }
+        .mock-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+        }
+        .mock-message-link {
+            position: relative;
+            color: #007cba;
+            text-decoration: none;
+            padding: 5px 10px;
+        }
+        .mock-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 雪球消息监控助手 - 测试页面</h1>
+        
+        <div class="test-section">
+            <h3>📋 插件状态检查</h3>
+            <button onclick="checkPluginStatus()">检查插件状态</button>
+            <button onclick="testNotification()">测试通知功能</button>
+            <button onclick="debugDOM()">调试DOM结构</button>
+            <div id="pluginStatus" class="status info">点击按钮检查插件状态</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 模拟雪球页面结构</h3>
+            <p>这个区域模拟雪球网站的消息通知结构，用于测试插件的检测能力：</p>
+            
+            <div class="mock-xueqiu">
+                <div class="mock-nav">
+                    <div>雪球模拟导航</div>
+                    <div>
+                        <a href="#" class="mock-message-link">
+                            我的消息
+                            <span id="mockBadge" class="mock-badge">1</span>
+                        </a>
+                    </div>
+                </div>
+                <p>这是模拟的雪球页面内容区域</p>
+            </div>
+            
+            <button onclick="changeMockCount(1)">增加消息数量</button>
+            <button onclick="changeMockCount(-1)">减少消息数量</button>
+            <button onclick="changeMockCount(0)">重置为0</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 手动触发检查</h3>
+            <button onclick="triggerManualCheck()">手动检查更新</button>
+            <button onclick="getSettings()">获取当前设置</button>
+            <div id="manualCheckResult" class="status info">点击按钮进行手动检查</div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 实时日志</h3>
+            <button onclick="clearLog()">清空日志</button>
+            <button onclick="startLogMonitoring()">开始监控日志</button>
+            <button onclick="stopLogMonitoring()">停止监控日志</button>
+            <div id="logContainer" class="log">日志将在这里显示...</div>
+        </div>
+    </div>
+
+    <script>
+        let logMonitorInterval = null;
+        let mockMessageCount = 1;
+
+        // 检查插件状态
+        function checkPluginStatus() {
+            const statusDiv = document.getElementById('pluginStatus');
+            
+            if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✅ 插件已加载，运行环境正常';
+                
+                // 尝试与background script通信
+                chrome.runtime.sendMessage({action: 'ping'}, (response) => {
+                    if (chrome.runtime.lastError) {
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = '❌ 插件已加载但后台脚本无响应: ' + chrome.runtime.lastError.message;
+                    } else {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = '✅ 插件完全正常，后台脚本响应正常';
+                    }
+                });
+            } else {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ 插件未加载或运行环境异常';
+            }
+        }
+
+        // 测试通知功能
+        function testNotification() {
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                chrome.runtime.sendMessage({
+                    action: 'testNotification',
+                    data: { message: '这是一条测试通知' }
+                }, (response) => {
+                    const statusDiv = document.getElementById('pluginStatus');
+                    if (chrome.runtime.lastError) {
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = '❌ 通知测试失败: ' + chrome.runtime.lastError.message;
+                    } else {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = '✅ 通知测试成功，请查看系统通知';
+                    }
+                });
+            } else {
+                alert('插件环境不可用，无法测试通知');
+            }
+        }
+
+        // 调试DOM结构
+        function debugDOM() {
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                chrome.runtime.sendMessage({
+                    action: 'debugDOM'
+                }, (response) => {
+                    const statusDiv = document.getElementById('pluginStatus');
+                    if (chrome.runtime.lastError) {
+                        statusDiv.className = 'status error';
+                        statusDiv.textContent = '❌ DOM调试失败: ' + chrome.runtime.lastError.message;
+                    } else {
+                        statusDiv.className = 'status success';
+                        statusDiv.textContent = '✅ DOM调试完成，请查看控制台日志';
+                        logMessage('DOM调试已触发，请查看浏览器控制台');
+                    }
+                });
+            } else {
+                alert('插件环境不可用，无法调试DOM');
+            }
+        }
+
+        // 改变模拟消息数量
+        function changeMockCount(change) {
+            if (change === 0) {
+                mockMessageCount = 0;
+            } else {
+                mockMessageCount = Math.max(0, mockMessageCount + change);
+            }
+            
+            const badge = document.getElementById('mockBadge');
+            if (mockMessageCount === 0) {
+                badge.style.display = 'none';
+            } else {
+                badge.style.display = 'flex';
+                badge.textContent = mockMessageCount;
+            }
+            
+            logMessage(`模拟消息数量变更为: ${mockMessageCount}`);
+        }
+
+        // 手动触发检查
+        function triggerManualCheck() {
+            const resultDiv = document.getElementById('manualCheckResult');
+            
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                chrome.runtime.sendMessage({
+                    action: 'manualCheck'
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        resultDiv.className = 'status error';
+                        resultDiv.textContent = '❌ 手动检查失败: ' + chrome.runtime.lastError.message;
+                    } else {
+                        resultDiv.className = 'status success';
+                        resultDiv.textContent = '✅ 手动检查完成，请查看控制台日志';
+                        logMessage('手动检查已触发');
+                    }
+                });
+            } else {
+                resultDiv.className = 'status error';
+                resultDiv.textContent = '❌ 插件环境不可用';
+            }
+        }
+
+        // 获取当前设置
+        function getSettings() {
+            const resultDiv = document.getElementById('manualCheckResult');
+            
+            if (typeof chrome !== 'undefined' && chrome.runtime) {
+                chrome.runtime.sendMessage({
+                    action: 'getSettings'
+                }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        resultDiv.className = 'status error';
+                        resultDiv.textContent = '❌ 获取设置失败: ' + chrome.runtime.lastError.message;
+                    } else {
+                        resultDiv.className = 'status info';
+                        resultDiv.textContent = '📋 当前设置: ' + JSON.stringify(response, null, 2);
+                        logMessage('当前设置: ' + JSON.stringify(response, null, 2));
+                    }
+                });
+            } else {
+                resultDiv.className = 'status error';
+                resultDiv.textContent = '❌ 插件环境不可用';
+            }
+        }
+
+        // 日志相关功能
+        function logMessage(message) {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            logContainer.innerHTML += `[${timestamp}] ${message}\n`;
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '日志已清空...\n';
+        }
+
+        function startLogMonitoring() {
+            if (logMonitorInterval) {
+                clearInterval(logMonitorInterval);
+            }
+            
+            logMessage('开始监控插件日志...');
+            
+            // 这里可以添加实际的日志监控逻辑
+            logMonitorInterval = setInterval(() => {
+                // 模拟日志监控
+                if (Math.random() > 0.8) {
+                    logMessage('模拟日志: 插件正在运行...');
+                }
+            }, 3000);
+        }
+
+        function stopLogMonitoring() {
+            if (logMonitorInterval) {
+                clearInterval(logMonitorInterval);
+                logMonitorInterval = null;
+                logMessage('日志监控已停止');
+            }
+        }
+
+        // 页面加载时自动检查插件状态
+        window.addEventListener('load', () => {
+            setTimeout(checkPluginStatus, 1000);
+            logMessage('测试页面已加载');
+        });
+    </script>
+</body>
+</html>
