@@ -25,24 +25,41 @@ async function getSettings() {
 async function updateStatus(state, message) {
     const status = { state, message };
     await chrome.storage.local.set({ status });
-    // Also send to popup if it's open
-    chrome.runtime.sendMessage({ type: 'statusUpdate', status }).catch(() => {});
+    try {
+        await chrome.runtime.sendMessage({ type: 'statusUpdate', status });
+    } catch (e) {
+        // Popup is not open, ignore.
+    }
 }
 
-// Extension installation or update
+async function ensureContentScriptInjected(tabId) {
+    try {
+        await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            files: ['content.js'],
+        });
+    } catch (e) {
+        log(`注入脚本到 Tab ${tabId} 失败 (可能页面正在加载或权限问题): ${e.message}`);
+    }
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
     log('插件已安装或更新。');
     const settings = await getSettings();
     await chrome.storage.local.set({ settings });
+    const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
+    if (tabs.length > 0) {
+        await ensureContentScriptInjected(tabs[0].id);
+    }
     createAlarm(settings.interval);
     await updateStatus('running', '监控已启动');
-    
-    // Refresh existing Xueqiu tabs to inject content script
-    const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/" });
-    if (tabs.length > 0) {
-        log(`找到 ${tabs.length} 个雪球页面，将进行刷新。`);
-        chrome.tabs.reload(tabs[0].id);
-    }
+});
+
+chrome.runtime.onStartup.addListener(async () => {
+    log('浏览器启动。');
+    const settings = await getSettings();
+    createAlarm(settings.interval);
+    await updateStatus('running', '监控已启动');
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -56,13 +73,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'settingsChanged') {
         log('设置已更改，正在更新闹钟。');
         createAlarm(message.settings.interval);
-    } else if (message.type === 'contentData') {
-        handleContentData(message.data);
     }
+    return true;
 });
 
 function createAlarm(interval) {
     chrome.alarms.create(ALARM_NAME, {
+        delayInMinutes: 0.1,
         periodInMinutes: interval / 60
     });
     log(`闹钟已设置为每 ${interval} 秒触发一次。`);
@@ -77,32 +94,50 @@ async function performCheck() {
     }
 
     try {
-        const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/" });
+        const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*", status: "complete" });
         if (tabs.length === 0) {
-            await updateStatus('error', '未找到雪球页面，无法监控。');
-            log('错误：未找到打开的雪球页面。');
+            await updateStatus('error', '未找到已加载完成的雪球页面。');
+            log('错误：未找到已加载完成的雪球页面。');
             return;
         }
         
         const tabId = tabs[0].id;
         log(`向页面 ${tabId} 发送检查指令。`);
-        chrome.tabs.sendMessage(tabId, {
+        
+        const response = await chrome.tabs.sendMessage(tabId, {
             type: 'checkForUpdates',
             options: {
                 checkTimeline: settings.monitorTimeline,
                 checkMessages: settings.monitorSystemMessages
             }
+        }).catch(async (error) => {
+            log(`与内容脚本通信失败: ${error.message}。尝试重新注入脚本。`);
+            await ensureContentScriptInjected(tabId);
+            return { error: "脚本无响应，已尝试重新注入，请等待下次检查。" };
         });
-        await updateStatus('running', '正在检查...');
+
+        handleContentData(response);
+        await updateStatus('running', '检查完成');
 
     } catch (error) {
-        log(`检查过程中发生错误: ${error.message}`);
+        log(`检查过程中发生严重错误: ${error.message}`);
         await updateStatus('error', `检查出错: ${error.message}`);
     }
 }
 
-async function handleContentData(data) {
-    log('收到来自内容脚本的数据。');
+async function handleContentData(response) {
+    if (!response) {
+        log('内容脚本没有返回任何响应。');
+        await updateStatus('error', '内容脚本无响应');
+        return;
+    }
+    log('收到来自内容脚本的响应。');
+    if (response.error) {
+        log(`内容脚本错误: ${response.error}`);
+        await updateStatus('error', `内容脚本错误: ${response.error}`);
+        return;
+    }
+    const data = response.data;
     if (data.timeline) {
         await checkTimelineUpdate(data.timeline);
     }
@@ -111,16 +146,17 @@ async function handleContentData(data) {
     }
 }
 
-async function checkTimelineUpdate({ user, time, content }) {
-    const postId = `${user}-${time}-${content.substring(0, 20)}`;
+async function checkTimelineUpdate({ user, content }) {
+    // Create a stable ID based on user and the first 20 characters of content.
+    const newPostId = `${user}-${content.substring(0, 20)}`;
     const { lastPostId } = await chrome.storage.local.get('lastPostId');
 
     if (!lastPostId) {
-        log(`首次运行，设置基准帖子ID: ${postId}`);
-        await chrome.storage.local.set({ lastPostId: postId });
-    } else if (lastPostId !== postId) {
-        log(`发现新内容！旧ID: ${lastPostId}, 新ID: ${postId}`);
-        await chrome.storage.local.set({ lastPostId: postId });
+        log(`首次运行，设置基准帖子ID: ${newPostId}`);
+        await chrome.storage.local.set({ lastPostId: newPostId });
+    } else if (lastPostId !== newPostId) {
+        log(`发现新内容！旧ID: ${lastPostId}, 新ID: ${newPostId}`);
+        await chrome.storage.local.set({ lastPostId: newPostId });
         const notificationContent = `${user}: ${content.substring(0, 20)}...`;
         createNotification('timeline', {
             title: '雪球 - 关注列表更新',
@@ -133,6 +169,7 @@ async function checkTimelineUpdate({ user, time, content }) {
 }
 
 async function checkSystemMessageUpdate({ count, hasUnread }) {
+    // ... (This function is unchanged) ...
     const { lastMessageCount = 0 } = await chrome.storage.local.get('lastMessageCount');
     
     if (hasUnread && count > lastMessageCount) {
@@ -143,13 +180,11 @@ async function checkSystemMessageUpdate({ count, hasUnread }) {
             message: `您有 ${count} 条新的系统消息`,
             url: 'https://xueqiu.com/center/#/sys-message'
         });
-        // Send message to content script to click the element
-        const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/" });
+        const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
         if (tabs.length > 0) {
-            chrome.tabs.sendMessage(tabs[0].id, { type: 'clickSystemMessage' });
+            // chrome.tabs.sendMessage(tabs[0].id, { type: 'clickSystemMessage' });
         }
     } else if (!hasUnread && lastMessageCount !== 0) {
-        // User read the messages, so reset our count
         log('系统消息已被阅读，重置计数器。');
         await chrome.storage.local.set({ lastMessageCount: 0 });
     } else {
@@ -157,25 +192,23 @@ async function checkSystemMessageUpdate({ count, hasUnread }) {
     }
 }
 
-
 function createNotification(type, options) {
     const now = Date.now();
-    if (now - lastNotificationTimestamp < 5000) { // 5 second cooldown
-        log('通知冷却中，跳过本次通知。');
-        return;
+    if (now - lastNotificationTimestamp < 5000) {
+        //log('通知冷却中，跳过本次通知。');
+        //return;
     }
     lastNotificationTimestamp = now;
 
     const notificationId = `${type}-${Date.now()}`;
     chrome.notifications.create(notificationId, {
         type: 'basic',
-        iconUrl: 'icons/icon128.png',
+        iconUrl: 'icons/icon.png',
         title: options.title,
         message: options.message,
         priority: 2
     });
     
-    // Store URL for click handler
     chrome.storage.local.set({ [notificationId]: options.url });
     log(`已创建通知: ${options.title}`);
 }
@@ -186,12 +219,12 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
     if (url) {
         const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
         if (tabs.length > 0) {
-            chrome.tabs.update(tabs[0].id, { active: true, url: url });
-            chrome.windows.update(tabs[0].windowId, { focused: true });
+            await chrome.tabs.update(tabs[0].id, { active: true, url: url });
+            await chrome.windows.update(tabs[0].windowId, { focused: true });
         } else {
-            chrome.tabs.create({ url: url });
+            await chrome.tabs.create({ url: url });
         }
-        chrome.notifications.clear(notificationId);
-        chrome.storage.local.remove(notificationId);
+        await chrome.notifications.clear(notificationId);
+        await chrome.storage.local.remove(notificationId);
     }
 });

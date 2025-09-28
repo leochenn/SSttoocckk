@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "雪球消息监控助手",
+  "name": "雪球监控助手",
   "version": "1.0.0",
   "description": "监控雪球投资论坛的关注列表和系统消息，及时通知用户",
   "icons": {
@@ -19,7 +19,8 @@
     "storage",
     "activeTab",
     "tabs",
-    "alarms"
+    "alarms",
+    "scripting" 
   ],
   
   "host_permissions": [
@@ -33,10 +34,8 @@
   "content_scripts": [
     {
       "matches": ["https://xueqiu.com/*"],
-      "js": ["utils.js", "content.js"],
-      "run_at": "document_end"
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
-  ],
-  
-  "options_page": "options.html"
+  ]
 }
