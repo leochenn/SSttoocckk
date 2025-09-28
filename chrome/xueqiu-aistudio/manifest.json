@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "雪球消息监控助手",
+  "version": "1.0.0",
+  "description": "监控雪球投资论坛的关注列表和系统消息，及时通知用户",
+  "icons": {
+    "16": "icons/icon.png",
+    "32": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "雪球消息监控助手",
+    "default_icon": "icons/icon.png"
+  },
+  "permissions": [
+    "notifications",
+    "storage",
+    "activeTab",
+    "tabs",
+    "alarms"
+  ],
+  
+  "host_permissions": [
+    "https://xueqiu.com/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["https://xueqiu.com/*"],
+      "js": ["utils.js", "content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  
+  "options_page": "options.html"
+}
