@@ -125,6 +125,7 @@ async function performCheck() {
     }
 }
 
+// ** MODIFIED FUNCTION: Centralizes notification logic **
 async function handleContentData(response) {
     if (!response) {
         log('内容脚本没有返回任何响应。');
@@ -137,22 +138,39 @@ async function handleContentData(response) {
         await updateStatus('error', `内容脚本错误: ${response.error}`);
         return;
     }
+    
     const data = response.data;
-    if (data.timeline) {
-        await checkTimelineUpdate(data.timeline);
-    }
+    let systemMessageNotificationOptions = null;
+    let timelineNotificationOptions = null;
+
     if (data.systemMessages) {
-        await checkSystemMessageUpdate(data.systemMessages);
+        systemMessageNotificationOptions = await checkSystemMessageUpdate(data.systemMessages);
+    }
+    if (data.timeline) {
+        timelineNotificationOptions = await checkTimelineUpdate(data.timeline);
+    }
+
+    // ** PRIORITY LOGIC **
+    // If there's a system message, prioritize it and ignore the timeline update.
+    if (systemMessageNotificationOptions) {
+        log('检测到系统消息更新，优先通知。');
+        createNotification('systemMessage', systemMessageNotificationOptions);
+    } 
+    // Otherwise, if there's only a timeline update, show that.
+    else if (timelineNotificationOptions) {
+        log('仅检测到内容列表更新，进行通知。');
+        createNotification('timeline', timelineNotificationOptions);
     }
 }
 
+// ** MODIFIED FUNCTION: Returns notification options instead of creating notification **
 async function checkTimelineUpdate({ signature, count, topPost }) {
     const { lastTimelineState } = await chrome.storage.local.get('lastTimelineState');
 
     if (!lastTimelineState) {
         log(`首次运行，设置基准状态: 内容="${signature.substring(0, 20)}...", 数量=${count}`);
         await chrome.storage.local.set({ lastTimelineState: { signature, count } });
-        return;
+        return null; // Don't notify on first run
     }
 
     let isNew = false;
@@ -167,40 +185,47 @@ async function checkTimelineUpdate({ signature, count, topPost }) {
 
     if (isNew) {
         await chrome.storage.local.set({ lastTimelineState: { signature, count } });
-        
         const { user, content } = topPost;
         const notificationContent = `${user}: ${content.substring(0, 20)}...`;
-        createNotification('timeline', {
+        // Return the options object for the notification
+        return {
             title: '雪球 - 关注列表更新',
             message: notificationContent,
             url: 'https://xueqiu.com/'
-        });
+        };
     } else {
         log('关注列表无新内容。');
+        return null;
     }
 }
 
+// ** MODIFIED FUNCTION: Returns notification options instead of creating notification **
 async function checkSystemMessageUpdate({ count, hasUnread }) {
     const { lastMessageCount = 0 } = await chrome.storage.local.get('lastMessageCount');
     
     if (hasUnread && count > lastMessageCount) {
         log(`发现新系统消息！旧数量: ${lastMessageCount}, 新数量: ${count}`);
         await chrome.storage.local.set({ lastMessageCount: count });
-        createNotification('systemMessage', {
+        
+        // Send click command to content script
+        const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
+        if (tabs.length > 0) {
+            chrome.tabs.sendMessage(tabs[0].id, { type: 'clickSystemMessage' });
+        }
+
+        // Return the options object for the notification
+        return {
             title: '雪球 - 系统消息',
             message: `您有 ${count} 条新的系统消息`,
             url: 'https://xueqiu.com/center/#/sys-message'
-        });
-        const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
-        if (tabs.length > 0) {
-            // chrome.tabs.sendMessage(tabs[0].id, { type: 'clickSystemMessage' });
-        }
+        };
     } else if (!hasUnread && lastMessageCount !== 0) {
         log('系统消息已被阅读，重置计数器。');
         await chrome.storage.local.set({ lastMessageCount: 0 });
     } else {
         log(`系统消息无变化。当前数量: ${count}`);
     }
+    return null;
 }
 
 function createNotification(type, options) {
