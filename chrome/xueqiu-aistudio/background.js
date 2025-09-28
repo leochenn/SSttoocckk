@@ -210,7 +210,7 @@ async function checkSystemMessageUpdate({ count, hasUnread }) {
         // Send click command to content script
         const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
         if (tabs.length > 0) {
-            chrome.tabs.sendMessage(tabs[0].id, { type: 'clickSystemMessage' });
+            //chrome.tabs.sendMessage(tabs[0].id, { type: 'clickSystemMessage' });
         }
 
         // Return the options object for the notification
