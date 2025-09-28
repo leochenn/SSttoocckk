@@ -230,14 +230,29 @@ function createNotification(type, options) {
 chrome.notifications.onClicked.addListener(async (notificationId) => {
     const urlData = await chrome.storage.local.get(notificationId);
     const url = urlData[notificationId];
+
     if (url) {
-        const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
-        if (tabs.length > 0) {
-            await chrome.tabs.update(tabs[0].id, { active: true, url: url });
-            await chrome.windows.update(tabs[0].windowId, { focused: true });
-        } else {
-            await chrome.tabs.create({ url: url });
+        // Case 1: System Message Notification - Always open a new tab
+        if (notificationId.startsWith('systemMessage')) {
+            log(`系统消息通知点击，打开新页面: ${url}`);
+            const newTab = await chrome.tabs.create({ url: url });
+            await chrome.windows.update(newTab.windowId, { focused: true });
+        } 
+        // Case 2: Timeline Notification - Focus existing tab or create a new one
+        else if (notificationId.startsWith('timeline')) {
+            log(`内容更新通知点击，跳转到: ${url}`);
+            const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
+            if (tabs.length > 0) {
+                // Found an existing tab, update it and focus
+                await chrome.tabs.update(tabs[0].id, { active: true, url: url });
+                await chrome.windows.update(tabs[0].windowId, { focused: true });
+            } else {
+                // No existing tab, create a new one
+                await chrome.tabs.create({ url: url });
+            }
         }
+
+        // Clean up the notification regardless of type
         await chrome.notifications.clear(notificationId);
         await chrome.storage.local.remove(notificationId);
     }
