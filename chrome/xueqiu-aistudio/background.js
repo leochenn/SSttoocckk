@@ -146,23 +146,20 @@ async function handleContentData(response) {
     }
 }
 
-// ** FINAL MODIFIED FUNCTION **
 async function checkTimelineUpdate({ signature, count, topPost }) {
     const { lastTimelineState } = await chrome.storage.local.get('lastTimelineState');
 
     if (!lastTimelineState) {
         log(`首次运行，设置基准状态: 内容="${signature.substring(0, 20)}...", 数量=${count}`);
         await chrome.storage.local.set({ lastTimelineState: { signature, count } });
-        return; // Don't notify on first run
+        return;
     }
 
     let isNew = false;
-    // Case 1: A completely new post appears at the top.
     if (lastTimelineState.signature !== signature) {
         log(`发现新内容！旧内容: "${lastTimelineState.signature.substring(0, 20)}...", 新内容: "${signature.substring(0, 20)}..."`);
         isNew = true;
     } 
-    // Case 2: The same post appears again, increasing the count.
     else if (lastTimelineState.count < count) {
         log(`发现新的相同内容！内容: "${signature.substring(0, 20)}...", 旧数量: ${lastTimelineState.count}, 新数量: ${count}`);
         isNew = true;
@@ -238,14 +235,17 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
             const newTab = await chrome.tabs.create({ url: url });
             await chrome.windows.update(newTab.windowId, { focused: true });
         } 
-        // Case 2: Timeline Notification - Focus existing tab or create a new one
+        // Case 2: Timeline Notification - Focus existing tab and navigate via script
         else if (notificationId.startsWith('timeline')) {
-            log(`内容更新通知点击，跳转到: ${url}`);
+            log(`内容更新通知点击，将通过脚本跳转到首页。`);
             const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
             if (tabs.length > 0) {
-                // Found an existing tab, update it and focus
-                await chrome.tabs.update(tabs[0].id, { active: true, url: url });
+                const tabId = tabs[0].id;
+                // 1. Focus the window and the tab
                 await chrome.windows.update(tabs[0].windowId, { focused: true });
+                await chrome.tabs.update(tabId, { active: true });
+                // 2. Send a message to the content script to perform a soft navigation
+                chrome.tabs.sendMessage(tabId, { type: 'navigateToHome' });
             } else {
                 // No existing tab, create a new one
                 await chrome.tabs.create({ url: url });

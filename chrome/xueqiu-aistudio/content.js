@@ -53,16 +53,31 @@ if (typeof window.contentScriptInjected === 'undefined') {
                 messageLink.click();
             }
         }
+
+        // ** NEW LOGIC: Handle navigation request from background script **
+        else if (message.type === 'navigateToHome') {
+            console.log("收到跳转指令，正在点击'关注'标签页...");
+            const allTabs = document.querySelectorAll('.home-timeline-tabs a');
+            let followTab = null;
+            for (const tab of allTabs) {
+                if (tab.innerText.trim() === '关注') {
+                    followTab = tab;
+                    break;
+                }
+            }
+            if (followTab) {
+                followTab.click();
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top smoothly
+            }
+        }
     });
 
     function getTimelineData() {
-        // ** FINAL LOGIC: Implement user's consecutive count strategy **
-        const posts = document.querySelectorAll('.status-list > article.timeline__item:nth-child(-n+10)'); // Check up to 10 posts
+        const posts = document.querySelectorAll('.status-list > article.timeline__item:nth-child(-n+10)');
         if (posts.length === 0) {
             throw new Error("关注列表为空，无法获取内容。");
         }
 
-        // 1. Get the signature of the topmost post
         const topPost = posts[0];
         const topUserEl = topPost.querySelector('.user-name');
         const topContentEl = topPost.querySelector('.timeline__item__content .content--description');
@@ -77,7 +92,6 @@ if (typeof window.contentScriptInjected === 'undefined') {
         };
         const signature = `${topPostDetails.user}-${topPostDetails.content}`;
 
-        // 2. Count how many consecutive posts match this signature
         let consecutiveCount = 0;
         for (const post of posts) {
             const userEl = post.querySelector('.user-name');
@@ -87,13 +101,11 @@ if (typeof window.contentScriptInjected === 'undefined') {
                 if (currentSignature === signature) {
                     consecutiveCount++;
                 } else {
-                    // Stop counting as soon as a different post is found
                     break;
                 }
             }
         }
 
-        // 3. Return the signature, the count, and the top post details for notification
         return { signature, count: consecutiveCount, topPost: topPostDetails };
     }
 
