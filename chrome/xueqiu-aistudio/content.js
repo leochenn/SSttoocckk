@@ -56,23 +56,45 @@ if (typeof window.contentScriptInjected === 'undefined') {
     });
 
     function getTimelineData() {
-        const firstPost = document.querySelector('.status-list > article.timeline__item:first-child');
-        if (!firstPost) {
-            throw new Error("无法找到关注列表的第一条内容。");
+        // ** FINAL LOGIC: Implement user's consecutive count strategy **
+        const posts = document.querySelectorAll('.status-list > article.timeline__item:nth-child(-n+10)'); // Check up to 10 posts
+        if (posts.length === 0) {
+            throw new Error("关注列表为空，无法获取内容。");
         }
 
-        const userEl = firstPost.querySelector('.user-name');
-        const contentEl = firstPost.querySelector('.timeline__item__content .content--description');
+        // 1. Get the signature of the topmost post
+        const topPost = posts[0];
+        const topUserEl = topPost.querySelector('.user-name');
+        const topContentEl = topPost.querySelector('.timeline__item__content .content--description');
 
-        if (userEl && contentEl) {
-            // ** MODIFIED LOGIC **
-            // Return only the user and content, which are stable.
-            return {
-                user: userEl.innerText.trim(),
-                content: contentEl.innerText.trim()
-            };
+        if (!topUserEl || !topContentEl) {
+            throw new Error("无法解析第一条帖子的内容。");
         }
-        throw new Error("无法解析帖子内容，页面结构可能已改变。");
+        
+        const topPostDetails = {
+            user: topUserEl.innerText.trim(),
+            content: topContentEl.innerText.trim()
+        };
+        const signature = `${topPostDetails.user}-${topPostDetails.content}`;
+
+        // 2. Count how many consecutive posts match this signature
+        let consecutiveCount = 0;
+        for (const post of posts) {
+            const userEl = post.querySelector('.user-name');
+            const contentEl = post.querySelector('.timeline__item__content .content--description');
+            if (userEl && contentEl) {
+                const currentSignature = `${userEl.innerText.trim()}-${contentEl.innerText.trim()}`;
+                if (currentSignature === signature) {
+                    consecutiveCount++;
+                } else {
+                    // Stop counting as soon as a different post is found
+                    break;
+                }
+            }
+        }
+
+        // 3. Return the signature, the count, and the top post details for notification
+        return { signature, count: consecutiveCount, topPost: topPostDetails };
     }
 
     function getSystemMessageData() {

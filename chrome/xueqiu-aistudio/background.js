@@ -146,17 +146,32 @@ async function handleContentData(response) {
     }
 }
 
-async function checkTimelineUpdate({ user, content }) {
-    // Create a stable ID based on user and the first 20 characters of content.
-    const newPostId = `${user}-${content.substring(0, 20)}`;
-    const { lastPostId } = await chrome.storage.local.get('lastPostId');
+// ** FINAL MODIFIED FUNCTION **
+async function checkTimelineUpdate({ signature, count, topPost }) {
+    const { lastTimelineState } = await chrome.storage.local.get('lastTimelineState');
 
-    if (!lastPostId) {
-        log(`首次运行，设置基准帖子ID: ${newPostId}`);
-        await chrome.storage.local.set({ lastPostId: newPostId });
-    } else if (lastPostId !== newPostId) {
-        log(`发现新内容！旧ID: ${lastPostId}, 新ID: ${newPostId}`);
-        await chrome.storage.local.set({ lastPostId: newPostId });
+    if (!lastTimelineState) {
+        log(`首次运行，设置基准状态: 内容="${signature.substring(0, 20)}...", 数量=${count}`);
+        await chrome.storage.local.set({ lastTimelineState: { signature, count } });
+        return; // Don't notify on first run
+    }
+
+    let isNew = false;
+    // Case 1: A completely new post appears at the top.
+    if (lastTimelineState.signature !== signature) {
+        log(`发现新内容！旧内容: "${lastTimelineState.signature.substring(0, 20)}...", 新内容: "${signature.substring(0, 20)}..."`);
+        isNew = true;
+    } 
+    // Case 2: The same post appears again, increasing the count.
+    else if (lastTimelineState.count < count) {
+        log(`发现新的相同内容！内容: "${signature.substring(0, 20)}...", 旧数量: ${lastTimelineState.count}, 新数量: ${count}`);
+        isNew = true;
+    }
+
+    if (isNew) {
+        await chrome.storage.local.set({ lastTimelineState: { signature, count } });
+        
+        const { user, content } = topPost;
         const notificationContent = `${user}: ${content.substring(0, 20)}...`;
         createNotification('timeline', {
             title: '雪球 - 关注列表更新',
@@ -169,7 +184,6 @@ async function checkTimelineUpdate({ user, content }) {
 }
 
 async function checkSystemMessageUpdate({ count, hasUnread }) {
-    // ... (This function is unchanged) ...
     const { lastMessageCount = 0 } = await chrome.storage.local.get('lastMessageCount');
     
     if (hasUnread && count > lastMessageCount) {
