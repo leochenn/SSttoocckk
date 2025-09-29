@@ -1,10 +1,15 @@
-// A flag to ensure the listener is only added once.
 if (typeof window.contentScriptInjected === 'undefined') {
     window.contentScriptInjected = true;
-
     console.log("雪球助手内容脚本已注入并运行。");
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        // ** ADDED CHECK: Ensure the extension is still running before processing messages **
+        if (!chrome.runtime?.id) {
+            // If the extension has been updated or disabled, chrome.runtime.id will be undefined.
+            // This prevents the "Extension context invalidated" error.
+            return;
+        }
+
         if (message.type === 'ping') {
             sendResponse({ status: 'ready' });
             return true;
@@ -123,4 +128,47 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
         return { count: 0, hasUnread: false };
     }
+
+    function setupSystemMessageObserver() {
+        const targetNode = document.querySelector('li[data-analytics-data*="系统消息"]');
+
+        if (!targetNode) {
+            return false;
+        }
+
+        const observer = new MutationObserver((mutationsList, observer) => {
+            // ** ADDED CHECK: The most important fix for the error **
+            if (!chrome.runtime?.id) {
+                // The extension context has been invalidated (e.g., reloaded).
+                // Disconnect the observer to prevent further errors.
+                observer.disconnect();
+                return;
+            }
+
+            console.log("MutationObserver: 检测到系统消息元素变化。");
+            try {
+                const systemMessageData = getSystemMessageData();
+                chrome.runtime.sendMessage({
+                    type: 'proactiveSystemMessageUpdate',
+                    data: systemMessageData
+                });
+            } catch (e) {
+                // This catch block is now less likely to be needed for this specific error,
+                // but it's good practice to keep it.
+                console.error("MutationObserver: " + e.message);
+            }
+        });
+
+        const config = { childList: true, subtree: true, characterData: true };
+        observer.observe(targetNode, config);
+
+        console.log("MutationObserver: 已成功附加到系统消息元素。");
+        return true;
+    }
+
+    const setupInterval = setInterval(() => {
+        if (setupSystemMessageObserver()) {
+            clearInterval(setupInterval);
+        }
+    }, 2000);
 }

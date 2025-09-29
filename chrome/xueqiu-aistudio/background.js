@@ -69,10 +69,20 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.type === 'settingsChanged') {
         log('设置已更改，正在更新闹钟。');
         createAlarm(message.settings.interval);
+    } 
+    else if (message.type === 'proactiveSystemMessageUpdate') {
+        log('收到来自 MutationObserver 的主动更新。');
+        if (message.data) {
+            const notificationOptions = await checkSystemMessageUpdate(message.data);
+            if (notificationOptions) {
+                log('MutationObserver 检测到更新，创建通知。');
+                createNotification('systemMessage', notificationOptions);
+            }
+        }
     }
     return true;
 });
@@ -230,9 +240,9 @@ async function checkSystemMessageUpdate({ count, hasUnread }) {
 
 function createNotification(type, options) {
     const now = Date.now();
-    if (now - lastNotificationTimestamp < 5000) {
-        //log('通知冷却中，跳过本次通知。');
-        //return;
+    if (now - lastNotificationTimestamp < 2000) {
+        log('通知冷却中，跳过本次通知。');
+        return;
     }
     lastNotificationTimestamp = now;
 
