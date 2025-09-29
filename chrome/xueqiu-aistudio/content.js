@@ -16,23 +16,31 @@ if (typeof window.contentScriptInjected === 'undefined') {
         }
         
         if (message.type === 'checkForUpdates') {
-            const allTabs = document.querySelectorAll('.home-timeline-tabs a');
-            let followTab = null;
-            
-            for (const tab of allTabs) {
-                if (tab.innerText.trim() === '关注') {
-                    followTab = tab;
-                    break;
+            // ** MODIFICATION START **
+            // 只有在需要监控关注列表时，才点击 "关注" 标签页
+            if (message.options.checkTimeline) {
+                const allTabs = document.querySelectorAll('.home-timeline-tabs a');
+                let followTab = null;
+                
+                for (const tab of allTabs) {
+                    if (tab.innerText.trim() === '关注') {
+                        followTab = tab;
+                        break;
+                    }
+                }
+
+                if (followTab) {
+                    followTab.click();
+                } else {
+                    // 仅当需要检查关注列表却找不到tab时，才发送错误
+                    sendResponse({ error: '无法找到"关注"标签页，请确认您已登录并在雪球首页。' });
+                    return; // 提前返回，中断后续操作
                 }
             }
+            // ** MODIFICATION END **
 
-            if (followTab) {
-                followTab.click();
-            } else {
-                sendResponse({ error: '无法找到"关注"标签页，请确认您已登录并在雪球首页。' });
-                return;
-            }
-
+            // 无论是否点击，都等待一小段时间以确保DOM状态稳定
+            // 如果只检查系统消息，这个等待是无害的
             setTimeout(() => {
                 try {
                     const data = {};
