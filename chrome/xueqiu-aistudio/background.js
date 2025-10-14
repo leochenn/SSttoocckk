@@ -64,8 +64,14 @@ chrome.runtime.onStartup.addListener(async () => {
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === ALARM_NAME) {
-        log('闹钟触发，开始检查...');
-        await performCheck();
+        log('闹钟触发，检查是否在工作时间...');
+        if (isWithinTradingHours()) {
+            log('在工作时间内，开始检查...');
+            await performCheck();
+        } else {
+            log('非工作时间，跳过本次检查。');
+            await updateStatus('paused', '非工作时间');
+        }
     }
 });
 
@@ -93,6 +99,34 @@ function createAlarm(interval) {
         periodInMinutes: interval / 60
     });
     log(`闹钟已设置为每 ${interval} 秒触发一次。`);
+}
+
+function isWithinTradingHours() {
+    const now = new Date();
+    const day = now.getDay(); // 0 (Sunday) to 6 (Saturday)
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    // Check if it's a weekday (Monday to Friday)
+    if (day === 0 || day === 6) {
+        return false;
+    }
+
+    // Create a comparable number for the current time, e.g., 9:20 -> 920, 11:31 -> 1131
+    const currentTime = hours * 100 + minutes;
+
+    // Morning session: 9:20 AM to 11:31 AM (inclusive)
+    const morningStart = 9 * 100 + 20; // 920
+    const morningEnd = 11 * 100 + 31; // 1131
+
+    // Afternoon session: 1:00 PM to 3:00 PM (inclusive)
+    const afternoonStart = 13 * 100 + 0; // 1300
+    const afternoonEnd = 15 * 100 + 0; // 1500
+
+    const isMorningSession = currentTime >= morningStart && currentTime <= morningEnd;
+    const isAfternoonSession = currentTime >= afternoonStart && currentTime <= afternoonEnd;
+
+    return isMorningSession || isAfternoonSession;
 }
 
 async function performCheck() {
