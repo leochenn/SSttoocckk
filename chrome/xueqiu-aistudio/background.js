@@ -43,6 +43,34 @@ async function ensureContentScriptInjected(tabId) {
     }
 }
 
+async function manageAlarmLifecycle() {
+    const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
+
+    if (tabs.length > 0) {
+        log('检测到雪球页面，确保闹钟正在运行并使用最新设置。');
+        const settings = await getSettings();
+        createAlarm(settings.interval);
+        const result = await chrome.storage.local.get('status');
+        if (result.status && result.status.message === '等待雪球页面') {
+            await updateStatus('running', '监控已启动');
+        }
+    } else {
+        log('未检测到雪球页面，停止闹钟。');
+        chrome.alarms.clear(ALARM_NAME);
+        await updateStatus('paused', '等待雪球页面');
+    }
+}
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.url) {
+        manageAlarmLifecycle();
+    }
+});
+
+chrome.tabs.onRemoved.addListener(() => {
+    manageAlarmLifecycle();
+});
+
 chrome.runtime.onInstalled.addListener(async () => {
     log('插件已安装或更新。');
     const settings = await getSettings();
@@ -51,15 +79,12 @@ chrome.runtime.onInstalled.addListener(async () => {
     if (tabs.length > 0) {
         await ensureContentScriptInjected(tabs[0].id);
     }
-    createAlarm(settings.interval);
-    await updateStatus('running', '监控已启动');
+    await manageAlarmLifecycle();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
     log('浏览器启动。');
-    const settings = await getSettings();
-    createAlarm(settings.interval);
-    await updateStatus('running', '监控已启动');
+    await manageAlarmLifecycle();
 });
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
@@ -78,8 +103,8 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.type === 'settingsChanged') {
         log('设置已更改，正在更新闹钟。');
-        createAlarm(message.settings.interval);
-    } 
+        await manageAlarmLifecycle();
+    }
     else if (message.type === 'proactiveSystemMessageUpdate') {
         log('收到来自 MutationObserver 的主动更新。');
         if (message.data) {
