@@ -86,6 +86,31 @@
             border-radius: 50%;
             margin-right: 5px;
         }
+        .dashboard-section {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .dashboard-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1576e8 0%, #0ea5e9 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(21, 118, 232, 0.3);
+        }
+        .dashboard-btn:hover {
+            background: linear-gradient(135deg, #1e40af 0%, #0284c7 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(21, 118, 232, 0.4);
+        }
+        .dashboard-btn:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -107,6 +132,9 @@
     <div class="setting-item">
         <label for="interval">监控间隔 (秒)</label>
         <input type="number" id="interval" min="3" max="60">
+    </div>
+    <div class="dashboard-section">
+        <button id="openDashboard" class="dashboard-btn">📊 打开投资看板</button>
     </div>
     <div class="status">
         <span id="statusIndicator" class="status-indicator"></span>

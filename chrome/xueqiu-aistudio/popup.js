@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const intervalInput = document.getElementById('interval');
     const statusIndicator = document.getElementById('statusIndicator');
     const statusText = document.getElementById('statusText');
+    const openDashboardBtn = document.getElementById('openDashboard');
 
     // Load settings from storage
     chrome.storage.local.get(['settings', 'status'], (result) => {
@@ -21,6 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     monitorSystemMessages.addEventListener('change', saveSettings);
     intervalInput.addEventListener('change', saveSettings);
     intervalInput.addEventListener('keyup', saveSettings);
+
+    // Open dashboard button event
+    openDashboardBtn.addEventListener('click', () => {
+        chrome.tabs.create({
+            url: chrome.runtime.getURL('InvestorDashboard/dashboard.html')
+        });
+    });
 
     function saveSettings() {
         const intervalValue = Math.max(3, Math.min(60, parseInt(intervalInput.value, 10) || 10));
