@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的投资看板</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
     <header>
-        <h1>数据看板</h1>
+        <h1><i class="fas fa-chart-line"></i> 数据看板</h1>
         <div class="header-actions">
             <button id="export-data-btn">导出数据 (备份)</button>
             <button id="import-data-btn">导入数据</button>
@@ -35,7 +39,7 @@
         <!-- 模块一: 仪表盘 -->
         <section class="dashboard-section">
             <div class="dashboard-header">
-                <h2>资产总览</h2>
+                <h2><i class="fas fa-wallet"></i> 资产总览</h2>
                 <button id="toggle-privacy-btn">隐藏</button>
             </div>
             <div class="summary-grid">
@@ -76,7 +80,7 @@
                 <table id="total-holdings-table"></table>
                 
                 <div class="asset-breakdown-section">
-                    <h3>资产分解</h3>
+                    <h3><i class="fas fa-chart-pie"></i> 资产分解</h3>
                     <table id="asset-breakdown-table">
                         <thead>
                             <tr>
@@ -212,7 +216,7 @@
         
         <!-- 模块三: 备注 -->
         <section class="notes-section">
-            <h2>备注</h2>
+            <h2><i class="fas fa-sticky-note"></i> 备注</h2>
             <textarea id="notes-textarea" placeholder="在此输入您的备注信息..."></textarea>
         </section>
     </main>
