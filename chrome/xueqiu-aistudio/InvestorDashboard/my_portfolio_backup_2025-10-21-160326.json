@@ -1,0 +1,113 @@
+{
+  "accounts": [
+    {
+      "id": "acc1760439262135",
+      "name": "蕾",
+      "cash": 49758,
+      "holdings": [
+        {
+          "code": "002807",
+          "shares": 222300,
+          "costAmount": 1095939
+        }
+      ]
+    },
+    {
+      "id": "acc1760442637645",
+      "name": "琼",
+      "cash": 118782,
+      "holdings": [
+        {
+          "code": "002807",
+          "shares": 47600,
+          "costAmount": 240380
+        }
+      ]
+    },
+    {
+      "id": "acc1760442642319",
+      "name": "妈",
+      "cash": 144,
+      "holdings": [
+        {
+          "code": "002807",
+          "shares": 4400,
+          "costAmount": 20636
+        }
+      ]
+    }
+  ],
+  "watchlist": [
+    {
+      "code": "002807",
+      "showInPopup": true
+    },
+    {
+      "code": "603323",
+      "showInPopup": false
+    },
+    {
+      "code": "399986",
+      "showInPopup": true
+    },
+    {
+      "code": "512890",
+      "showInPopup": false
+    },
+    {
+      "code": "000001",
+      "showInPopup": false
+    },
+    {
+      "code": "399006",
+      "showInPopup": true
+    },
+    {
+      "code": "000905",
+      "showInPopup": false
+    },
+    {
+      "code": "399300",
+      "showInPopup": false
+    },
+    {
+      "code": "000852",
+      "showInPopup": false
+    }
+  ],
+  "settings": {
+    "totalCost": 1331684,
+    "yesterdayAssets": 1519114,
+    "isPrivacyMode": true
+  },
+  "ytdData": {
+    "399006": 2141.6,
+    "399300": 3934.91,
+    "399986": 7119.56,
+    "512890": 1.124,
+    "601918": 6,
+    "603323": 4.65,
+    "000001": 3351.76,
+    "000905": 5725.73,
+    "000852": 5957.72,
+    "002807": 4.15
+  },
+  "notes": "07.10 蕾150900 琼65320 妈2512 218732\n08.21 蕾158600 琼56561 妈2222 217383\n10.20 蕾134334 琼50205 妈2859 187398",
+  "assetBreakdown": [
+    {
+      "id": "breakdown1760500486399",
+      "description": "借贷",
+      "amount": 100000
+    },
+    {
+      "id": "breakdown1760500518961",
+      "description": "曾妈",
+      "amount": 90000
+    },
+    {
+      "id": "breakdown1760500524200",
+      "description": "夏妈",
+      "amount": 50000
+    }
+  ]
+}
