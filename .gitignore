@@ -1,0 +1,33 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+
+# Node
+node_modules/
+.npm/
+
+# Editors
+.vscode/
+.idea/
+
+# OS
+Icon?
+
+# Build outputs
+/dist/
+/build/
+/out/
+.tmp/
+.cache/
+
+# Python
+__pycache__/
+*.pyc
+
+# Gradle
+.gradle/
+**/build/
+
+# Others
+coverage/
