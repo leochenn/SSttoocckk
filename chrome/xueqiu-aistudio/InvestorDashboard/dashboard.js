@@ -8,7 +8,11 @@ document.addEventListener('DOMContentLoaded', function() {
             holdings: []
         }],
         watchlist: [
-            "000001", "399006", "399300", "000905", "000852", "512890", "399986", "603323", "002807"
+            {code: "000001", showInPopup: false}, {code: "399006", showInPopup: false}, 
+            {code: "399300", showInPopup: false}, {code: "000905", showInPopup: false}, 
+            {code: "000852", showInPopup: false}, {code: "512890", showInPopup: false}, 
+            {code: "399986", showInPopup: false}, {code: "603323", showInPopup: false}, 
+            {code: "002807", showInPopup: false}
         ],
         settings: {
             totalCost: 0,
@@ -52,6 +56,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (appData.notes === undefined) appData.notes = "";
         if (appData.settings.isPrivacyMode === undefined) appData.settings.isPrivacyMode = false;
         if (appData.assetBreakdown === undefined) appData.assetBreakdown = [];
+        
+        // 兼容性处理：将旧的字符串数组格式转换为新的对象格式
+        if (appData.watchlist && appData.watchlist.length > 0 && typeof appData.watchlist[0] === 'string') {
+            appData.watchlist = appData.watchlist.map(code => ({
+                code: code,
+                showInPopup: false
+            }));
+        }
+        
         activeTabId = appData.accounts.length > 0 ? appData.accounts[0].id : 'tab-watchlist';
     }
 
@@ -214,7 +227,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function fetchAllStockDataAndUpdateUI() {
-        const allCodes = new Set(appData.watchlist);
+        const allCodes = new Set();
+        // 处理新的watchlist数据结构
+        appData.watchlist.forEach(item => {
+            const code = typeof item === 'string' ? item : item.code;
+            allCodes.add(code);
+        });
         appData.accounts.forEach(acc => acc.holdings.forEach(h => allCodes.add(h.code)));
         Object.keys(appData.ytdData).forEach(code => allCodes.add(code));
         const success = await fetchStockData(Array.from(allCodes));
@@ -253,7 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
              updateAccountSummary(account.id, totalAssets);
         });
-        appData.watchlist.forEach(code => {
+        appData.watchlist.forEach(item => {
+            const code = typeof item === 'string' ? item : item.code;
             const info = stockInfoCache[code] || { name: '...', price: 0, changePercent: 0 };
             const ytdPrice = appData.ytdData[code];
             const ytdChange = ytdPrice && info.price > 0 ? (info.price - ytdPrice) / ytdPrice * 100 : 'N/A';
@@ -342,6 +361,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // 价格网格输入框事件
         if (target.matches('.grid-percent-input')) calculateTargetPriceFromPercent(target);
         if (target.matches('.grid-price-input')) calculatePercentFromTargetPrice(target);
+        // 处理显示勾选框变化
+        if (target.matches('.show-in-popup-checkbox')) updateShowInPopup(target.dataset.code, target.checked);
     }
     
     function handleGlobalBlur(e) {
@@ -442,8 +463,9 @@ document.addEventListener('DOMContentLoaded', function() {
     async function addStockToWatchlist() {
         const input = document.getElementById('add-code-watchlist');
         const code = input.value.trim();
-        if (code.length === 6 && !appData.watchlist.includes(code)) {
-            appData.watchlist.push(code);
+        const existingCodes = appData.watchlist.map(item => typeof item === 'string' ? item : item.code);
+        if (code.length === 6 && !existingCodes.includes(code)) {
+            appData.watchlist.push({code: code, showInPopup: false});
             input.value = '';
             saveDataToLocalStorage();
             await fetchAllStockDataAndUpdateUI();
@@ -451,7 +473,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     function deleteFromWatchlist(code) {
-        appData.watchlist = appData.watchlist.filter(c => c !== code);
+        appData.watchlist = appData.watchlist.filter(item => {
+            const itemCode = typeof item === 'string' ? item : item.code;
+            return itemCode !== code;
+        });
         saveDataToLocalStorage();
         renderAll();
     }
@@ -461,6 +486,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateAccountCash(accountId, cash) { const account = appData.accounts.find(a => a.id === accountId); if(account) { account.cash = parseFloat(cash) || 0; saveDataToLocalStorage(); renderTotalHoldings(); updateDynamicValues(); } }
     function updateTotalCost(costText) { const newCost = parseFloat(costText.replace(/,/g, '')); if (!isNaN(newCost)) { appData.settings.totalCost = newCost; saveDataToLocalStorage(); updateDynamicValues(); } }
     function updateYesterdayAssets(assetsText) { const newAssets = parseFloat(assetsText.replace(/,/g, '')); if (!isNaN(newAssets)) { appData.settings.yesterdayAssets = newAssets; saveDataToLocalStorage(); updateDynamicValues(); } }
+    
+    function updateShowInPopup(code, showInPopup) {
+        const item = appData.watchlist.find(item => {
+            const itemCode = typeof item === 'string' ? item : item.code;
+            return itemCode === code;
+        });
+        if (item) {
+            if (typeof item === 'string') {
+                // 如果还是旧格式，转换为新格式
+                const index = appData.watchlist.indexOf(item);
+                appData.watchlist[index] = {code: item, showInPopup: showInPopup};
+            } else {
+                item.showInPopup = showInPopup;
+            }
+            saveDataToLocalStorage();
+        }
+    }
     
     function addAssetBreakdown() {
         const descInput = document.getElementById('add-breakdown-description');
@@ -540,7 +582,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // 2. 填充下拉列表
             const selectEl = content.querySelector('.add-code-input');
             selectEl.innerHTML = '<option value="">请从股票池选择</option>';
-            appData.watchlist.forEach(code => {
+            appData.watchlist.forEach(item => {
+                const code = typeof item === 'string' ? item : item.code;
                 const info = stockInfoCache[code] || { name: '...' };
                 const option = document.createElement('option');
                 option.value = code;
@@ -573,8 +616,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderWatchlist() {
         const table = document.getElementById('watchlist-table');
-        const headers = `<thead><tr><th>代码</th><th>名称</th><th>现价</th><th>今日涨跌</th><th>年初股价</th><th>今年涨跌</th><th>操作</th></tr></thead>`;
-        const rows = appData.watchlist.map((code, index) => {
+        const headers = `<thead><tr><th>代码</th><th>名称</th><th>现价</th><th>今日涨跌</th><th>年初股价</th><th>今年涨跌</th><th>显示</th><th>操作</th></tr></thead>`;
+        const rows = appData.watchlist.map((item, index) => {
+            const code = typeof item === 'string' ? item : item.code;
+            const showInPopup = typeof item === 'string' ? false : item.showInPopup;
             const ytdPrice = appData.ytdData[code] || '';
             const name = stockInfoCache[code]?.name || '...';
             return `
@@ -588,6 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="change-percent-cell">...</td>
                 <td><input type="number" class="ytd-price-input-watchlist" data-code="${code}" value="${ytdPrice}" placeholder="手动输入"></td>
                 <td class="ytd-change-cell">...</td>
+                <td><input type="checkbox" class="show-in-popup-checkbox" data-code="${code}" ${showInPopup ? 'checked' : ''}></td>
                 <td><button class="delete-btn delete-watchlist-btn" data-code="${code}">删除</button></td>
             </tr>`;
         }).join('');
@@ -629,7 +675,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectEl.remove(1);
         }
         // Populate with new options
-        appData.watchlist.forEach(code => {
+        appData.watchlist.forEach(item => {
+            const code = typeof item === 'string' ? item : item.code;
             const info = stockInfoCache[code] || { name: '...' };
             const option = document.createElement('option');
             option.value = code;

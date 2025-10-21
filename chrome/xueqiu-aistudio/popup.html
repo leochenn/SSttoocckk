@@ -111,6 +111,59 @@
         .dashboard-btn:active {
             transform: translateY(0);
         }
+        .selected-stocks-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .stocks-list {
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 12px;
+            gap: 8px;
+        }
+        .stock-item:last-child {
+            border-bottom: none;
+        }
+        .stock-name {
+            color: #333;
+            font-weight: 500;
+            flex: 1;
+        }
+        .stock-price {
+            color: #666;
+            font-family: monospace;
+            min-width: 50px;
+            text-align: right;
+        }
+        .stock-price.positive {
+            color: #e74c3c;
+        }
+        .stock-price.negative {
+            color: #27ae60;
+        }
+        .stock-change {
+            color: #666;
+            font-family: monospace;
+            font-size: 11px;
+            min-width: 45px;
+            text-align: right;
+        }
+        .stock-change.positive {
+            color: #e74c3c;
+        }
+        .stock-change.negative {
+            color: #27ae60;
+        }
     </style>
 </head>
 <body>
@@ -132,6 +185,10 @@
     <div class="setting-item">
         <label for="interval">监控间隔 (秒)</label>
         <input type="number" id="interval" min="3" max="60">
+    </div>
+    <div id="selectedStocks" class="selected-stocks-section" style="display: none;">
+        <h4 style="margin: 10px 0 5px 0; color: #333; font-size: 13px;">选中股票</h4>
+        <div id="stocksList" class="stocks-list"></div>
     </div>
     <div class="dashboard-section">
         <button id="openDashboard" class="dashboard-btn">📊 打开投资看板</button>
