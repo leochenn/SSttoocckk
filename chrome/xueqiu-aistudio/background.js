@@ -108,11 +108,33 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     else if (message.type === 'proactiveSystemMessageUpdate') {
         log('收到来自 MutationObserver 的主动更新。');
         if (message.data) {
-            const notificationOptions = await checkSystemMessageUpdate(message.data);
-            if (notificationOptions) {
-                log('MutationObserver 检测到更新，创建通知。');
-                createNotification('systemMessage', notificationOptions);
+            const actionTaken = await checkSystemMessageUpdate(message.data, 'MutationObserver');
+            if (actionTaken) {
+                log('MutationObserver 检测到更新，已直接打开新标签页。');
             }
+        }
+    }
+    else if (message.type === 'portfolioAdjustmentDetected') {
+        log('检测到组合调仓消息。');
+        if (message.data && message.data.portfolioName) {
+            const { portfolioName, message: adjustmentMessage, targetUrl } = message.data;
+            log(`组合调仓通知: ${portfolioName} - ${adjustmentMessage}`);
+            if (targetUrl) {
+                log(`目标URL: ${targetUrl}`);
+            }
+            
+            // Create Windows notification for portfolio adjustment
+            createPortfolioNotification(portfolioName, adjustmentMessage, targetUrl);
+        }
+    }
+    else if (message.type === 'portfolioDetailDetected') {
+        log('检测到组合调仓详情。');
+        if (message.data && message.data.portfolioName) {
+            const { portfolioName, adjustmentDetail, messageId } = message.data;
+            log(`组合调仓详情通知: ${portfolioName} - ${adjustmentDetail} (消息ID: ${messageId})`);
+            
+            // Create Windows notification for portfolio adjustment details
+            createPortfolioDetailNotification(portfolioName, adjustmentDetail, messageId);
         }
     }
     return true;
@@ -209,21 +231,20 @@ async function handleContentData(response) {
     }
     
     const data = response.data;
-    let systemMessageNotificationOptions = null;
+    let systemMessageActionTaken = false;
     let timelineNotificationOptions = null;
 
     if (data.systemMessages) {
-        systemMessageNotificationOptions = await checkSystemMessageUpdate(data.systemMessages);
+        systemMessageActionTaken = await checkSystemMessageUpdate(data.systemMessages, 'Timer');
     }
     if (data.timeline) {
         timelineNotificationOptions = await checkTimelineUpdate(data.timeline);
     }
 
     // ** PRIORITY LOGIC **
-    // If there's a system message, prioritize it and ignore the timeline update.
-    if (systemMessageNotificationOptions) {
-        log('检测到系统消息更新，优先通知。');
-        createNotification('systemMessage', systemMessageNotificationOptions);
+    // If system message action was taken, prioritize it and ignore the timeline update.
+    if (systemMessageActionTaken) {
+        log('检测到系统消息更新，已直接打开新标签页。');
     } 
     // Otherwise, if there's only a timeline update, show that.
     else if (timelineNotificationOptions) {
@@ -268,33 +289,101 @@ async function checkTimelineUpdate({ signature, count, topPost }) {
     }
 }
 
-// ** MODIFIED FUNCTION: Returns notification options instead of creating notification **
-async function checkSystemMessageUpdate({ count, hasUnread }) {
-    const { lastMessageCount = 0 } = await chrome.storage.local.get('lastMessageCount');
+// ** MODIFIED FUNCTION: Directly opens new tab or switches to existing tab **
+async function checkSystemMessageUpdate({ count, hasUnread }, source = 'unknown') {
+    const { lastMessageCount = 0, lastSystemMessageActionTime = 0 } = await chrome.storage.local.get(['lastMessageCount', 'lastSystemMessageActionTime']);
+    const currentTime = Date.now();
+    
+    log(`[${source}] 检查系统消息更新 - 当前数量: ${count}, 有未读: ${hasUnread}, 上次数量: ${lastMessageCount}`);
     
     if (hasUnread && count > lastMessageCount) {
-        log(`发现新系统消息！旧数量: ${lastMessageCount}, 新数量: ${count}`);
-        await chrome.storage.local.set({ lastMessageCount: count });
-        
-        // Send click command to content script
-        const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
-        if (tabs.length > 0) {
-            //chrome.tabs.sendMessage(tabs[0].id, { type: 'clickSystemMessage' });
+        // 防止短时间内重复操作（5秒内）
+        if (currentTime - lastSystemMessageActionTime < 5000) {
+            log(`[${source}] 检测到新系统消息，但距离上次操作时间过短 (${currentTime - lastSystemMessageActionTime}ms)，跳过操作`);
+            return false;
         }
-
-        // Return the options object for the notification
-        return {
-            title: '雪球 - 系统消息',
-            message: `您有 ${count} 条新的系统消息`,
-            url: 'https://xueqiu.com/center/#/sys-message'
-        };
+        
+        log(`[${source}] 发现新系统消息！旧数量: ${lastMessageCount}, 新数量: ${count}`);
+        await chrome.storage.local.set({ 
+            lastMessageCount: count,
+            lastSystemMessageActionTime: currentTime
+        });
+        
+        const url = 'https://xueqiu.com/center/#/sys-message';
+        
+        // Check if system message page is already open
+        const existingTabs = await chrome.tabs.query({ url: 'https://xueqiu.com/center/*' });
+        const systemMessageTab = existingTabs.find(tab => tab.url.includes('#/sys-message'));
+        
+        if (systemMessageTab) {
+            // Switch to existing system message tab
+            log(`[${source}] 检测到新系统消息，跳转到已有的系统消息页面: ${systemMessageTab.url}`);
+            await chrome.windows.update(systemMessageTab.windowId, { focused: true });
+            await chrome.tabs.update(systemMessageTab.id, { active: true });
+            
+            // Start monitoring for portfolio adjustments on existing tab
+            await startSystemMessagePageMonitoring(systemMessageTab.id);
+        } else {
+            // No existing system message tab, create new one
+            log(`[${source}] 检测到新系统消息，打开新的系统消息标签页: ${url}`);
+            const newTab = await chrome.tabs.create({ url: url });
+            await chrome.windows.update(newTab.windowId, { focused: true });
+            
+            // Start monitoring for portfolio adjustments on new tab
+            await startSystemMessagePageMonitoring(newTab.id);
+        }
+        
+        return true; // Indicate that action was taken
     } else if (!hasUnread && lastMessageCount !== 0) {
-        log('系统消息已被阅读，重置计数器。');
+        log(`[${source}] 系统消息已被阅读，重置计数器。`);
         await chrome.storage.local.set({ lastMessageCount: 0 });
     } else {
-        log(`系统消息无变化。当前数量: ${count}`);
+        log(`[${source}] 系统消息无变化。当前数量: ${count}`);
     }
-    return null;
+    return false; // No action taken
+}
+
+async function startSystemMessagePageMonitoring(tabId) {
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    const attemptMonitoring = async () => {
+        try {
+            // Ensure content script is injected
+            await ensureContentScriptInjected(tabId);
+            
+            // Optimized wait - minimal delay for faster response
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Send message to start monitoring
+            const response = await chrome.tabs.sendMessage(tabId, { type: 'monitorSystemMessagePage' });
+            if (response && response.status === 'monitoring_started') {
+                log('系统消息页面监控已启动');
+                return true;
+            } else {
+                log(`启动系统消息页面监控失败，尝试次数: ${retryCount + 1}`);
+                return false;
+            }
+        } catch (error) {
+            log(`启动系统消息页面监控时出错 (尝试 ${retryCount + 1}): ${error.message}`);
+            return false;
+        }
+    };
+    
+    while (retryCount < maxRetries) {
+        const success = await attemptMonitoring();
+        if (success) {
+            return;
+        }
+        
+        retryCount++;
+        if (retryCount < maxRetries) {
+            log(`等待 ${retryCount * 1000}ms 后重试...`);
+            await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+        }
+    }
+    
+    log('系统消息页面监控启动失败，已达到最大重试次数');
 }
 
 function createNotification(type, options) {
@@ -316,6 +405,53 @@ function createNotification(type, options) {
     
     chrome.storage.local.set({ [notificationId]: options.url });
     log(`已创建通知: ${options.title}`);
+}
+
+function createPortfolioNotification(portfolioName, adjustmentMessage, targetUrl) {
+    const now = Date.now();
+    if (now - lastNotificationTimestamp < 2000) {
+        log('通知冷却中，跳过本次组合调仓通知。');
+        return;
+    }
+    lastNotificationTimestamp = now;
+
+    const notificationId = `portfolio-${Date.now()}`;
+    chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: 'icons/icon.png',
+        title: '雪球组合调仓提醒',
+        message: `${portfolioName} - ${adjustmentMessage}`,
+        priority: 2
+    });
+    
+    // Store the target URL for portfolio notifications
+    // If targetUrl is provided, use it; otherwise fallback to system message page
+    const urlToStore = targetUrl || 'https://xueqiu.com/center/#/sys-message';
+    chrome.storage.local.set({ [notificationId]: urlToStore });
+    log(`已创建组合调仓通知: ${portfolioName}, 目标URL: ${urlToStore}`);
+}
+
+function createPortfolioDetailNotification(portfolioName, adjustmentDetail, messageId) {
+    const now = Date.now();
+    if (now - lastNotificationTimestamp < 2000) {
+        log('通知冷却中，跳过本次组合调仓详情通知。');
+        return;
+    }
+    lastNotificationTimestamp = now;
+
+    const notificationId = `portfolioDetail-${Date.now()}`;
+    chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: 'icons/icon.png',
+        title: '雪球组合调仓详情',
+        message: `${portfolioName} - ${adjustmentDetail}`,
+        priority: 2
+    });
+    
+    // Store the system message page URL for portfolio detail notifications
+    const urlToStore = 'https://xueqiu.com/center/#/sys-message';
+    chrome.storage.local.set({ [notificationId]: urlToStore });
+    log(`已创建组合调仓详情通知: ${portfolioName}, 消息ID: ${messageId}`);
 }
 
 chrome.notifications.onClicked.addListener(async (notificationId) => {
@@ -343,6 +479,37 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
             } else {
                 // No existing tab, create a new one
                 await chrome.tabs.create({ url: url });
+            }
+        }
+        // Case 3: Portfolio Adjustment Notification - Open the specific portfolio page or system message page
+        else if (notificationId.startsWith('portfolio') && !notificationId.startsWith('portfolioDetail')) {
+            log(`组合调仓通知点击，跳转到目标页面: ${url}`);
+            const tabs = await chrome.tabs.query({ url: url });
+            if (tabs.length > 0) {
+                // Focus existing tab with the target URL
+                const tabId = tabs[0].id;
+                await chrome.windows.update(tabs[0].windowId, { focused: true });
+                await chrome.tabs.update(tabId, { active: true });
+            } else {
+                // Create new tab with the target URL
+                const newTab = await chrome.tabs.create({ url: url });
+                await chrome.windows.update(newTab.windowId, { focused: true });
+            }
+        }
+        // Case 4: Portfolio Detail Notification - Open system message page
+        else if (notificationId.startsWith('portfolioDetail')) {
+            log(`组合调仓详情通知点击，跳转到系统消息页面: ${url}`);
+            const tabs = await chrome.tabs.query({ url: 'https://xueqiu.com/center/*' });
+            const systemMessageTab = tabs.find(tab => tab.url.includes('#/sys-message'));
+            
+            if (systemMessageTab) {
+                // Focus existing system message tab
+                await chrome.windows.update(systemMessageTab.windowId, { focused: true });
+                await chrome.tabs.update(systemMessageTab.id, { active: true });
+            } else {
+                // Create new system message tab
+                const newTab = await chrome.tabs.create({ url: url });
+                await chrome.windows.update(newTab.windowId, { focused: true });
             }
         }
 

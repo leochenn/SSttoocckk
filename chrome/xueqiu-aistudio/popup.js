@@ -53,6 +53,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Settings title click event - open Chrome extensions page
+    const settingsTitle = document.getElementById('settingsTitle');
+    if (settingsTitle) {
+        settingsTitle.addEventListener('click', () => {
+            chrome.tabs.create({
+                url: 'chrome://extensions/'
+            });
+        });
+    }
+
     function saveSettings() {
         const intervalValue = Math.max(3, Math.min(60, parseInt(intervalInput.value, 10) || 10));
         intervalInput.value = intervalValue;
