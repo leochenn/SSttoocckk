@@ -2,6 +2,40 @@ if (typeof window.contentScriptInjected === 'undefined') {
     window.contentScriptInjected = true;
     console.log("雪球助手内容脚本已注入并运行。");
 
+    // 拦截页面的可见性与失焦事件，阻止其在非聚焦时暂停更新
+    function installTabVisibilityBlocker() {
+        try {
+            const blocker = (e) => {
+                const hidden = document.visibilityState === 'hidden' || document.hidden;
+                // 阻止页面对隐藏/失焦事件的处理
+                if (e.type === 'visibilitychange' || e.type === 'blur' || e.type === 'pagehide') {
+                    e.stopImmediatePropagation();
+                    // preventDefault 对该事件无效，但不影响拦截
+                    console.log(`[VisibilityBlocker] 拦截事件: ${e.type}, hidden=${hidden}`);
+                }
+            };
+            // 使用捕获阶段，保证先于页面脚本执行
+            document.addEventListener('visibilitychange', blocker, true);
+            window.addEventListener('blur', blocker, true);
+            window.addEventListener('pagehide', blocker, true);
+
+            // 尝试让 hasFocus 始终返回 true（部分站点会检测）
+            try {
+                const origHasFocus = Document.prototype.hasFocus;
+                Document.prototype.hasFocus = function() { return true; };
+                Document.prototype._origHasFocus = origHasFocus;
+            } catch (e) {
+                // 原型不可写时忽略
+            }
+
+            console.log('[VisibilityBlocker] 已启用，阻止页面在失焦时暂停更新。');
+        } catch (err) {
+            console.warn('[VisibilityBlocker] 启用失败:', err);
+        }
+    }
+
+    installTabVisibilityBlocker();
+
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // ** ADDED CHECK: Ensure the extension is still running before processing messages **
         if (!chrome.runtime?.id) {
