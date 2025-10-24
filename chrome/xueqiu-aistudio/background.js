@@ -163,12 +163,12 @@ function isWithinTradingHours() {
     const currentTime = hours * 100 + minutes;
 
     // Morning session: 9:20 AM to 11:31 AM (inclusive)
-    const morningStart = 9 * 100 + 20; // 920
-    const morningEnd = 11 * 100 + 31; // 1131
+    const morningStart = 8 * 100 + 20; // 920
+    const morningEnd = 11 * 100 + 55; // 1131
 
     // Afternoon session: 1:00 PM to 3:00 PM (inclusive)
-    const afternoonStart = 13 * 100 + 0; // 1300
-    const afternoonEnd = 15 * 100 + 0; // 1500
+    const afternoonStart = 12 * 100 + 50; // 1300
+    const afternoonEnd = 16 * 100 + 0; // 1500
 
     const isMorningSession = currentTime >= morningStart && currentTime <= morningEnd;
     const isAfternoonSession = currentTime >= afternoonStart && currentTime <= afternoonEnd;
