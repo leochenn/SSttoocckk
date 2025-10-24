@@ -402,6 +402,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
         
         // Store processed message details to prevent duplicates
         let processedMessageDetails = new Set();
+        
+        // Flag to track if this is the first message detection (skip notification for first message)
+        let isFirstMessageDetection = true;
 
         // 立即执行一次检查
         setTimeout(() => {
@@ -454,7 +457,14 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
                 logToExtension('info', `检测到新的调仓详情 - 组合: ${portfolioName}, 内容: ${contentText}`);
 
-                // Send notification to background script
+                // Skip notification for the first message detection (likely triggered by manual click)
+                if (isFirstMessageDetection) {
+                    logToExtension('info', `跳过第一条消息的提醒 - 组合: ${portfolioName} (可能是手动点击触发)`);
+                    isFirstMessageDetection = false;
+                    return;
+                }
+
+                // Send notification to background script for subsequent messages
                 chrome.runtime.sendMessage({
                     type: 'portfolioDetailDetected',
                     data: {
@@ -615,7 +625,27 @@ if (typeof window.contentScriptInjected === 'undefined') {
         function setupMessageDetailsObserver() {
             const messageWrap = document.querySelector('.im_message_wrap');
             if (messageWrap) {
-                const detailObserver = new MutationObserver(() => {
+                const detailObserver = new MutationObserver((mutations) => {
+                    // Check if this is a real content change (new message)
+                    let hasRealContentChange = false;
+                    mutations.forEach(mutation => {
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            // Check if added nodes contain message content
+                            mutation.addedNodes.forEach(node => {
+                                if (node.nodeType === Node.ELEMENT_NODE && 
+                                    (node.classList?.contains('snbim_card') || 
+                                     node.querySelector?.('.snbim_card'))) {
+                                    hasRealContentChange = true;
+                                }
+                            });
+                        }
+                    });
+                    
+                    // If this is a real content change after the initial load, allow notifications
+                    if (hasRealContentChange && !isFirstMessageDetection) {
+                        logToExtension('info', 'MutationObserver: 检测到新消息内容变化');
+                    }
+                    
                     checkMessageDetails();
                 });
                 
@@ -627,8 +657,14 @@ if (typeof window.contentScriptInjected === 'undefined') {
                 
                 console.log("消息详情监控已设置完成");
                 
-                // Initial check
+                // Initial check (this will skip the first message notification)
                 checkMessageDetails();
+                
+                // After initial check, reset the flag to allow future notifications
+                setTimeout(() => {
+                    isFirstMessageDetection = false;
+                    logToExtension('info', '初始消息检查完成，后续新消息将正常提醒');
+                }, 2000); // Wait 2 seconds after initial check
             } else {
                 // If im_message_wrap doesn't exist yet, set up a global observer to watch for it
                 const globalObserver = new MutationObserver((mutations) => {
