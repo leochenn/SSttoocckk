@@ -137,6 +137,19 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
             createPortfolioDetailNotification(portfolioName, adjustmentDetail, messageId);
         }
     }
+    else if (message.type === 'contentLog') {
+        // 处理来自 content script 的日志
+        if (message.data) {
+            const { level, message: logMessage, data } = message.data;
+            if (level === 'error') {
+                console.error(logMessage, data);
+            } else if (level === 'warn') {
+                console.warn(logMessage, data);
+            } else {
+                console.log(logMessage, data);
+            }
+        }
+    }
     return true;
 });
 
@@ -192,7 +205,15 @@ async function performCheck() {
             return;
         }
         
-        const tabId = tabs[0].id;
+        // 优先选择系统消息页面，如果存在的话
+        let selectedTab = tabs[0];
+        const systemMessageTab = tabs.find(tab => tab.url.includes('/center/#/sys-message'));
+        if (systemMessageTab && settings.monitorSystemMessages) {
+            selectedTab = systemMessageTab;
+            log(`发现系统消息页面，优先使用该页面进行检查: ${selectedTab.url}`);
+        }
+        
+        const tabId = selectedTab.id;
         log(`向页面 ${tabId} 发送检查指令。`);
         
         const response = await chrome.tabs.sendMessage(tabId, {

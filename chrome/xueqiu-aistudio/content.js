@@ -2,6 +2,39 @@ if (typeof window.contentScriptInjected === 'undefined') {
     window.contentScriptInjected = true;
     console.log("雪球助手内容脚本已注入并运行。");
 
+    // 统一日志系统 - 同时发送到 background 和本地控制台
+    function logToExtension(level, message, data = null) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = `[Content-${timestamp}] ${message}`;
+        
+        // 本地控制台输出（如果不被反调试阻止）
+        try {
+            if (level === 'error') {
+                console.error(logEntry, data);
+            } else if (level === 'warn') {
+                console.warn(logEntry, data);
+            } else {
+                console.log(logEntry, data);
+            }
+        } catch (e) {
+            // 被反调试阻止时忽略
+        }
+        
+        // 发送到 background 的扩展控制台
+        if (chrome.runtime?.id) {
+            try {
+                chrome.runtime.sendMessage({
+                    type: 'contentLog',
+                    data: { level, message: logEntry, data }
+                });
+            } catch (e) {
+                // 扩展上下文失效时忽略
+            }
+        }
+    }
+
+    logToExtension('info', '雪球助手内容脚本已注入并运行');
+
     // 拦截页面的可见性与失焦事件，阻止其在非聚焦时暂停更新
     function installTabVisibilityBlocker() {
         try {
@@ -11,7 +44,7 @@ if (typeof window.contentScriptInjected === 'undefined') {
                 if (e.type === 'visibilitychange' || e.type === 'blur' || e.type === 'pagehide') {
                     e.stopImmediatePropagation();
                     // preventDefault 对该事件无效，但不影响拦截
-                    console.log(`[VisibilityBlocker] 拦截事件: ${e.type}, hidden=${hidden}`);
+                    logToExtension('info', `[VisibilityBlocker] 拦截事件: ${e.type}, hidden=${hidden}`);
                 }
             };
             // 使用捕获阶段，保证先于页面脚本执行
@@ -28,9 +61,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
                 // 原型不可写时忽略
             }
 
-            console.log('[VisibilityBlocker] 已启用，阻止页面在失焦时暂停更新。');
+            logToExtension('info', '[VisibilityBlocker] 已启用，阻止页面在失焦时暂停更新');
         } catch (err) {
-            console.warn('[VisibilityBlocker] 启用失败:', err);
+            logToExtension('warn', '[VisibilityBlocker] 启用失败', err);
         }
     }
 
@@ -96,7 +129,7 @@ if (typeof window.contentScriptInjected === 'undefined') {
         else if (message.type === 'clickSystemMessage') {
             const messageLink = document.querySelector('li[data-analytics-data*="系统消息"] a');
             if (messageLink) {
-                console.log("检测到新系统消息，正在点击链接...");
+                logToExtension('info', '检测到新系统消息，正在点击链接');
                 messageLink.click();
             }
         }
@@ -120,7 +153,7 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
         // ** NEW LOGIC: Handle system message page monitoring **
         else if (message.type === 'monitorSystemMessagePage') {
-            console.log("开始监控系统消息页面的雪球组合会话...");
+            logToExtension('info', '开始监控系统消息页面的雪球组合会话');
             setupSystemMessagePageMonitor();
             sendResponse({ status: 'monitoring_started' });
         }
@@ -164,6 +197,12 @@ if (typeof window.contentScriptInjected === 'undefined') {
     }
 
     function getSystemMessageData() {
+        // 检查是否在系统消息页面
+        if (window.location.href.includes('/center/#/sys-message')) {
+            return getSystemMessageDataFromPage();
+        }
+        
+        // 原有的主页面逻辑
         const messageItem = document.querySelector('li[data-analytics-data*="系统消息"]');
         if (!messageItem) {
             throw new Error("无法找到系统消息元素。");
@@ -176,6 +215,103 @@ if (typeof window.contentScriptInjected === 'undefined') {
         }
 
         return { count: 0, hasUnread: false };
+    }
+
+    function getSystemMessageDataFromPage() {
+        try {
+            // 等待页面加载完成
+            const waitForElement = (selector, timeout = 5000) => {
+                return new Promise((resolve) => {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        resolve(element);
+                        return;
+                    }
+                    
+                    const observer = new MutationObserver(() => {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            observer.disconnect();
+                            resolve(element);
+                        }
+                    });
+                    
+                    observer.observe(document.body, { childList: true, subtree: true });
+                    
+                    setTimeout(() => {
+                        observer.disconnect();
+                        resolve(null);
+                    }, timeout);
+                });
+            };
+
+            // 尝试多种可能的选择器
+            const possibleSelectors = [
+                '.message-list',
+                '.sys-message-list', 
+                '[class*="message-list"]',
+                '[class*="list"]',
+                '.content',
+                '[class*="content"]',
+                'ul',
+                '.messages'
+            ];
+
+            let messageList = null;
+            for (const selector of possibleSelectors) {
+                messageList = document.querySelector(selector);
+                if (messageList && messageList.children.length > 0) {
+                    break;
+                }
+            }
+
+            if (!messageList) {
+                logToExtension('warn', '系统消息页面：未找到消息列表容器，尝试使用整个页面');
+                messageList = document.body;
+            }
+
+            // 查找所有可能的消息元素
+            const allMessages = messageList.querySelectorAll('li, .message-item, [class*="message"], div[class*="item"], .item');
+            
+            // 检查是否有调仓相关的消息
+            const portfolioMessages = Array.from(allMessages).filter(msg => {
+                const text = msg.textContent || '';
+                return text.includes('调仓') || text.includes('组合') || text.includes('买入') || text.includes('卖出') || text.includes('持仓');
+            });
+
+            // 检查未读状态 - 使用多种可能的未读标识
+            const hasUnreadPortfolio = portfolioMessages.some(msg => {
+                const classList = Array.from(msg.classList);
+                const hasUnreadClass = classList.some(cls => 
+                    cls.includes('unread') || cls.includes('new') || cls.includes('active')
+                );
+                const hasUnreadChild = msg.querySelector('.unread, .new, [class*="unread"], [class*="new"]');
+                const hasUnreadStyle = msg.style.fontWeight === 'bold' || 
+                                     getComputedStyle(msg).fontWeight === 'bold' ||
+                                     getComputedStyle(msg).fontWeight === '700';
+                
+                return hasUnreadClass || hasUnreadChild || hasUnreadStyle;
+            });
+
+            // 如果没有找到明确的未读标识，检查是否有新的调仓消息（基于时间或其他标识）
+            let hasUnread = hasUnreadPortfolio;
+            if (!hasUnread && portfolioMessages.length > 0) {
+                // 假设最新的消息可能是未读的
+                const latestMessage = portfolioMessages[0];
+                if (latestMessage) {
+                    hasUnread = true;
+                }
+            }
+
+            const count = portfolioMessages.length;
+
+            logToExtension('info', `系统消息页面检查结果 - 总消息: ${allMessages.length}, 组合消息: ${count}, 未读: ${hasUnread}`);
+            
+            return { count, hasUnread };
+        } catch (error) {
+            logToExtension('error', '系统消息页面数据获取失败', error);
+            return { count: 0, hasUnread: false };
+        }
     }
 
     function setupSystemMessageObserver() {
@@ -197,7 +333,7 @@ if (typeof window.contentScriptInjected === 'undefined') {
                 return;
             }
 
-            console.log("MutationObserver: 检测到系统消息元素变化。");
+            logToExtension('info', 'MutationObserver: 检测到系统消息元素变化');
             
             // 清除之前的定时器
             if (debounceTimer) {
@@ -243,21 +379,34 @@ if (typeof window.contentScriptInjected === 'undefined') {
         }
     }, 2000);
 
+    // 如果当前在系统消息页面，自动启动页面监控
+    if (window.location.href.includes('/center/#/sys-message')) {
+        logToExtension('info', '检测到系统消息页面，自动启动监控');
+        setTimeout(() => {
+            setupSystemMessagePageMonitor();
+        }, 2000); // 等待页面完全加载
+    }
+
     // ** NEW FUNCTION: Monitor system message page for portfolio updates **
     function setupSystemMessagePageMonitor() {
         // Check if we're on the system message page
         if (!window.location.href.includes('xueqiu.com/center/#/sys-message')) {
-            console.log("不在系统消息页面，跳过监控设置");
+            logToExtension('info', "不在系统消息页面，跳过监控设置");
             return;
         }
 
-        console.log("设置系统消息页面监控...");
+        logToExtension('info', "设置系统消息页面监控...");
         
         // Store the last known state
         let lastPortfolioState = null;
         
         // Store processed message details to prevent duplicates
         let processedMessageDetails = new Set();
+
+        // 立即执行一次检查
+        setTimeout(() => {
+            checkForPortfolioUpdates();
+        }, 1000);
 
         // Function to monitor message details in im_message_wrap
         function checkMessageDetails() {
@@ -303,7 +452,7 @@ if (typeof window.contentScriptInjected === 'undefined') {
                 // Mark this message as processed
                 processedMessageDetails.add(messageId);
 
-                console.log(`检测到新的调仓详情 - 组合: ${portfolioName}, 内容: ${contentText}`);
+                logToExtension('info', `检测到新的调仓详情 - 组合: ${portfolioName}, 内容: ${contentText}`);
 
                 // Send notification to background script
                 chrome.runtime.sendMessage({
