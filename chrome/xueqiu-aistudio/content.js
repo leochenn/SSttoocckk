@@ -408,7 +408,7 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
         // 立即执行一次检查
         setTimeout(() => {
-            checkForPortfolioUpdates();
+            checkPortfolioSession();
         }, 1000);
 
         // Function to monitor message details in im_message_wrap
