@@ -35,18 +35,164 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
     logToExtension('info', '雪球助手内容脚本已注入并运行');
 
+    // 全局变量用于组合调仓检查
+    let lastPortfolioState = null;
+
+    // 全局函数：检查组合调仓
+    function checkPortfolioSession() {
+        try {
+            console.log("正在检查雪球组合会话...");
+            
+            // Find the "雪球组合" session
+            const sessionItems = document.querySelectorAll('.session_item');
+            console.log(`找到 ${sessionItems.length} 个会话项`);
+            
+            let portfolioSession = null;
+
+            for (const session of sessionItems) {
+                const nameElement = session.querySelector('.session_target_name span');
+                if (nameElement) {
+                    const sessionName = nameElement.textContent.trim();
+                    console.log(`检查会话: ${sessionName}`);
+                    if (sessionName === '雪球组合') {
+                        portfolioSession = session;
+                        console.log("找到雪球组合会话");
+                        break;
+                    }
+                }
+            }
+
+            if (!portfolioSession) {
+                console.log("未找到雪球组合会话");
+                return;
+            }
+
+            // Check if there are unread messages
+            const unreadElement = portfolioSession.querySelector('.unread');
+            const unreadCount = unreadElement ? parseInt(unreadElement.textContent.trim()) : 0;
+            
+            // Check if unread element is visible
+            // When there are unread messages: style="false" 
+            // When no unread messages: style="display: none"
+            const styleAttr = unreadElement ? unreadElement.getAttribute('style') : '';
+            const isUnreadVisible = unreadElement && styleAttr !== 'display: none';
+                
+            const hasUnread = isUnreadVisible && unreadCount > 0;
+            console.log(`未读消息数量: ${unreadCount}, style属性: "${styleAttr}", 元素可见: ${isUnreadVisible}, 是否有未读: ${hasUnread}`);
+
+            // Get the summary message
+            const summaryElement = portfolioSession.querySelector('.session_summary');
+            const summaryText = summaryElement ? summaryElement.textContent.trim() : '';
+            console.log(`会话摘要: ${summaryText}`);
+
+            // Check if it's a portfolio adjustment message
+            const isPortfolioAdjustment = summaryText.includes('刚有一笔新调仓');
+            console.log(`是否为调仓消息: ${isPortfolioAdjustment}`);
+
+            const currentState = {
+                hasUnread,
+                summaryText,
+                isPortfolioAdjustment
+            };
+
+            // Check if we should send notification
+            let shouldNotify = false;
+            
+            if (hasUnread && isPortfolioAdjustment) {
+                if (!lastPortfolioState) {
+                    // First time checking - notify if there's an unread adjustment message
+                    shouldNotify = true;
+                    console.log("首次检查发现未读调仓消息");
+                } else if (!lastPortfolioState.hasUnread || lastPortfolioState.summaryText !== summaryText) {
+                    // State changed - new unread message or different message
+                    shouldNotify = true;
+                    console.log("检测到新的调仓消息变化");
+                }
+            }
+            
+            if (shouldNotify) {
+                // Extract portfolio name from message
+                const match = summaryText.match(/你关注的「(.+?)」刚有一笔新调仓/);
+                if (match && match[1]) {
+                    const portfolioName = match[1];
+                    console.log(`发送组合调仓通知: ${portfolioName}`);
+                    
+                    // Determine the target URL based on portfolio name
+                    let targetUrl = null;
+                    if (portfolioName === '测试组合') {
+                        targetUrl = 'https://xueqiu.com/P/ZH3362205';
+                    } else if (portfolioName === '可转债轮动策略') {
+                        targetUrl = 'https://xueqiu.com/P/ZH1332574';
+                    }
+                    
+                    // Send notification to background script
+                    if (chrome.runtime?.id) {
+                        chrome.runtime.sendMessage({
+                            type: 'portfolioAdjustmentDetected',
+                            data: {
+                                portfolioName: portfolioName,
+                                message: summaryText,
+                                targetUrl: targetUrl
+                            }
+                        });
+                    }
+                }
+            }
+
+            lastPortfolioState = currentState;
+
+        } catch (error) {
+            console.error("检查雪球组合会话时出错:", error);
+        }
+    }
+
     // 拦截页面的可见性与失焦事件，阻止其在非聚焦时暂停更新
     function installTabVisibilityBlocker() {
+        // 存储阻止器状态和引用
+        if (!window.visibilityBlockerState) {
+            window.visibilityBlockerState = {
+                isActive: false,
+                blockerFunction: null,
+                installCount: 0,
+                lastInstallTime: 0
+            };
+        }
+
+        const state = window.visibilityBlockerState;
+        
         try {
+            // 如果已经安装且时间间隔太短，跳过重复安装
+            const now = Date.now();
+            if (state.isActive && (now - state.lastInstallTime) < 5000) {
+                logToExtension('info', '[VisibilityBlocker] 跳过重复安装，当前状态正常');
+                return;
+            }
+
             const blocker = (e) => {
                 const hidden = document.visibilityState === 'hidden' || document.hidden;
                 // 阻止页面对隐藏/失焦事件的处理
                 if (e.type === 'visibilitychange' || e.type === 'blur' || e.type === 'pagehide') {
                     e.stopImmediatePropagation();
+                    e.stopPropagation();
                     // preventDefault 对该事件无效，但不影响拦截
                     logToExtension('info', `[VisibilityBlocker] 拦截事件: ${e.type}, hidden=${hidden}`);
                 }
             };
+
+            // 如果之前有阻止器，先移除
+            if (state.blockerFunction) {
+                try {
+                    document.removeEventListener('visibilitychange', state.blockerFunction, true);
+                    window.removeEventListener('blur', state.blockerFunction, true);
+                    window.removeEventListener('pagehide', state.blockerFunction, true);
+                } catch (e) {
+                    // 忽略移除失败
+                }
+            }
+
+            // 安装新的阻止器
+            state.blockerFunction = blocker;
+            
             // 使用捕获阶段，保证先于页面脚本执行
             document.addEventListener('visibilitychange', blocker, true);
             window.addEventListener('blur', blocker, true);
@@ -54,20 +200,167 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
             // 尝试让 hasFocus 始终返回 true（部分站点会检测）
             try {
-                const origHasFocus = Document.prototype.hasFocus;
-                Document.prototype.hasFocus = function() { return true; };
-                Document.prototype._origHasFocus = origHasFocus;
+                if (!Document.prototype._origHasFocus) {
+                    const origHasFocus = Document.prototype.hasFocus;
+                    Document.prototype.hasFocus = function() { return true; };
+                    Document.prototype._origHasFocus = origHasFocus;
+                }
             } catch (e) {
                 // 原型不可写时忽略
             }
 
-            logToExtension('info', '[VisibilityBlocker] 已启用，阻止页面在失焦时暂停更新');
+            // 更新状态
+            state.isActive = true;
+            state.installCount++;
+            state.lastInstallTime = now;
+
+            logToExtension('info', `[VisibilityBlocker] 已启用 (第${state.installCount}次安装)，阻止页面在失焦时暂停更新`);
         } catch (err) {
             logToExtension('warn', '[VisibilityBlocker] 启用失败', err);
+            state.isActive = false;
         }
     }
 
     installTabVisibilityBlocker();
+
+    // 定期检查和重新安装可见性阻止器，确保长期稳定性
+    function maintainVisibilityBlocker() {
+        // 检查阻止器是否仍然有效
+        const state = window.visibilityBlockerState;
+        if (!state || !state.isActive) {
+            logToExtension('warn', '[VisibilityBlocker] 检测到阻止器失效，重新安装');
+            installTabVisibilityBlocker();
+            return;
+        }
+
+        // 测试阻止器是否正常工作
+        try {
+            // 创建一个测试事件来验证阻止器
+            const testEvent = new Event('visibilitychange', { bubbles: true, cancelable: true });
+            let eventBlocked = false;
+            
+            const testListener = (e) => {
+                if (e === testEvent) {
+                    eventBlocked = true;
+                }
+            };
+            
+            // 添加测试监听器（在阻止器之后）
+            document.addEventListener('visibilitychange', testListener, false);
+            
+            // 触发测试事件
+            document.dispatchEvent(testEvent);
+            
+            // 移除测试监听器
+            document.removeEventListener('visibilitychange', testListener, false);
+            
+            // 如果事件没有被阻止，说明阻止器可能失效了
+            if (eventBlocked) {
+                logToExtension('warn', '[VisibilityBlocker] 检测到阻止器可能失效，重新安装');
+                installTabVisibilityBlocker();
+            } else {
+                logToExtension('info', '[VisibilityBlocker] 状态检查正常');
+            }
+        } catch (e) {
+            logToExtension('warn', '[VisibilityBlocker] 状态检查失败，重新安装', e);
+            installTabVisibilityBlocker();
+        }
+    }
+
+    // 每30秒检查一次阻止器状态
+    setInterval(maintainVisibilityBlocker, 30000);
+
+    // 增强监控机制 - 定期主动检查系统消息
+    let enhancedMonitoringInterval = null;
+    
+    function startEnhancedMonitoring() {
+        if (enhancedMonitoringInterval) {
+            clearInterval(enhancedMonitoringInterval);
+        }
+        
+        // 只在系统消息页面启动增强监控
+        if (window.location.href.includes('/center/#/sys-message')) {
+            logToExtension('info', '[EnhancedMonitoring] 启动增强监控机制');
+            
+            enhancedMonitoringInterval = setInterval(() => {
+                try {
+                    // 检查扩展上下文是否仍然有效
+                    if (!chrome.runtime?.id) {
+                        logToExtension('warn', '[EnhancedMonitoring] 扩展上下文失效，停止监控');
+                        clearInterval(enhancedMonitoringInterval);
+                        return;
+                    }
+                    
+                    // 主动检查系统消息数据
+                    const systemMessageData = getSystemMessageDataFromPage();
+                    if (systemMessageData) {
+                        // 发送主动更新消息
+                        chrome.runtime.sendMessage({
+                            type: 'proactiveSystemMessageUpdate',
+                            data: systemMessageData,
+                            source: 'EnhancedMonitoring'
+                        }).catch(error => {
+                            if (!error.message.includes('Extension context invalidated')) {
+                                logToExtension('warn', '[EnhancedMonitoring] 发送消息失败', error);
+                            }
+                        });
+                    }
+                    
+                    // 检查组合调仓
+                    checkPortfolioSession();
+                    
+                } catch (error) {
+                    logToExtension('warn', '[EnhancedMonitoring] 执行失败', error);
+                }
+            }, 20000); // 每20秒检查一次
+        }
+    }
+    
+    // 启动增强监控
+    startEnhancedMonitoring();
+    
+    // 页面导航时重新启动监控
+    let lastUrl = window.location.href;
+    setInterval(() => {
+        if (window.location.href !== lastUrl) {
+            lastUrl = window.location.href;
+            logToExtension('info', '[EnhancedMonitoring] 检测到页面导航，重新启动监控');
+            startEnhancedMonitoring();
+        }
+    }, 5000);
+
+    // 页面可见性变化时也重新安装（防止页面脚本干扰）
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            logToExtension('info', '[VisibilityBlocker] DOM加载完成，重新安装阻止器');
+            installTabVisibilityBlocker();
+        }, 1000);
+    });
+
+    // 监听页面动态内容变化，可能有新脚本加载
+    const pageObserver = new MutationObserver((mutations) => {
+        let hasScriptChanges = false;
+        mutations.forEach(mutation => {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE && 
+                        (node.tagName === 'SCRIPT' || node.querySelector('script'))) {
+                        hasScriptChanges = true;
+                    }
+                });
+            }
+        });
+        
+        if (hasScriptChanges) {
+            logToExtension('info', '[VisibilityBlocker] 检测到新脚本加载，重新安装阻止器');
+            setTimeout(installTabVisibilityBlocker, 500);
+        }
+    });
+
+    pageObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+    });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // ** ADDED CHECK: Ensure the extension is still running before processing messages **
@@ -80,6 +373,19 @@ if (typeof window.contentScriptInjected === 'undefined') {
         if (message.type === 'ping') {
             sendResponse({ status: 'ready' });
             return true;
+        }
+        
+        if (message.type === 'requestSystemMessageData') {
+            // 主动轮询请求 - 立即获取当前页面数据
+            try {
+                const data = getSystemMessageDataFromPage();
+                logToExtension('info', '[ActivePolling] 响应主动轮询请求');
+                sendResponse({ data: data });
+            } catch (error) {
+                logToExtension('warn', '[ActivePolling] 获取数据失败', error);
+                sendResponse({ data: null, error: error.message });
+            }
+            return true; // 保持消息通道开放
         }
         
         if (message.type === 'checkForUpdates') {
@@ -397,9 +703,6 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
         logToExtension('info', "设置系统消息页面监控...");
         
-        // Store the last known state
-        let lastPortfolioState = null;
-        
         // Store processed message details to prevent duplicates
         let processedMessageDetails = new Set();
         
@@ -476,112 +779,7 @@ if (typeof window.contentScriptInjected === 'undefined') {
             }
         }
 
-        function checkPortfolioSession() {
-            try {
-                console.log("正在检查雪球组合会话...");
-                
-                // Find the "雪球组合" session
-                const sessionItems = document.querySelectorAll('.session_item');
-                console.log(`找到 ${sessionItems.length} 个会话项`);
-                
-                let portfolioSession = null;
 
-                for (const session of sessionItems) {
-                    const nameElement = session.querySelector('.session_target_name span');
-                    if (nameElement) {
-                        const sessionName = nameElement.textContent.trim();
-                        console.log(`检查会话: ${sessionName}`);
-                        if (sessionName === '雪球组合') {
-                            portfolioSession = session;
-                            console.log("找到雪球组合会话");
-                            break;
-                        }
-                    }
-                }
-
-                if (!portfolioSession) {
-                    console.log("未找到雪球组合会话");
-                    return;
-                }
-
-                // Check if there are unread messages
-                const unreadElement = portfolioSession.querySelector('.unread');
-                const unreadCount = unreadElement ? parseInt(unreadElement.textContent.trim()) : 0;
-                
-                // Check if unread element is visible
-                // When there are unread messages: style="false" 
-                // When no unread messages: style="display: none"
-                const styleAttr = unreadElement ? unreadElement.getAttribute('style') : '';
-                const isUnreadVisible = unreadElement && styleAttr !== 'display: none';
-                    
-                const hasUnread = isUnreadVisible && unreadCount > 0;
-                console.log(`未读消息数量: ${unreadCount}, style属性: "${styleAttr}", 元素可见: ${isUnreadVisible}, 是否有未读: ${hasUnread}`);
-
-                // Get the summary message
-                const summaryElement = portfolioSession.querySelector('.session_summary');
-                const summaryText = summaryElement ? summaryElement.textContent.trim() : '';
-                console.log(`会话摘要: ${summaryText}`);
-
-                // Check if it's a portfolio adjustment message
-                const isPortfolioAdjustment = summaryText.includes('刚有一笔新调仓');
-                console.log(`是否为调仓消息: ${isPortfolioAdjustment}`);
-
-                const currentState = {
-                    hasUnread,
-                    summaryText,
-                    isPortfolioAdjustment
-                };
-
-                // Check if we should send notification
-                let shouldNotify = false;
-                
-                if (hasUnread && isPortfolioAdjustment) {
-                    if (!lastPortfolioState) {
-                        // First time checking - notify if there's an unread adjustment message
-                        shouldNotify = true;
-                        console.log("首次检查发现未读调仓消息");
-                    } else if (!lastPortfolioState.hasUnread || lastPortfolioState.summaryText !== summaryText) {
-                        // State changed - new unread message or different message
-                        shouldNotify = true;
-                        console.log("检测到新的调仓消息变化");
-                    }
-                }
-                
-                if (shouldNotify) {
-                    // Extract portfolio name from message
-                    const match = summaryText.match(/你关注的「(.+?)」刚有一笔新调仓/);
-                    if (match && match[1]) {
-                        const portfolioName = match[1];
-                        console.log(`发送组合调仓通知: ${portfolioName}`);
-                        
-                        // Determine the target URL based on portfolio name
-                        let targetUrl = null;
-                        if (portfolioName === '测试组合') {
-                            targetUrl = 'https://xueqiu.com/P/ZH3362205';
-                        } else if (portfolioName === '可转债轮动策略') {
-                            targetUrl = 'https://xueqiu.com/P/ZH1332574';
-                        }
-                        
-                        // Send notification to background script
-                        if (chrome.runtime?.id) {
-                            chrome.runtime.sendMessage({
-                                type: 'portfolioAdjustmentDetected',
-                                data: {
-                                    portfolioName: portfolioName,
-                                    message: summaryText,
-                                    targetUrl: targetUrl
-                                }
-                            });
-                        }
-                    }
-                }
-
-                lastPortfolioState = currentState;
-
-            } catch (error) {
-                console.error("检查雪球组合会话时出错:", error);
-            }
-        }
 
         // Smart initial check - wait for elements to be available
         function waitForElementsAndCheck() {

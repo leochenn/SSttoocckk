@@ -394,6 +394,8 @@ async function startSystemMessagePageMonitoring(tabId) {
     while (retryCount < maxRetries) {
         const success = await attemptMonitoring();
         if (success) {
+            // 启动主动轮询机制
+            startActivePolling(tabId);
             return;
         }
         
@@ -406,6 +408,140 @@ async function startSystemMessagePageMonitoring(tabId) {
     
     log('系统消息页面监控启动失败，已达到最大重试次数');
 }
+
+// 主动轮询机制 - 解决浏览器节流问题
+let pollingIntervals = new Map(); // 存储每个标签页的轮询定时器
+
+async function startActivePolling(tabId) {
+    // 如果已经有轮询在运行，先清除
+    if (pollingIntervals.has(tabId)) {
+        clearInterval(pollingIntervals.get(tabId));
+    }
+    
+    log(`启动标签页 ${tabId} 的主动轮询机制`);
+    
+    const pollInterval = setInterval(async () => {
+        try {
+            // 检查标签页是否仍然存在
+            const tab = await chrome.tabs.get(tabId).catch(() => null);
+            if (!tab) {
+                log(`标签页 ${tabId} 已关闭，停止轮询`);
+                clearInterval(pollInterval);
+                pollingIntervals.delete(tabId);
+                return;
+            }
+            
+            // 检查是否是系统消息页面
+            if (!tab.url.includes('/center/#/sys-message')) {
+                log(`标签页 ${tabId} 已导航到其他页面，停止轮询`);
+                clearInterval(pollInterval);
+                pollingIntervals.delete(tabId);
+                return;
+            }
+            
+            // 主动请求页面数据
+            chrome.tabs.sendMessage(tabId, { 
+                type: 'requestSystemMessageData' 
+            }).then(response => {
+                if (response && response.data) {
+                    log('主动轮询获取到系统消息数据');
+                    checkSystemMessageUpdate(response.data, 'ActivePolling');
+                }
+            }).catch(error => {
+                // 忽略连接错误，可能是页面还在加载
+                if (!error.message.includes('Could not establish connection')) {
+                    log(`主动轮询通信失败: ${error.message}`);
+                }
+            });
+            
+        } catch (error) {
+            log(`主动轮询执行失败: ${error.message}`);
+        }
+    }, 15000); // 每15秒轮询一次
+    
+    pollingIntervals.set(tabId, pollInterval);
+}
+
+// 停止指定标签页的轮询
+function stopActivePolling(tabId) {
+    if (pollingIntervals.has(tabId)) {
+        clearInterval(pollingIntervals.get(tabId));
+        pollingIntervals.delete(tabId);
+        log(`已停止标签页 ${tabId} 的主动轮询`);
+    }
+}
+
+// 心跳检测机制 - 确保扩展持续工作
+let heartbeatInterval = null;
+let lastHeartbeatTime = Date.now();
+
+function startHeartbeat() {
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+    }
+    
+    log('启动心跳检测机制');
+    
+    heartbeatInterval = setInterval(async () => {
+        const now = Date.now();
+        lastHeartbeatTime = now;
+        
+        try {
+            // 检查是否有活跃的系统消息标签页
+            const tabs = await chrome.tabs.query({
+                url: "*://xueqiu.com/center/*"
+            });
+            
+            const systemMessageTabs = tabs.filter(tab => 
+                tab.url.includes('/center/#/sys-message')
+            );
+            
+            if (systemMessageTabs.length > 0) {
+                log(`心跳检测: 发现 ${systemMessageTabs.length} 个系统消息标签页`);
+                
+                // 确保每个标签页都有轮询机制
+                for (const tab of systemMessageTabs) {
+                    if (!pollingIntervals.has(tab.id)) {
+                        log(`心跳检测: 为标签页 ${tab.id} 重新启动轮询`);
+                        startActivePolling(tab.id);
+                    }
+                }
+            } else {
+                log('心跳检测: 未发现活跃的系统消息标签页');
+            }
+            
+            // 清理已关闭标签页的轮询
+            const activeTabIds = tabs.map(tab => tab.id);
+            for (const [tabId, interval] of pollingIntervals.entries()) {
+                if (!activeTabIds.includes(tabId)) {
+                    log(`心跳检测: 清理已关闭标签页 ${tabId} 的轮询`);
+                    clearInterval(interval);
+                    pollingIntervals.delete(tabId);
+                }
+            }
+            
+        } catch (error) {
+            log(`心跳检测执行失败: ${error.message}`);
+        }
+    }, 60000); // 每60秒心跳一次
+}
+
+// 检查心跳是否正常
+function checkHeartbeat() {
+    const now = Date.now();
+    const timeSinceLastHeartbeat = now - lastHeartbeatTime;
+    
+    if (timeSinceLastHeartbeat > 120000) { // 超过2分钟没有心跳
+        log('检测到心跳异常，重新启动心跳机制');
+        startHeartbeat();
+    }
+}
+
+// 启动心跳检测
+startHeartbeat();
+
+// 定期检查心跳状态
+setInterval(checkHeartbeat, 30000); // 每30秒检查一次心跳
 
 function createNotification(type, options) {
     const now = Date.now();
