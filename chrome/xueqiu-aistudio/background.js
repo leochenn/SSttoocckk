@@ -1,5 +1,6 @@
 const ALARM_NAME = 'xueqiuMonitorAlarm';
 let lastNotificationTimestamp = 0;
+let lastNoPostsNotificationTimestamp = 0;
 
 // NTFY 服务地址
 const NTFY_URL = 'http://118.89.62.149:8090/ctrl_pc';
@@ -23,6 +24,18 @@ async function sendNtfyNotificationToBackground(message) {
     } catch (error) {
         log(`发送 NTFY 通知时出错:`, error);
     }
+}
+
+// 限流发送“未找到帖子”通知 (一分钟一次)
+async function sendThrottledNoPostsNotification() {
+    const now = Date.now();
+    if (now - lastNoPostsNotificationTimestamp < 60000) {
+        log('未找到帖子通知冷却中（一分钟限流），跳过发送。');
+        return;
+    }
+    lastNoPostsNotificationTimestamp = now;
+    log('正在发送“未找到帖子”通知到 NTFY...');
+    await sendNtfyNotificationToBackground('雪球监控提示：未找到任何帖子，可能触发了安全验证，请手动检查。');
 }
 
 
@@ -276,8 +289,14 @@ async function performCheck() {
         });
 
         if (response && response.data) {
-            const { newContent, systemMessages } = response.data;
+            const { newContent, systemMessages, error: dataError } = response.data;
             let notified = false;
+
+            // 0. 处理特殊错误：未找到帖子 (可能是安全机制)
+            if (dataError === 'NO_POSTS') {
+                log('内容脚本报告：未找到任何帖子，可能触发了安全机制。');
+                await sendThrottledNoPostsNotification();
+            }
 
             // 1. 处理新内容 (Timeline) - 优先级最高
             if (newContent) {

@@ -115,14 +115,14 @@ if (typeof window.contentScriptInjected === 'undefined') {
         const posts = document.querySelectorAll('.status-list article.timeline__item');
         if (posts.length === 0) {
             logToExtension('warn', '未找到任何帖子。');
-            return null;
+            return { error: 'NO_POSTS' };
         }
 
         const firstPost = posts[0];
         const contentEl = firstPost.querySelector('.timeline__item__content .content--description');
         if (!contentEl) {
             logToExtension('warn', '未找到顶部帖子的内容描述。');
-            return null;
+            return { error: 'NO_CONTENT_DESCRIPTION' };
         }
 
         const userEl = firstPost.querySelector('.user-name');
@@ -549,11 +549,12 @@ if (typeof window.contentScriptInjected === 'undefined') {
                     await waitForContentLoad();
 
                     // 获取最新帖子内容及连续计数
-                    const currentTopPost = getTopPostDetails(); // 预期返回 { signature: string, count: number }
-                    logToExtension('info', `当前最新内容: ${currentTopPost ? currentTopPost.signature.substring(0, 30) : '无'}... (连续 ${currentTopPost ? currentTopPost.count : 0} 条)`);
-
-                    // 比较新旧内容：签名不同 OR 连续计数不同
-                    if (currentTopPost && (currentTopPost.signature !== lastTimelineContent.signature || currentTopPost.count !== lastTimelineContent.count)) {
+                    const currentTopPost = getTopPostDetails(); // 预期返回 { signature: string, count: number } 或 { error: string }
+                    
+                    if (currentTopPost && currentTopPost.error) {
+                        responseData.error = currentTopPost.error;
+                        logToExtension('warn', `获取内容时遇到错误: ${currentTopPost.error}`);
+                    } else if (currentTopPost && (currentTopPost.signature !== lastTimelineContent.signature || currentTopPost.count !== lastTimelineContent.count)) {
                         logToExtension('info', '检测到关注列表新内容！');
                         // 更新存储
                         await chrome.storage.local.set({ lastTimelineContent: currentTopPost });
