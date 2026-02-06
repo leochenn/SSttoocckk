@@ -35,9 +35,128 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
     logToExtension('info', '雪球助手内容脚本已注入并运行');
 
-    // 全局变量用于组合调仓检查
-    let lastPortfolioState = null;
+    // NTFY 服务地址 (现在由 background.js 处理)
+    const NTFY_URL = 'http://118.89.62.149:8090/ctrl_pc'; // 保留URL以便参考，但不再在此处使用
 
+    // 用于存储上次检测到的时间线内容
+    let lastTimelineContent = '';
+
+    // sendNtfyNotification 函数已移除，通知逻辑移至 background.js
+
+
+    // 点击“关注” Tab
+    async function clickFollowTab() {
+        logToExtension('info', '尝试点击“关注”Tab...');
+        // 精确定位：div.home-timeline-tabs -> div.sticky-content-fixed -> a (innerText 关注)
+        const followTabContainer = document.querySelector('.home-timeline-tabs .sticky-content-fixed');
+        let followTab = null;
+        if (followTabContainer) {
+            const potentialTabs = followTabContainer.querySelectorAll('a');
+            for (const tab of potentialTabs) {
+                if (tab.innerText.trim() === '关注') {
+                    followTab = tab;
+                    break;
+                }
+            }
+        }
+        
+        if (followTab) {
+            followTab.click();
+            logToExtension('info', '成功点击“关注”Tab (无论是否已激活)。');
+            return true;
+        } else {
+            logToExtension('warn', '未找到“关注”Tab。');
+            throw new Error('未找到“关注”Tab');
+        }
+    }
+
+    // 等待内容加载完成
+    async function waitForContentLoad(timeout = 5000) {
+        logToExtension('info', '等待内容加载...');
+        const statusList = document.querySelector('.status-list');
+        if (!statusList) {
+            logToExtension('warn', '未找到 .status-list 容器，可能页面结构已改变或未加载。');
+            // 如果容器不存在，就直接返回，让后续的 getTopPostDetails 去处理
+            return;
+        }
+
+        // 记录初始DOM状态，用于判断是否有变化
+        let initialChildCount = statusList.children.length;
+        let initialFirstChildHTML = statusList.firstElementChild ? statusList.firstElementChild.innerHTML : '';
+        logToExtension('debug', `初始 .status-list 子元素数量: ${initialChildCount}, 初始第一个子元素HTML片段: ${initialFirstChildHTML.substring(0, 50)}...`);
+
+        let attempt = 0;
+        const maxAttempts = timeout / 200; // 每200ms检查一次
+
+        while (attempt < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            const currentChildCount = statusList.children.length;
+            const currentFirstChildHTML = statusList.firstElementChild ? statusList.firstElementChild.innerHTML : '';
+            
+            // 检查是否有加载指示器
+            const loadingIndicator = document.querySelector('.status-list .loading, .status-list .loading-icon, .status-list .loading-text');
+            
+            // 如果加载指示器消失，且内容有变化，则认为加载完成
+            if (!loadingIndicator && (currentChildCount !== initialChildCount || currentFirstChildHTML !== initialFirstChildHTML)) {
+                logToExtension('info', `内容已加载，且DOM有变化 (尝试 ${attempt + 1})。`);
+                return;
+            } else if (!loadingIndicator && attempt > 0) { // 如果没有加载指示器，且等待了一段时间，也认为加载完成（可能是瞬时加载）
+                logToExtension('info', `无明显加载指示器，经过 ${attempt + 1} 次尝试，认为加载完成。`);
+                return;
+            }
+            attempt++;
+        }
+        logToExtension('warn', '等待内容加载超时，或者内容未发生明显变化。');
+    }
+
+    // 获取页面顶部帖子内容及连续出现次数
+    function getTopPostDetails() {
+        const posts = document.querySelectorAll('.status-list article.timeline__item');
+        if (posts.length === 0) {
+            logToExtension('warn', '未找到任何帖子。');
+            return null;
+        }
+
+        const firstPost = posts[0];
+        const contentEl = firstPost.querySelector('.timeline__item__content .content--description');
+        if (!contentEl) {
+            logToExtension('warn', '未找到顶部帖子的内容描述。');
+            return null;
+        }
+
+        const userEl = firstPost.querySelector('.user-name');
+        const userName = userEl ? userEl.innerText.trim() : '未知用户';
+        const postContent = contentEl.innerText.trim();
+
+        // 计算顶部帖子签名
+        const topSignature = `${userName}: ${postContent}`;
+        let consecutiveCount = 0;
+
+        // 遍历帖子，计算与顶部帖子签名相同的连续帖子数量
+        for (const post of posts) {
+            const currentPostUserEl = post.querySelector('.user-name');
+            const currentPostContentEl = post.querySelector('.timeline__item__content .content--description');
+            if (currentPostUserEl && currentPostContentEl) {
+                const currentSignature = `${currentPostUserEl.innerText.trim()}: ${currentPostContentEl.innerText.trim()}`;
+                if (currentSignature === topSignature) {
+                    consecutiveCount++;
+                } else {
+                    break; // 遇到不同内容就停止计数
+                }
+            } else {
+                break; // 无法解析帖子也停止计数
+            }
+        }
+        
+        const result = {
+            signature: topSignature,
+            count: consecutiveCount
+        };
+        logToExtension('info', `成功获取顶部帖子内容: ${result.signature.substring(0, 50)}... (连续 ${result.count} 条)`);
+        return result;
+    }
+    /*
     // 全局函数：检查组合调仓
     function checkPortfolioSession() {
         try {
@@ -145,7 +264,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
             console.error("检查雪球组合会话时出错:", error);
         }
     }
+    */
 
+    /*
     // 拦截页面的可见性与失焦事件，阻止其在非聚焦时暂停更新
     function installTabVisibilityBlocker() {
         // 存储阻止器状态和引用
@@ -269,7 +390,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
     // 每30秒检查一次阻止器状态
     setInterval(maintainVisibilityBlocker, 30000);
+    */
 
+    /*
     // 增强监控机制 - 定期主动检查系统消息
     let enhancedMonitoringInterval = null;
     
@@ -328,7 +451,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
             startEnhancedMonitoring();
         }
     }, 5000);
+    */
 
+    /*
     // 页面可见性变化时也重新安装（防止页面脚本干扰）
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
@@ -361,6 +486,26 @@ if (typeof window.contentScriptInjected === 'undefined') {
         childList: true,
         subtree: true
     });
+    */
+
+    // 获取系统消息未读数
+    function getSystemMessageUnreadCount() {
+        const messageItem = document.querySelector('li[data-analytics-data*="系统消息"]');
+        if (!messageItem) {
+            logToExtension('warn', '未找到系统消息元素。');
+            return { count: 0, hasUnread: false };
+        }
+        
+        const countSpan = messageItem.querySelector('span');
+        if (countSpan && countSpan.innerText) {
+            const count = parseInt(countSpan.innerText, 10);
+            logToExtension('info', `检测到系统消息未读数: ${count}`);
+            return { count: isNaN(count) ? 0 : count, hasUnread: count > 0 };
+        }
+
+        logToExtension('info', '系统消息无未读数显示。');
+        return { count: 0, hasUnread: false };
+    }
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // ** ADDED CHECK: Ensure the extension is still running before processing messages **
@@ -375,6 +520,68 @@ if (typeof window.contentScriptInjected === 'undefined') {
             return true;
         }
         
+        if (message.type === 'refreshAndCheckTimeline') {
+            logToExtension('info', '收到刷新并检查关注列表指令');
+            // 检查当前是否在雪球首页
+            if (!window.location.href.startsWith('https://xueqiu.com/')) {
+                logToExtension('warn', '当前不在雪球首页，静默等待。');
+                sendResponse({ error: '不在雪球首页' });
+                return true;
+            }
+
+            // 获取存储的上次内容
+            chrome.storage.local.get('lastTimelineContent', async (result) => {
+                let storedContent = result.lastTimelineContent;
+                if (typeof storedContent === 'string') { // 处理旧的字符串格式存储
+                    lastTimelineContent = { signature: storedContent, count: 1 }; // 假设旧字符串为一条
+                } else {
+                    lastTimelineContent = storedContent || { signature: '', count: 0 };
+                }
+                logToExtension('info', `上次记录的内容: ${lastTimelineContent.signature.substring(0, 30)}... (连续 ${lastTimelineContent.count} 条)`);
+
+                const responseData = {};
+
+                try {
+                    // 点击关注 Tab
+                    await clickFollowTab();
+
+                    // 等待内容加载
+                    await waitForContentLoad();
+
+                    // 获取最新帖子内容及连续计数
+                    const currentTopPost = getTopPostDetails(); // 预期返回 { signature: string, count: number }
+                    logToExtension('info', `当前最新内容: ${currentTopPost ? currentTopPost.signature.substring(0, 30) : '无'}... (连续 ${currentTopPost ? currentTopPost.count : 0} 条)`);
+
+                    // 比较新旧内容：签名不同 OR 连续计数不同
+                    if (currentTopPost && (currentTopPost.signature !== lastTimelineContent.signature || currentTopPost.count !== lastTimelineContent.count)) {
+                        logToExtension('info', '检测到关注列表新内容！');
+                        // 更新存储
+                        await chrome.storage.local.set({ lastTimelineContent: currentTopPost });
+                        lastTimelineContent = currentTopPost;
+                        responseData.newContent = currentTopPost.signature; // 仅发送 signature 到 background
+                    } else {
+                        logToExtension('info', '关注列表无新内容或无变化。');
+                        responseData.newContent = null;
+                    }
+
+                    // 如果需要检查系统消息
+                    if (message.options && message.options.checkSystemMessages) {
+                        responseData.systemMessages = getSystemMessageUnreadCount();
+                    }
+
+                    // 向 background.js 发送所有相关数据
+                    sendResponse({ success: true, data: responseData });
+
+                } catch (error) {
+                    logToExtension('error', `处理刷新和检查关注列表时发生错误: ${error.message}`);
+                    sendResponse({ error: error.message });
+                }
+            });
+            return true; // 保持消息通道开放，以便异步响应
+        }
+        
+        // ------------------ 旧的监控逻辑 (已屏蔽) ------------------
+        /*
         if (message.type === 'requestSystemMessageData') {
             // 主动轮询请求 - 立即获取当前页面数据
             try {
@@ -463,8 +670,14 @@ if (typeof window.contentScriptInjected === 'undefined') {
             setupSystemMessagePageMonitor();
             sendResponse({ status: 'monitoring_started' });
         }
+        */
+        // ------------------ 旧的监控逻辑结束 ------------------
+
+        // Fallback for unhandled messages
+        return false; 
     });
 
+    /*
     function getTimelineData() {
         const posts = document.querySelectorAll('.status-list > article.timeline__item:nth-child(-n+10)');
         if (posts.length === 0) {
@@ -501,7 +714,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
         return { signature, count: consecutiveCount, topPost: topPostDetails };
     }
+    */
 
+    /*
     function getSystemMessageData() {
         // 检查是否在系统消息页面
         if (window.location.href.includes('/center/#/sys-message')) {
@@ -522,7 +737,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
 
         return { count: 0, hasUnread: false };
     }
+    */
 
+    /*
     function getSystemMessageDataFromPage() {
         try {
             // 等待页面加载完成
@@ -619,7 +836,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
             return { count: 0, hasUnread: false };
         }
     }
+    */
 
+    /*
     function setupSystemMessageObserver() {
         const targetNode = document.querySelector('li[data-analytics-data*="系统消息"]');
 
@@ -684,7 +903,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
             clearInterval(setupInterval);
         }
     }, 2000);
+    */
 
+    /*
     // 如果当前在系统消息页面，自动启动页面监控
     if (window.location.href.includes('/center/#/sys-message')) {
         logToExtension('info', '检测到系统消息页面，自动启动监控');
@@ -895,4 +1116,5 @@ if (typeof window.contentScriptInjected === 'undefined') {
         // Set up message details observer
         setupMessageDetailsObserver();
     }
+    */
 }

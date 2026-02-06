@@ -1,6 +1,31 @@
 const ALARM_NAME = 'xueqiuMonitorAlarm';
 let lastNotificationTimestamp = 0;
 
+// NTFY 服务地址
+const NTFY_URL = 'http://118.89.62.149:8090/ctrl_pc';
+
+// 发送 NTFY 通知到 background.js
+async function sendNtfyNotificationToBackground(message) {
+    log(`准备向 NTFY 发送通知: ${message}`);
+    try {
+        const response = await fetch(NTFY_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain'
+            },
+            body: message
+        });
+        if (response.ok) {
+            log('NTFY 通知发送成功！');
+        } else {
+            log(`NTFY 通知发送失败: ${response.status} - ${response.statusText}`);
+        }
+    } catch (error) {
+        log(`发送 NTFY 通知时出错:`, error);
+    }
+}
+
+
 function getTimestamp() {
     const now = new Date();
     const hours = String(now.getHours()).padStart(2, '0');
@@ -17,8 +42,8 @@ async function getSettings() {
     const result = await chrome.storage.local.get('settings');
     return result.settings || {
         monitorTimeline: true,
-        monitorSystemMessages: true,
-        interval: 10
+        monitorSystemMessages: true, // 默认启用系统消息
+        interval: 5 // 默认 5 秒
     };
 }
 
@@ -45,11 +70,19 @@ async function ensureContentScriptInjected(tabId) {
 
 async function manageAlarmLifecycle() {
     const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*" });
+    const settings = await getSettings();
+
+    if (!settings.monitorTimeline) {
+        log('关注列表监控开关已关闭，停止闹钟。');
+        chrome.alarms.clear(ALARM_NAME);
+        await updateStatus('paused', '关注列表监控已禁用');
+        return;
+    }
 
     if (tabs.length > 0) {
-        log('检测到雪球页面，确保闹钟正在运行并使用最新设置。');
-        const settings = await getSettings();
-        createAlarm(settings.interval);
+        log('检测到雪球页面，且关注列表监控已启用，确保闹钟正在运行并使用最新设置。');
+        // 强制监控间隔为 5-8 秒的随机值
+        createAlarm(); // createAlarm now uses default random interval
         const result = await chrome.storage.local.get('status');
         if (result.status && result.status.message === '等待雪球页面') {
             await updateStatus('running', '监控已启动');
@@ -89,6 +122,11 @@ chrome.runtime.onStartup.addListener(async () => {
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === ALARM_NAME) {
+        log('闹钟触发，开始检查...');
+        await performCheck();
+        // 在每次闹钟触发并完成检查后，重新安排下一个闹钟，以获得新的随机间隔
+        createAlarm();
+        /*
         log('闹钟触发，检查是否在工作时间...');
         if (isWithinTradingHours()) {
             log('在工作时间内，开始检查...');
@@ -97,6 +135,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
             log('非工作时间，跳过本次检查。');
             await updateStatus('paused', '非工作时间');
         }
+        */
     }
 });
 
@@ -153,12 +192,23 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     return true;
 });
 
-function createAlarm(interval) {
+// 处理来自 content script 的 sendNtfy 消息
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'sendNtfy' && message.message) {
+        sendNtfyNotificationToBackground(message.message);
+        sendResponse({ success: true });
+        return true;
+    }
+});
+
+function createAlarm(minIntervalSeconds = 5, maxIntervalSeconds = 8) {
+    const randomIntervalSeconds = Math.floor(Math.random() * (maxIntervalSeconds - minIntervalSeconds + 1)) + minIntervalSeconds;
+    // 先清除旧闹钟，确保只存在一个活动闹钟
+    chrome.alarms.clear(ALARM_NAME); 
     chrome.alarms.create(ALARM_NAME, {
-        delayInMinutes: 0.1,
-        periodInMinutes: interval / 60
+        delayInMinutes: randomIntervalSeconds / 60 // 使用随机间隔作为下一次触发的延迟
     });
-    log(`闹钟已设置为每 ${interval} 秒触发一次。`);
+    log(`闹钟已设置为将在 ${randomIntervalSeconds} 秒后触发。`);
 }
 
 function isWithinTradingHours() {
@@ -191,12 +241,12 @@ function isWithinTradingHours() {
 
 async function performCheck() {
     const settings = await getSettings();
-    if (!settings.monitorTimeline && !settings.monitorSystemMessages) {
-        log('所有监控均已禁用，跳过本次检查。');
-        await updateStatus('paused', '所有监控均已禁用');
+    if (!settings.monitorTimeline) {
+        log('关注列表监控开关已关闭，跳过本次检查。');
+        await updateStatus('paused', '关注列表监控已禁用');
         return;
     }
-
+    
     try {
         const tabs = await chrome.tabs.query({ url: "https://xueqiu.com/*", status: "complete" });
         if (tabs.length === 0) {
@@ -205,22 +255,19 @@ async function performCheck() {
             return;
         }
         
-        // 优先选择系统消息页面，如果存在的话
-        let selectedTab = tabs[0];
-        const systemMessageTab = tabs.find(tab => tab.url.includes('/center/#/sys-message'));
-        if (systemMessageTab && settings.monitorSystemMessages) {
-            selectedTab = systemMessageTab;
-            log(`发现系统消息页面，优先使用该页面进行检查: ${selectedTab.url}`);
+        // 寻找包含关注列表的首页标签
+        let selectedTab = tabs.find(tab => !tab.url.includes('/center/'));
+        if (!selectedTab) {
+            selectedTab = tabs[0];
         }
         
         const tabId = selectedTab.id;
-        log(`向页面 ${tabId} 发送检查指令。`);
+        log(`向页面 ${tabId} 发送刷新并检查指令。`);
         
         const response = await chrome.tabs.sendMessage(tabId, {
-            type: 'checkForUpdates',
+            type: 'refreshAndCheckTimeline',
             options: {
-                checkTimeline: settings.monitorTimeline,
-                checkMessages: settings.monitorSystemMessages
+                checkSystemMessages: settings.monitorSystemMessages
             }
         }).catch(async (error) => {
             log(`与内容脚本通信失败: ${error.message}。尝试重新注入脚本。`);
@@ -228,9 +275,38 @@ async function performCheck() {
             return { error: "脚本无响应，已尝试重新注入，请等待下次检查。" };
         });
 
-        handleContentData(response);
-        await updateStatus('running', '检查完成');
+        if (response && response.data) {
+            const { newContent, systemMessages } = response.data;
+            let notified = false;
 
+            // 1. 处理新内容 (Timeline) - 优先级最高
+            if (newContent) {
+                log(`检测到新内容，已通过内容脚本发送到 NTFY: ${newContent.substring(0, 30)}...`);
+                await sendNtfyNotificationToBackground(`雪球有新内容: ${newContent}`);
+                notified = true;
+            }
+
+            // 2. 处理系统消息 (仅在新内容未触发通知时)
+            if (systemMessages && systemMessages.count > 0) {
+                const { lastSystemMessageCount = 0 } = await chrome.storage.local.get('lastSystemMessageCount');
+                log(`系统消息 - 当前未读数: ${systemMessages.count}, 上次记录未读数: ${lastSystemMessageCount}`);
+
+                if (!notified && systemMessages.count !== lastSystemMessageCount) {
+                    log(`检测到系统消息未读数变化！当前有 ${systemMessages.count} 条系统消息。`);
+                    await sendNtfyNotificationToBackground(`雪球有 ${systemMessages.count} 条系统消息`);
+                    notified = true;
+                }
+                // 无论是否通知，都记录当前数量用于下次对比
+                await chrome.storage.local.set({ lastSystemMessageCount: systemMessages.count });
+            } else if (systemMessages && systemMessages.count === 0) {
+                // 如果当前未读数为0，则清除记录，确保下次有未读时能提醒
+                await chrome.storage.local.set({ lastSystemMessageCount: 0 });
+            }
+            
+            await updateStatus('running', '关注列表和系统消息检查完成');
+        } else {
+            await updateStatus('running', '检查完成，无新内容或系统消息更新');
+        }
     } catch (error) {
         log(`检查过程中发生严重错误: ${error.message}`);
         await updateStatus('error', `检查出错: ${error.message}`);

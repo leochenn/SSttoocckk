@@ -24,7 +24,8 @@
   ],
   
   "host_permissions": [
-    "https://xueqiu.com/*"
+    "https://xueqiu.com/*",
+    "http://118.89.62.149:8090/*"
   ],
   
   "background": {
