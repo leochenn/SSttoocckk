@@ -34,8 +34,18 @@ async function sendThrottledNoPostsNotification() {
         return;
     }
     lastNoPostsNotificationTimestamp = now;
-    log('正在发送“未找到帖子”通知到 NTFY...');
-    await sendNtfyNotificationToBackground('雪球监控提示：未找到任何帖子，可能触发了安全验证，请手动检查。');
+    const message = '雪球监控提示：未找到任何帖子，可能触发了安全验证，请手动检查。';
+    log('正在发送“未找到帖子”通知到 NTFY 和 Windows 系统...');
+    
+    // 发送到 NTFY
+    await sendNtfyNotificationToBackground(message);
+    
+    // 发送到 Windows 系统通知 (复用现有逻辑)
+    createNotification('security', {
+        title: '雪球安全警报',
+        message: message,
+        url: 'https://xueqiu.com/'
+    });
 }
 
 
@@ -208,7 +218,16 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 // 处理来自 content script 的 sendNtfy 消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'sendNtfy' && message.message) {
-        sendNtfyNotificationToBackground(message.message);
+        const msg = message.message;
+        sendNtfyNotificationToBackground(msg);
+        
+        // 同步发送 Windows 通知
+        createNotification('external', {
+            title: '雪球助手通知',
+            message: msg,
+            url: 'https://xueqiu.com/'
+        });
+        
         sendResponse({ success: true });
         return true;
     }
@@ -300,8 +319,16 @@ async function performCheck() {
 
             // 1. 处理新内容 (Timeline) - 优先级最高
             if (newContent) {
-                log(`检测到新内容，已通过内容脚本发送到 NTFY: ${newContent.substring(0, 30)}...`);
-                await sendNtfyNotificationToBackground(`雪球有新内容: ${newContent}`);
+                const message = `雪球有新内容: ${newContent}`;
+                log(`检测到新内容，发送通知: ${newContent.substring(0, 30)}...`);
+                await sendNtfyNotificationToBackground(message);
+                
+                // 同步发送 Windows 通知
+                createNotification('timeline', {
+                    title: '雪球 - 关注列表更新',
+                    message: newContent.substring(0, 100),
+                    url: 'https://xueqiu.com/'
+                });
                 notified = true;
             }
 
@@ -311,8 +338,16 @@ async function performCheck() {
                 log(`系统消息 - 当前未读数: ${systemMessages.count}, 上次记录未读数: ${lastSystemMessageCount}`);
 
                 if (!notified && systemMessages.count !== lastSystemMessageCount) {
+                    const message = `雪球有 ${systemMessages.count} 条系统消息`;
                     log(`检测到系统消息未读数变化！当前有 ${systemMessages.count} 条系统消息。`);
-                    await sendNtfyNotificationToBackground(`雪球有 ${systemMessages.count} 条系统消息`);
+                    await sendNtfyNotificationToBackground(message);
+                    
+                    // 同步发送 Windows 通知
+                    createNotification('systemMessage', {
+                        title: '雪球 - 系统消息',
+                        message: message,
+                        url: 'https://xueqiu.com/center/#/sys-message'
+                    });
                     notified = true;
                 }
                 // 无论是否通知，都记录当前数量用于下次对比
