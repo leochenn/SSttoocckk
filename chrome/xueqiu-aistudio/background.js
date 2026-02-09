@@ -1,6 +1,6 @@
 const ALARM_NAME = 'xueqiuMonitorAlarm';
 let lastNotificationTimestamp = 0;
-let lastNoPostsNotificationTimestamp = 0;
+let isNoPostsWarningSent = false;
 
 // NTFY 服务地址
 const NTFY_URL = 'http://118.89.62.149:8090/ctrl_pc';
@@ -26,14 +26,13 @@ async function sendNtfyNotificationToBackground(message) {
     }
 }
 
-// 限流发送“未找到帖子”通知 (一分钟一次)
+// 发送“未找到帖子”通知 (单次提醒，直到状态重置)
 async function sendThrottledNoPostsNotification() {
-    const now = Date.now();
-    if (now - lastNoPostsNotificationTimestamp < 60000) {
-        log('未找到帖子通知冷却中（一分钟限流），跳过发送。');
+    if (isNoPostsWarningSent) {
+        log('未找到帖子警报已发送过，跳过重复提醒。');
         return;
     }
-    lastNoPostsNotificationTimestamp = now;
+    isNoPostsWarningSent = true;
     const message = '雪球监控提示：未找到任何帖子，可能触发了安全验证，请手动检查。';
     log('正在发送“未找到帖子”通知到 NTFY 和 Windows 系统...');
     
@@ -310,6 +309,14 @@ async function performCheck() {
         if (response && response.data) {
             const { newContent, systemMessages, error: dataError } = response.data;
             let notified = false;
+
+            // 如果成功获取了任何数据，重置“未找到帖子”的告警状态
+            if (newContent || systemMessages) {
+                if (isNoPostsWarningSent) {
+                    log('成功获取到数据，重置“未找到帖子”警报状态。');
+                    isNoPostsWarningSent = false;
+                }
+            }
 
             // 0. 处理特殊错误：未找到帖子 (可能是安全机制)
             if (dataError === 'NO_POSTS') {
