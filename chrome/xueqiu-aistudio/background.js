@@ -310,17 +310,19 @@ async function performCheck() {
             const { newContent, systemMessages, error: dataError } = response.data;
             let notified = false;
 
-            // 如果成功获取了任何数据，重置“未找到帖子”的告警状态
-            if (newContent || systemMessages) {
+            // 如果成功获取了有效数据（有新内容或有未读系统消息），重置“未找到帖子”的告警状态
+            const hasActualData = newContent || (systemMessages && systemMessages.count > 0);
+            if (hasActualData) {
                 if (isNoPostsWarningSent) {
-                    log('成功获取到数据，重置“未找到帖子”警报状态。');
+                    log('成功获取到有效数据，重置“未找到帖子”警报状态。');
                     isNoPostsWarningSent = false;
                 }
             }
 
             // 0. 处理特殊错误：未找到帖子 (可能是安全机制)
             if (dataError === 'NO_POSTS') {
-                log('内容脚本报告：未找到任何帖子，可能触发了安全机制。');
+                log('检测结果：未找到任何帖子，可能触发了安全机制。');
+                await updateStatus('running', '待手动验证 (未找到帖子)');
                 await sendThrottledNoPostsNotification();
             }
 
@@ -369,8 +371,8 @@ async function performCheck() {
             await updateStatus('running', '检查完成，无新内容或系统消息更新');
         }
     } catch (error) {
-        log(`检查过程中发生严重错误: ${error.message}`);
-        await updateStatus('error', `检查出错: ${error.message}`);
+        log(`检查过程中发生异常 (可能是页面刷新中): ${error.message}`);
+        await updateStatus('running', `检查暂中断: ${error.message}`);
     }
 }
 
