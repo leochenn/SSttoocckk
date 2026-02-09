@@ -65,7 +65,7 @@ if (typeof window.contentScriptInjected === 'undefined') {
             logToExtension('info', '成功点击“关注”Tab (无论是否已激活)。');
             return true;
         } else {
-            logToExtension('warn', '未找到“关注”Tab。');
+            logToExtension('info', '未找到“关注”Tab。');
             throw new Error('未找到“关注”Tab');
         }
     }
@@ -114,14 +114,14 @@ if (typeof window.contentScriptInjected === 'undefined') {
     function getTopPostDetails() {
         const posts = document.querySelectorAll('.status-list article.timeline__item');
         if (posts.length === 0) {
-            logToExtension('warn', '未找到任何帖子。');
+            logToExtension('info', '未找到任何帖子。');
             return { error: 'NO_POSTS' };
         }
 
         const firstPost = posts[0];
         const contentEl = firstPost.querySelector('.timeline__item__content .content--description');
         if (!contentEl) {
-            logToExtension('warn', '未找到顶部帖子的内容描述。');
+            logToExtension('info', '未找到顶部帖子的内容描述。');
             return { error: 'NO_CONTENT_DESCRIPTION' };
         }
 
