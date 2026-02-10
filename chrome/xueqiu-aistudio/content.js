@@ -10,9 +10,9 @@ if (typeof window.contentScriptInjected === 'undefined') {
         // 本地控制台输出（如果不被反调试阻止）
         try {
             if (level === 'error') {
-                console.error(logEntry, data);
+                console.log(`${logEntry} - error !!!!!!`, data);
             } else if (level === 'warn') {
-                console.warn(logEntry, data);
+                console.log(`${logEntry} - warn !!!!!!`, data);
             } else {
                 console.log(logEntry, data);
             }

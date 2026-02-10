@@ -203,9 +203,9 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         if (message.data) {
             const { level, message: logMessage, data } = message.data;
             if (level === 'error') {
-                console.error(logMessage, data);
+                console.log(`${logMessage} - error !!!!!!`, data);
             } else if (level === 'warn') {
-                console.warn(logMessage, data);
+                console.log(`${logMessage} - warn !!!!!!`, data);
             } else {
                 console.log(logMessage, data);
             }
@@ -310,11 +310,11 @@ async function performCheck() {
             const { newContent, systemMessages, error: dataError } = response.data;
             let notified = false;
 
-            // 如果成功获取了有效数据（有新内容或有未读系统消息），重置“未找到帖子”的告警状态
-            const hasActualData = newContent || (systemMessages && systemMessages.count > 0);
-            if (hasActualData) {
+            // --- 修改开始：更激进地重置警报状态 ---
+            // 只要没有 NO_POSTS 错误，就说明页面加载正常，应重置警报状态
+            if (dataError !== 'NO_POSTS') {
                 if (isNoPostsWarningSent) {
-                    log('成功获取到有效数据，重置“未找到帖子”警报状态。');
+                    log('检测到页面内容恢复正常（未触发安全机制），重置“未找到帖子”警报状态。');
                     isNoPostsWarningSent = false;
                 }
             }
