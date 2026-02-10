@@ -21,6 +21,7 @@
 
 ## 4. 健壮性与自测 (Robustness & Testing)
 - [x] 强化 Content 脚本自动重注入机制 (已整合到 MonitorCore)
+- [x] Popup 层模块化重构 (接入 Storage/Logger)
 - [x] 验证全流程功能一致性
 - [x] 最终代码审查与清理
 

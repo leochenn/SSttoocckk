@@ -6,6 +6,8 @@ import { Logger } from './logger.js';
 import { Storage } from './storage.js';
 import { Notifier } from './notifier.js';
 
+import { Heartbeat } from './heartbeat.js';
+
 export const MonitorCore = {
     /**
      * 确保内容脚本已注入
@@ -19,6 +21,33 @@ export const MonitorCore = {
         } catch (e) {
             Logger.error(`注入脚本到 Tab ${tabId} 失败: ${e.message}`);
         }
+    },
+
+    /**
+     * 启动系统消息页面深度监控
+     */
+    async startSystemMessagePageMonitoring(tabId) {
+        const maxRetries = 3;
+        let retryCount = 0;
+        
+        while (retryCount < maxRetries) {
+            try {
+                await this.ensureContentScriptInjected(tabId);
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                const response = await chrome.tabs.sendMessage(tabId, { type: 'monitorSystemMessagePage' });
+                if (response && response.status === 'monitoring_started') {
+                    Logger.log('系统消息页面内容脚本监控已启动');
+                    Heartbeat.startActivePolling(tabId, (data, src) => this.checkSystemMessageUpdate(data, src));
+                    return true;
+                }
+            } catch (error) {
+                Logger.warn(`尝试启动页面监控失败 (第 ${retryCount + 1} 次): ${error.message}`);
+            }
+            retryCount++;
+            if (retryCount < maxRetries) await new Promise(r => setTimeout(r, retryCount * 1000));
+        }
+        return false;
     },
 
     /**
@@ -156,8 +185,10 @@ export const MonitorCore = {
             if (systemMessageTab) {
                 await chrome.windows.update(systemMessageTab.windowId, { focused: true });
                 await chrome.tabs.update(systemMessageTab.id, { active: true });
+                await this.startSystemMessagePageMonitoring(systemMessageTab.id);
             } else {
-                await chrome.tabs.create({ url: url });
+                const newTab = await chrome.tabs.create({ url: url });
+                await this.startSystemMessagePageMonitoring(newTab.id);
             }
             return true;
         } else if (!hasUnread && lastMessageCount !== 0) {

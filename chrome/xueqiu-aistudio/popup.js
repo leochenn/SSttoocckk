@@ -1,4 +1,10 @@
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * 雪球监控助手 - Popup 脚本
+ */
+import { Logger } from './modules/logger.js';
+import { Storage } from './modules/storage.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
     const monitorTimeline = document.getElementById('monitorTimeline');
     const monitorSystemMessages = document.getElementById('monitorSystemMessages');
     const intervalInput = document.getElementById('interval');
@@ -7,63 +13,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const openDashboardBtn = document.getElementById('openDashboard');
     const selectedStocksSection = document.getElementById('selectedStocks');
     const stocksList = document.getElementById('stocksList');
+    const settingsTitle = document.getElementById('settingsTitle');
 
     let stockInfoCache = {};
     let stockUpdateInterval;
     let dataRefreshInterval;
 
-    // Load settings from storage
-    if (typeof chrome !== 'undefined' && chrome.storage) {
-        chrome.storage.local.get(['settings', 'status'], (result) => {
-            const settings = result.settings || {};
-            monitorTimeline.checked = settings.monitorTimeline !== false; // default to true
-            monitorSystemMessages.checked = settings.monitorSystemMessages !== false; // default to true
+    /**
+     * 初始化 Popup
+     */
+    async function init() {
+        try {
+            const settings = await Storage.getSettings();
+            monitorTimeline.checked = settings.monitorTimeline !== false;
+            monitorSystemMessages.checked = settings.monitorSystemMessages !== false;
             intervalInput.value = settings.interval || 10;
             
-            const status = result.status || { state: 'stopped', message: '等待初始化' };
-            updateStatus(status);
+            const status = await Storage.getLastState('status') || { state: 'stopped', message: '等待初始化' };
+            updateStatusDisplay(status);
             
-            // 从localStorage读取股票数据
             refreshStockData();
-        });
-    } else {
-        // 浏览器环境下的默认设置
-        monitorTimeline.checked = true;
-        monitorSystemMessages.checked = true;
-        intervalInput.value = 10;
-        updateStatus({ state: 'stopped', message: '浏览器预览模式' });
-        
-        // 从localStorage读取股票数据
-        refreshStockData();
+            Logger.log('Popup 初始化完成');
+        } catch (e) {
+            Logger.error('Popup 初始化失败', e);
+            // 降级处理
+            updateStatusDisplay({ state: 'error', message: '初始化失败' });
+        }
     }
+
+    // 执行初始化
+    await init();
     
-    // 每3秒检查一次数据更新
+    // 每3秒检查一次本地存储的数据更新（来自投资看板的修改）
     dataRefreshInterval = setInterval(refreshStockData, 3000);
 
-    // Save settings on change
+    // 绑定事件
     monitorTimeline.addEventListener('change', saveSettings);
     monitorSystemMessages.addEventListener('change', saveSettings);
     intervalInput.addEventListener('change', saveSettings);
     intervalInput.addEventListener('keyup', saveSettings);
 
-    // Open dashboard button event
+    if (settingsTitle) {
+        settingsTitle.addEventListener('click', () => {
+            chrome.tabs.create({ url: 'chrome://extensions/' });
+        });
+    }
+
     openDashboardBtn.addEventListener('click', () => {
         chrome.tabs.create({
             url: chrome.runtime.getURL('InvestorDashboard/dashboard.html')
         });
     });
 
-    // Settings title click event - open Chrome extensions page
-    const settingsTitle = document.getElementById('settingsTitle');
-    if (settingsTitle) {
-        settingsTitle.addEventListener('click', () => {
-            chrome.tabs.create({
-                url: 'chrome://extensions/'
-            });
-        });
-    }
-
-    function saveSettings() {
+    /**
+     * 保存设置
+     */
+    async function saveSettings() {
         const intervalValue = Math.max(3, Math.min(60, parseInt(intervalInput.value, 10) || 10));
         intervalInput.value = intervalValue;
 
@@ -72,14 +77,19 @@ document.addEventListener('DOMContentLoaded', () => {
             monitorSystemMessages: monitorSystemMessages.checked,
             interval: intervalValue,
         };
-        chrome.storage.local.set({ settings }, () => {
-            // Notify background script to update the alarm
-            chrome.runtime.sendMessage({ type: 'settingsChanged', settings });
-            updateStatus({ state: 'running', message: '设置已保存, 监控运行中...' });
-        });
+
+        await Storage.setLastState('settings', settings);
+        
+        // 通知 Background 更新闹钟
+        chrome.runtime.sendMessage({ type: 'settingsChanged', settings });
+        updateStatusDisplay({ state: 'running', message: '设置已保存, 监控运行中...' });
+        Logger.log('设置已更新', settings);
     }
 
-    function updateStatus(status) {
+    /**
+     * 更新状态显示
+     */
+    function updateStatusDisplay(status) {
         statusText.textContent = status.message;
         switch(status.state) {
             case 'running':
@@ -96,7 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // 刷新股票数据
+    /**
+     * 刷新股票数据
+     */
     function refreshStockData() {
         const stockPortfolioData = localStorage.getItem('stockPortfolioData');
         if (stockPortfolioData) {
@@ -104,58 +116,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 const portfolioData = JSON.parse(stockPortfolioData);
                 loadSelectedStocks(portfolioData);
             } catch (error) {
-                console.error('解析股票数据失败:', error);
+                Logger.error('解析股票数据失败:', error);
             }
-        } else if (typeof chrome === 'undefined') {
-            // 浏览器预览模式下的测试数据
-            const testData = {
-                watchlist: [
-                    {
-                        code: 'SZ000001',
-                        name: '平安银行',
-                        showInPopup: true,
-                        currentPrice: 12.45,
-                        yesterdayPrice: 12.20
-                    },
-                    {
-                        code: 'SH600036',
-                        name: '招商银行',
-                        showInPopup: true,
-                        currentPrice: 45.67,
-                        yesterdayPrice: 46.20
-                    },
-                    {
-                        code: 'SZ000002',
-                        name: '万科A',
-                        showInPopup: false,
-                        currentPrice: 18.90,
-                        yesterdayPrice: 18.50
-                    }
-                ]
-            };
-            loadSelectedStocks(testData);
         }
     }
     
-    // 加载选中的股票
+    /**
+     * 加载选中的股票
+     */
     function loadSelectedStocks(portfolioData) {
-        console.log('加载股票数据:', portfolioData);
-        if (!portfolioData || !portfolioData.watchlist) {
-            console.log('没有股票数据或watchlist');
-            return;
-        }
+        if (!portfolioData || !portfolioData.watchlist) return;
         
-        console.log('watchlist数据:', portfolioData.watchlist);
         const selectedStocks = portfolioData.watchlist.filter(item => {
-            if (typeof item === 'string') {
-                console.log('跳过字符串格式的股票:', item);
-                return false;
-            }
-            console.log('检查股票:', item, 'showInPopup:', item.showInPopup);
-            return item.showInPopup === true;
+            return item && typeof item === 'object' && item.showInPopup === true;
         });
         
-        console.log('选中的股票:', selectedStocks);
         if (selectedStocks.length === 0) {
             selectedStocksSection.style.display = 'none';
             return;
@@ -166,161 +141,111 @@ document.addEventListener('DOMContentLoaded', () => {
         startStockUpdates(selectedStocks);
     }
     
-    // 渲染选中的股票
+    /**
+     * 渲染选中的股票列表
+     */
     function renderSelectedStocks(stocks) {
-        stocksList.innerHTML = '';
-        stocks.forEach(stock => {
-            const stockItem = document.createElement('div');
-            stockItem.className = 'stock-item';
-            stockItem.innerHTML = `
-                <span class="stock-name" data-code="${stock.code}">...</span>
-                <span class="stock-price" data-code="${stock.code}">...</span>
-                <span class="stock-change" data-code="${stock.code}">...</span>
-            `;
-            stocksList.appendChild(stockItem);
-        });
-    }
-    
-    // 开始股票价格更新
-    function startStockUpdates(stocks) {
-        if (stockUpdateInterval) {
-            clearInterval(stockUpdateInterval);
+        // 避免重复渲染
+        const currentCount = stocksList.children.length;
+        if (currentCount !== stocks.length) {
+            stocksList.innerHTML = '';
+            stocks.forEach(stock => {
+                const stockItem = document.createElement('div');
+                stockItem.className = 'stock-item';
+                stockItem.innerHTML = `
+                    <span class="stock-name" data-code="${stock.code}">...</span>
+                    <span class="stock-price" data-code="${stock.code}">...</span>
+                    <span class="stock-change" data-code="${stock.code}">...</span>
+                `;
+                stocksList.appendChild(stockItem);
+            });
         }
-        
-        // 立即更新一次
-        updateStockPrices(stocks);
-        
-        // 每5秒更新一次
-        stockUpdateInterval = setInterval(() => {
-            updateStockPrices(stocks);
-        }, 5000);
     }
     
-    // 更新股票价格
+    /**
+     * 开始股票价格轮询更新
+     */
+    function startStockUpdates(stocks) {
+        if (stockUpdateInterval) clearInterval(stockUpdateInterval);
+        
+        const update = () => updateStockPrices(stocks);
+        update();
+        stockUpdateInterval = setInterval(update, 5000);
+    }
+    
+    /**
+     * 更新股票价格
+     */
     async function updateStockPrices(stocks) {
         const codes = stocks.map(stock => stock.code);
-        const success = await fetchStockData(codes);
-        if (success) {
-            updateStockDisplay();
-        }
-    }
-    
-    // 获取股票数据
-    async function fetchStockData(codes) {
-        if (codes.length === 0) return true;
+        if (codes.length === 0) return;
         
-        const queryCodes = codes.map(getPrefixedCode).join(',');
-        const url = `https://qt.gtimg.cn/q=${queryCodes}`;
-        
+        const queryCodes = codes.map(code => {
+            const sh_indices = ['000001', '000905', '000852'];
+            if (sh_indices.includes(code)) return 'sh' + code;
+            const firstChar = code.charAt(0);
+            return (firstChar === '6' || firstChar === '5' || firstChar === '9') ? 'sh' + code : 'sz' + code;
+        }).join(',');
+
         try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const decoder = new TextDecoder('gbk');
-            const text = await decoder.decode(await blob.arrayBuffer());
-            parseStockData(text);
-            return true;
-        } catch (error) {
-            console.error('获取股票数据失败:', error);
-            return false;
-        }
-    }
-    
-    // 获取带前缀的股票代码
-    function getPrefixedCode(code) {
-        const sh_indices = ['000001', '000905', '000852'];
-        if (sh_indices.includes(code)) {
-            return 'sh' + code;
-        }
-        
-        const firstChar = code.charAt(0);
-        if (firstChar === '6' || firstChar === '5' || firstChar === '9') {
-            return 'sh' + code;
-        }
-        return 'sz' + code;
-    }
-    
-    // 解析股票数据
-    function parseStockData(text) {
-        const lines = text.split('\n');
-        lines.forEach(line => {
-            if (line.trim() && line.includes('=')) {
+            const response = await fetch(`https://qt.gtimg.cn/q=${queryCodes}`);
+            const buffer = await response.arrayBuffer();
+            const text = new TextDecoder('gbk').decode(buffer);
+            
+            // 解析数据
+            text.split('\n').forEach(line => {
+                if (!line.includes('=')) return;
                 const [varName, dataStr] = line.split('=');
-                const code = varName.replace('v_', '').replace('sh', '').replace('sz', '');
-                const data = dataStr.replace(/"/g, '').replace(';', '');
-                const fields = data.split('~');
+                const code = varName.replace(/[v_shz]/g, '');
+                const fields = dataStr.replace(/[";]/g, '').split('~');
                 
-                if (fields.length > 3) {
+                if (fields.length > 31) {
                     stockInfoCache[code] = {
                         name: fields[1],
                         price: parseFloat(fields[3]) || 0,
-                        change: parseFloat(fields[31]) || 0,
                         changePercent: parseFloat(fields[32]) || 0
                     };
                 }
-            }
-        });
-    }
-    
-    // 更新股票显示
-    function updateStockDisplay() {
-        const nameElements = document.querySelectorAll('.stock-name');
-        const priceElements = document.querySelectorAll('.stock-price');
-        const changeElements = document.querySelectorAll('.stock-change');
-        
-        nameElements.forEach(element => {
-            const code = element.dataset.code;
-            const info = stockInfoCache[code];
-            if (info) {
-                element.textContent = info.name || code;
-            }
-        });
-        
-        priceElements.forEach(element => {
-            const code = element.dataset.code;
-            const info = stockInfoCache[code];
-            if (info) {
-                element.textContent = info.price.toFixed(2);
-                element.className = 'stock-price';
-                if (info.changePercent > 0) {
-                    element.classList.add('positive');
-                } else if (info.changePercent < 0) {
-                    element.classList.add('negative');
+            });
+            
+            // 更新 DOM
+            document.querySelectorAll('.stock-name').forEach(el => {
+                const info = stockInfoCache[el.dataset.code];
+                if (info) el.textContent = info.name;
+            });
+            
+            document.querySelectorAll('.stock-price, .stock-change').forEach(el => {
+                const info = stockInfoCache[el.dataset.code];
+                if (!info) return;
+
+                if (el.classList.contains('stock-price')) {
+                    el.textContent = info.price.toFixed(2);
+                } else {
+                    el.textContent = `${info.changePercent > 0 ? '+' : ''}${info.changePercent.toFixed(2)}%`;
                 }
-            }
-        });
-        
-        changeElements.forEach(element => {
-            const code = element.dataset.code;
-            const info = stockInfoCache[code];
-            if (info) {
-                const changeText = `${info.changePercent > 0 ? '+' : ''}${info.changePercent.toFixed(2)}%`;
-                element.textContent = changeText;
-                element.className = 'stock-change';
-                if (info.changePercent > 0) {
-                    element.classList.add('positive');
-                } else if (info.changePercent < 0) {
-                    element.classList.add('negative');
-                }
-            }
-        });
+
+                el.classList.remove('positive', 'negative');
+                if (info.changePercent > 0) el.classList.add('positive');
+                else if (info.changePercent < 0) el.classList.add('negative');
+            });
+
+        } catch (error) {
+            Logger.error('获取股票数据失败', error);
+        }
     }
 
-    // Listen for status updates from the background script
-    if (typeof chrome !== 'undefined' && chrome.runtime) {
-        chrome.runtime.onMessage.addListener((message) => {
-            if (message.type === 'statusUpdate') {
-                updateStatus(message.status);
-            }
-        });
-    }
+    /**
+     * 监听来自 Background 的状态更新消息
+     */
+    chrome.runtime.onMessage.addListener((message) => {
+        if (message.type === 'statusUpdate') {
+            updateStatusDisplay(message.status);
+        }
+    });
     
-    // 页面卸载时清理定时器
+    // 清理定时器
     window.addEventListener('beforeunload', () => {
-        if (stockUpdateInterval) {
-            clearInterval(stockUpdateInterval);
-        }
-        if (dataRefreshInterval) {
-            clearInterval(dataRefreshInterval);
-        }
+        if (stockUpdateInterval) clearInterval(stockUpdateInterval);
+        if (dataRefreshInterval) clearInterval(dataRefreshInterval);
     });
 });
