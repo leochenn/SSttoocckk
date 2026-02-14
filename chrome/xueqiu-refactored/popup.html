@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>雪球消息监控助手</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            width: 280px;
+            padding: 10px;
+            background-color: #f4f5f7;
+        }
+        h3 {
+            color: #333;
+            text-align: center;
+            margin-top: 0;
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        label {
+            font-size: 14px;
+            color: #555;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #1576e8;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        .status {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .dashboard-section {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .dashboard-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1576e8 0%, #0ea5e9 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(21, 118, 232, 0.3);
+        }
+        .dashboard-btn:hover {
+            background: linear-gradient(135deg, #1e40af 0%, #0284c7 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(21, 118, 232, 0.4);
+        }
+        .dashboard-btn:active {
+            transform: translateY(0);
+        }
+        .selected-stocks-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .stocks-list {
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 12px;
+            gap: 8px;
+        }
+        .stock-item:last-child {
+            border-bottom: none;
+        }
+        .stock-name {
+            color: #333;
+            font-weight: 500;
+            flex: 1;
+        }
+        .stock-price {
+            color: #666;
+            font-family: monospace;
+            min-width: 50px;
+            text-align: right;
+        }
+        .stock-price.positive {
+            color: #e74c3c;
+        }
+        .stock-price.negative {
+            color: #27ae60;
+        }
+        .stock-change {
+            color: #666;
+            font-family: monospace;
+            font-size: 11px;
+            min-width: 45px;
+            text-align: right;
+        }
+        .stock-change.positive {
+            color: #e74c3c;
+        }
+        .stock-change.negative {
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <h3 id="settingsTitle" style="cursor: pointer; user-select: none;">设置</h3>
+    <div class="setting-item">
+        <label for="monitorTimeline">关注列表通知</label>
+        <label class="switch">
+            <input type="checkbox" id="monitorTimeline">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <div class="setting-item">
+        <label for="monitorSystemMessages">系统消息通知</label>
+        <label class="switch">
+            <input type="checkbox" id="monitorSystemMessages">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <div class="setting-item">
+        <label for="interval">监控间隔 (秒)</label>
+        <input type="number" id="interval" min="3" max="60">
+    </div>
+    <div id="selectedStocks" class="selected-stocks-section" style="display: none;">
+        <h4 style="margin: 10px 0 5px 0; color: #333; font-size: 13px;">选中股票</h4>
+        <div id="stocksList" class="stocks-list"></div>
+    </div>
+    <div class="dashboard-section">
+        <button id="openDashboard" class="dashboard-btn">📊 打开投资看板</button>
+    </div>
+    <div class="status">
+        <span id="statusIndicator" class="status-indicator"></span>
+        <span id="statusText"></span>
+    </div>
+    <script type="module" src="popup.js"></script>
+</body>
+</html>

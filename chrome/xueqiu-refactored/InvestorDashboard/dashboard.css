@@ -1,0 +1,819 @@
+/* Liquid Glass 现代化投资仪表板 */
+
+/* CSS变量定义 - Liquid Glass 设计系统 */
+:root {
+    /* 辅助色彩 */
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+
+    /* 文字配色系统 (WCAG 2.1 AAA级标准) */
+    --text-primary: rgba(0, 0, 0, 0.87); /* 卡片主文字 */
+    --text-secondary: rgba(0, 0, 0, 0.6);  /* 卡片次要文字 */
+    --text-light: rgba(255, 255, 255, 0.95); /* 亮色文字，用于深色背景 */
+    
+    /* 字体系统 */
+    --font-heading: 'Noto Serif SC', serif;
+    --font-body: 'Noto Sans SC', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    
+    /* 间距系统 */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    /* 圆角系统 */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 20px; /* 玻璃卡片圆角 */
+    
+    /* 过渡动画 */
+    --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-normal: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-slow: 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 全局重置和基础样式 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-body);
+    background: linear-gradient(125deg, #173776, #3b82f6, #06b6d4, #10b981, #f59e0b, #3b82f6);
+    background-size: 400% 400%;
+    animation: gradientAnimation 20s ease infinite;
+    background-attachment: fixed;
+    color: var(--text-primary);
+    line-height: 1.75;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: var(--spacing-lg);
+    overflow-x: hidden;
+    letter-spacing: 0.02em;
+}
+
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 容器布局 */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+/* 现代化卡片系统 (Glass Card) */
+.dashboard-section,
+.portfolio-section,
+.notes-section,
+.summary-card,
+.calc-section,
+.account-summary,
+.net-asset-summary {
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(24px) saturate(180%);
+    border-radius: var(--radius-xl);
+    border: 1px solid rgba(255,255,255,0.35);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.4);
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-section:hover,
+.portfolio-section:hover,
+.notes-section:hover,
+.summary-card:hover,
+.calc-section:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 64px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+    border-color: rgba(255,255,255,0.5);
+}
+
+/* 页面头部 */
+header {
+    background: transparent; /* 完全融入背景 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0 var(--spacing-xl) 0; /* 调整内边距 */
+    margin-bottom: var(--spacing-xl);
+    color: var(--text-light); /* 浅色文字 */
+}
+
+header h1 {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+header h1 i {
+    font-size: 2rem;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+}
+
+.update-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    background: rgba(255,255,255,0.15);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.update-status span {
+    color: rgba(255,255,255,0.9);
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.time-display {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-light);
+    background: rgba(0,0,0,0.15);
+    backdrop-filter: blur(15px);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+    white-space: nowrap;
+    letter-spacing: 0;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.time-display:hover {
+    transform: translateY(-1px);
+    background: rgba(0,0,0,0.25);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.time-display .time-digit-group {
+    display: inline-flex;
+    position: relative;
+    align-items: center;
+    gap: 0;
+}
+
+.time-display .time-digit {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    height: 16px;
+    width: 0.45em;
+    text-align: center;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.time-display .time-digit .digit-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.time-display .time-digit .digit-value {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    font-size: inherit;
+    line-height: 1;
+}
+
+.time-display .time-digit .digit-value.current {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.time-display .time-digit .digit-value.slide-out-up {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+.time-display .time-digit .digit-value.slide-in-down {
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+/* 按钮系统 */
+.btn, button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.15);
+    color: var(--text-light);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.btn:hover, button:hover {
+    transform: translateY(-2px);
+    background: rgba(255,255,255,0.25);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.btn::before, button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left var(--transition-normal);
+}
+
+.btn:hover::before, button:hover::before {
+    left: 100%;
+}
+
+/* 特定按钮样式 */
+#settle-btn {
+    background: rgba(245, 158, 11, 0.3); /* warning */
+}
+#export-data-btn {
+    background: rgba(139, 92, 246, 0.3); /* info */
+}
+#add-account-btn {
+    background: rgba(16, 185, 129, 0.3); /* success */
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+    padding: 0;
+}
+.delete-btn {
+    background: rgba(239, 68, 68, 0.3); /* danger */
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+/* 次要/中性按钮 */
+#import-data-btn,
+#toggle-privacy-btn,
+#add-btn-watchlist,
+#add-breakdown-btn,
+.add-holding-btn {
+    background: rgba(0,0,0,0.1);
+    color: var(--text-primary);
+    border-color: rgba(0,0,0,0.1);
+}
+.actions #import-data-btn, .actions #toggle-privacy-btn, .actions #add-btn-watchlist, .actions #add-breakdown-btn, .actions .add-holding-btn {
+    color: var(--text-primary);
+}
+
+
+/* 主要内容区域 */
+main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+}
+
+/* 仪表盘部分 */
+.dashboard-section {
+    padding: var(--spacing-xl);
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.dashboard-header h2 {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+.dashboard-header h2 i {
+    font-size: 1.5rem;
+}
+
+/* 资产总览网格 */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.summary-card {
+    padding: var(--spacing-lg);
+}
+
+.summary-card .label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.summary-card .value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    line-height: 1.2;
+}
+
+.value.editable {
+    outline: none;
+    border-bottom: 2px dashed rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border-radius: 2px;
+}
+.value.editable:hover {
+    border-bottom-color: var(--text-primary);
+    background: rgba(0,0,0,0.05);
+}
+.value.editable:focus {
+    border-bottom-style: solid;
+    background: rgba(0,0,0,0.08);
+}
+
+/* 投资组合部分 */
+.portfolio-section {
+    padding: var(--spacing-xl);
+}
+
+/* 标签页导航 */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.tab-link {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    margin-right: var(--spacing-xs);
+    position: relative;
+    transition: all var(--transition-fast);
+    border-bottom: 3px solid transparent;
+}
+
+.tab-link:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-primary);
+}
+
+.tab-link.active {
+    background: rgba(255,255,255,0.2);
+    color: var(--text-primary);
+    font-weight: 600;
+    border-bottom-color: var(--text-primary);
+}
+
+/* Tab内的账户名样式 */
+.tab-name {
+    display: inline-block;
+    padding: 0 2px;
+}
+.tab-name[contenteditable="true"] {
+    outline: none;
+    border-bottom: 1px dashed var(--text-primary);
+    cursor: text;
+}
+.tab-delete-btn {
+    display: none;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 16px;
+    height: 16px;
+    background-image: url('img/del.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity var(--transition-fast);
+    z-index: 10;
+}
+.tab-delete-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+.tab-link.account-tab:not(.active):hover .tab-delete-btn {
+    display: block;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn var(--transition-normal);
+}
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: var(--spacing-lg);
+    background: transparent;
+}
+
+th {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+}
+
+th, td {
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+tbody tr {
+    transition: all var(--transition-fast);
+}
+
+tbody tr:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* 拖拽排序样式 */
+.watchlist-row {
+    cursor: grab;
+    user-select: none;
+    position: relative;
+}
+.watchlist-row.dragging {
+    opacity: 0.5;
+    background: rgba(255,255,255,0.4);
+    transform: rotate(2deg);
+    cursor: grabbing;
+    z-index: 1000;
+}
+.watchlist-row.drag-over {
+    border-top: 3px solid var(--text-primary);
+}
+.watchlist-row.drag-over-bottom {
+    border-bottom: 3px solid var(--text-primary);
+}
+.watchlist-row.long-press-active {
+    background: rgba(255,255,255,0.25);
+}
+.drag-hint {
+    position: absolute;
+    top: 2px;
+    right: 10px;
+    color: var(--text-secondary);
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+    z-index: 10;
+}
+.watchlist-row:hover .drag-hint {
+    opacity: 1;
+}
+
+/* 涨跌颜色 */
+.positive { color: var(--danger-color); font-weight: 600; }
+.negative { color: var(--success-color); font-weight: 600; }
+
+/* 可编辑元素 */
+.editable-shares {
+    outline: none;
+    border-bottom: 2px dashed rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+}
+.editable-shares:hover { background: rgba(0,0,0,0.05); border-bottom-color: var(--text-primary); }
+.editable-shares:focus { background: rgba(0,0,0,0.1); border-bottom-color: var(--text-primary); }
+
+/* 操作区域 */
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    align-items: center;
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: rgba(0,0,0,0.1);
+    border-radius: var(--radius-lg);
+}
+
+/* 输入框样式 */
+input[type="text"], 
+input[type="number"], 
+select,
+textarea {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.875rem;
+    transition: all var(--transition-fast);
+    background: rgba(255,255,255,0.2);
+    color: var(--text-primary);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+input[type="text"]:focus, 
+input[type="number"]:focus, 
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.3);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+}
+
+/* 账户摘要 */
+.account-summary {
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-lg);
+    align-items: center;
+}
+
+/* 计算器样式 */
+.calculator-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--spacing-lg);
+}
+#calc-stock-selector {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    background: rgba(0,0,0,0.15);
+}
+.calc-section {
+    padding: var(--spacing-lg);
+}
+.calc-section h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    font-weight: 500;
+    font-family: var(--font-heading);
+}
+.calc-input-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+.calc-section p {
+    margin: var(--spacing-sm) 0;
+    color: var(--text-secondary);
+}
+.calc-section p strong {
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 1.125rem;
+}
+
+/* 价格网格 */
+.grid-calculator { grid-column: 1 / -1; }
+.grid-calculator table th, .grid-calculator table td { text-align: center; padding: var(--spacing-sm); }
+.grid-percent-input, .grid-price-input {
+    width: 90px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.875rem;
+    text-align: center;
+    font-family: var(--font-mono);
+}
+.grid-price-input { width: 100px; min-width: 100px; }
+.grid-percent-input[data-type="up"] { color: var(--danger-color); }
+.grid-percent-input[data-type="down"] { color: var(--success-color); }
+
+/* 备注部分 */
+.notes-section {
+    padding: var(--spacing-xl);
+}
+.notes-section h2, .asset-breakdown-section h3 {
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-primary);
+    font-size: 1.75rem;
+    font-weight: 600;
+    font-family: var(--font-heading);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+.notes-section h2 i, .asset-breakdown-section h3 i {
+    font-size: 1.5rem;
+}
+#notes-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: var(--spacing-md);
+    line-height: 1.75;
+    resize: vertical;
+}
+
+/* 预警配置单元格样式 */
+.alert-config-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    white-space: nowrap;
+}
+.alert-config-cell input[type="number"] {
+    padding: 2px 4px;
+    height: 24px;
+    font-size: 12px;
+}
+.alert-enabled-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    body { padding: var(--spacing-md); }
+    header { flex-direction: column; gap: var(--spacing-md); text-align: center; }
+    .header-actions { justify-content: center; }
+    .summary-grid { grid-template-columns: 1fr; }
+    .tabs { flex-direction: column; align-items: stretch; }
+    .tab-link { margin-right: 0; margin-bottom: var(--spacing-xs); }
+    .calculator-container { grid-template-columns: 1fr; }
+    .actions { flex-direction: column; align-items: stretch; }
+    table { font-size: 0.75rem; }
+    th, td { padding: var(--spacing-sm); }
+}
+
+@media (max-width: 480px) {
+    .summary-card .value { font-size: 1.5rem; }
+    header h1 { font-size: 1.75rem; }
+    .calc-section, .dashboard-section, .portfolio-section, .notes-section { padding: var(--spacing-md); }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: var(--radius-sm); }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.4); }
+
+/* 资产分解部分样式 */
+.asset-breakdown-section {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-xl);
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+#asset-breakdown-table {
+    margin-bottom: var(--spacing-lg);
+}
+.editable-breakdown-description,
+.editable-breakdown-amount {
+    outline: none;
+    border-bottom: 2px dashed rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+}
+.editable-breakdown-description:hover,
+.editable-breakdown-amount:hover {
+    background: rgba(0,0,0,0.05);
+    border-bottom-color: var(--text-primary);
+}
+.editable-breakdown-description:focus,
+.editable-breakdown-amount:focus {
+    background: rgba(0,0,0,0.1);
+    border-bottom-color: var(--text-primary);
+}
+
+/* 净资产汇总样式 */
+.net-asset-summary {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+}
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+.summary-row:last-child {
+    border-bottom: none;
+}
+.net-asset-row {
+    background: rgba(0,0,0,0.1);
+    color: var(--text-primary);
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1.125rem;
+    border-bottom: none;
+}
+.summary-row .label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.net-asset-row .label {
+    color: var(--text-primary);
+}
+.summary-row .value {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+.net-asset-row .value {
+    color: var(--text-primary);
+    font-size: 1.25rem;
+}
+
+/* 打印样式 */
+@media print {
+    body { background: white; color: black; }
+    .card { box-shadow: none; border: 1px solid #ccc; }
+    button { display: none; }
+}
